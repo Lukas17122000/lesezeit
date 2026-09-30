@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit V22 – Bookstats Next</title>
+<title>Lesezeit V23 – Bookstats Next</title>
 <style>
 :root{
  --bg:#f4f4f7;--card:#fff;--text:#18181b;--muted:#74747d;--line:#e6e6eb;
@@ -102,7 +102,9 @@ button{cursor:pointer}
 .navbtn{border:1px solid var(--line);background:#fff;padding:9px 14px;border-radius:11px;font-weight:700}
 .navbtn.active{background:var(--dark);color:#fff}
 
-</style>
+<style id="v23-profile-css">
+.profile-grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(260px,1fr);gap:18px}.profile-card{display:flex;gap:24px;align-items:center;padding:24px}.profile-avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px}.profile-avatar{width:140px;height:140px;border-radius:50%;object-fit:cover;background:var(--soft,#eee);border:4px solid var(--accent,#6d5dfc)}.avatar-upload{cursor:pointer;border-radius:12px;padding:9px 12px;background:var(--soft,#eee);font-size:12px;font-weight:700}.avatar-upload input{display:none}.profile-fields{display:flex;flex-direction:column;gap:11px;flex:1}.profile-fields label{font-size:12px;font-weight:700;text-align:left}.profile-fields .field{display:block;width:100%;box-sizing:border-box;margin-top:5px}.primary-btn,.secondary-btn{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}.primary-btn{background:var(--accent,#6d5dfc);color:#fff}.secondary-btn{background:var(--soft,#eee);color:inherit}.profile-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.stat-card{padding:22px;display:flex;flex-direction:column;gap:7px}.stat-card span{font-size:24px}.stat-card strong{font-size:28px}.stat-card small{opacity:.6}@media(max-width:760px){.profile-grid{grid-template-columns:1fr}.profile-card{flex-direction:column}.profile-avatar{width:120px;height:120px}}
+</style></style>
 
 <style id="v12-cloud-css">
 #v12CloudPanel{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);z-index:99999;display:none;align-items:center;justify-content:center;padding:20px}
@@ -200,7 +202,7 @@ button{cursor:pointer}
 
 <div class="nav">
  <button class="navbtn active" id="navLibrary" onclick="showPage('library')">📚 Bibliothek</button>
- <button class="navbtn" id="navStats" onclick="showPage('stats')">📊 Statistiken</button><button class="navbtn" id="navDesign" onclick="showPage('design')">🎨 Design</button>
+ <button class="navbtn" id="navStats" onclick="showPage('stats')">📊 Statistiken</button><button class="navbtn" id="navDesign" onclick="showPage('design')">🎨 Design</button><button class="navbtn" id="navProfile" onclick="showPage('profile')">👤 Profil</button>
 </div>
 
 <div id="libraryPage" class="page active">
@@ -300,6 +302,25 @@ button{cursor:pointer}
   </div>
  </div>
 
+
+<div id="profilePage" class="page">
+<div class="page-head"><div><div class="eyebrow">MEIN KONTO</div><h1>Mein Profil</h1><p class="muted">Dein persönlicher Bereich bei Lesezeit.</p></div></div>
+<div class="profile-grid">
+<section class="card profile-card"><div class="profile-avatar-wrap">
+<img id="profileAvatar" class="profile-avatar" alt="Profilbild">
+<label class="avatar-upload"><input id="profileAvatarInput" type="file" accept="image/*">📷 Profilbild ändern</label>
+</div><div class="profile-fields">
+<label>Anzeigename<input id="profileDisplayName" class="field" maxlength="40" placeholder="Dein Anzeigename"></label>
+<label>E-Mail<input id="profileEmail" class="field" type="email" disabled></label>
+<button id="profileSaveBtn" class="primary-btn">Profil speichern</button>
+<button id="profileLogoutBtn" class="secondary-btn">Abmelden</button>
+<div id="profileStatus" class="muted"></div></div></section>
+<section class="profile-stats-grid">
+<div class="card stat-card"><span>📚</span><strong id="profileBooks">0</strong><small>Bücher</small></div>
+<div class="card stat-card"><span>📄</span><strong id="profilePages">0</strong><small>Seiten</small></div>
+<div class="card stat-card"><span>⏱️</span><strong id="profileHours">0</strong><small>Lesestunden</small></div>
+<div class="card stat-card"><span>🏆</span><strong id="profileLevel">1</strong><small>Level</small></div>
+</section></div></div>
 
 <div id="statsPage" class="page">
  <div class="sectionhead">
@@ -671,7 +692,9 @@ function showPage(page){
  document.getElementById('navStats').classList.toggle('active',page==='stats');
  document.getElementById('navDesign').classList.toggle('active',page==='design');
  if(page==='stats')renderStats();
- if(page==='design')renderDesign();
+ if(page==='design')renderDesign(); document.getElementById('profilePage').classList.toggle('active',page==='profile');
+ document.getElementById('navProfile').classList.toggle('active',page==='profile');
+ if(page==='profile')renderProfile();
 }
 function renderStats(){
  const read=books.filter(b=>status(b)==='Gelesen');
@@ -1104,5 +1127,28 @@ document.addEventListener('DOMContentLoaded',()=>{
 })();
 </script>
 
-</body>
+<script id="v23-profile-js">
+(function(){
+const $=id=>document.getElementById(id);
+let avatarData='';
+const fallback=n=>'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="100%" height="100%" rx="150" fill="#eee"/><text x="50%" y="55%" text-anchor="middle" font-size="130" font-family="Arial" fill="#777">'+(n||'L').trim().charAt(0).toUpperCase()+'</text></svg>');
+window.renderProfile=async function(){
+ const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;if(!sb||!u)return;
+ $('profileEmail').value=u.email||'';
+ const b=Array.isArray(window.books)?window.books:[];
+ $('profileBooks').textContent=b.length;
+ $('profilePages').textContent=b.reduce((n,x)=>n+(Number(x.Seitenanzahl)||0),0).toLocaleString('de-DE');
+ $('profileHours').textContent=b.reduce((n,x)=>n+(Number(x['Dauer (Stunden)'])||0)+(Number(x['Dauer (Minuten)'])||0)/60,0).toFixed(1);
+ $('profileLevel').textContent=Math.max(1,Math.floor(b.length/10)+1);
+ try{
+  const {data,error}=await sb.from('profiles').select('display_name,avatar_url').eq('id',u.id).maybeSingle(); if(error)throw error;
+  const n=data?.display_name||localStorage.getItem('lesezeit_pending_display_name')||u.email.split('@')[0];
+  $('profileDisplayName').value=n;avatarData=data?.avatar_url||'';$('profileAvatar').src=avatarData||fallback(n);
+ }catch(e){const n=localStorage.getItem('lesezeit_pending_display_name')||u.email.split('@')[0];$('profileDisplayName').value=n;$('profileAvatar').src=fallback(n);}
+};
+$('profileAvatarInput')?.addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>2*1024*1024){$('profileStatus').textContent='Maximal 2 MB.';return;}const r=new FileReader();r.onload=()=>{avatarData=r.result;$('profileAvatar').src=avatarData};r.readAsDataURL(f)});
+$('profileSaveBtn')?.addEventListener('click',async()=>{const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser,n=$('profileDisplayName').value.trim();if(!n)return;$('profileStatus').textContent='Speichere …';try{const {error}=await sb.from('profiles').upsert({id:u.id,display_name:n,avatar_url:avatarData||null,updated_at:new Date().toISOString()},{onConflict:'id'});if(error)throw error;localStorage.removeItem('lesezeit_pending_display_name');$('profileStatus').textContent='Profil gespeichert ✓'}catch(e){$('profileStatus').textContent='Fehler: '+e.message}});
+$('profileLogoutBtn')?.addEventListener('click',()=>window.LesezeitLogout?.());
+})();
+</script></body>
 </html>
