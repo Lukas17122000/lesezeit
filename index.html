@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit V29 – Bookstats Next</title>
+<title>Lesezeit · V31.6 – Lesezeit V31 – Deine Lesewelt</title>
 <style>
 :root{
  --bg:#f4f4f7;--card:#fff;--text:#18181b;--muted:#74747d;--line:#e6e6eb;
@@ -146,6 +146,20 @@ button{cursor:pointer}
 
 @media(max-width:900px){.profile-shell{grid-template-columns:1fr}}
 @media(max-width:650px){.profile-main{flex-direction:column;text-align:center}.profile-avatar-wrap{min-width:0}.profile-identity h2{font-size:25px}.level-row{text-align:left}.achievement-row{grid-template-columns:1fr 1fr}}
+
+/* V31 – Buchsuche */
+.book-search-modal{display:none;position:fixed;inset:0;z-index:90000;background:rgba(0,0,0,.48);align-items:center;justify-content:center;padding:16px}
+.book-search-modal.open{display:flex}
+.book-search-dialog{width:min(980px,100%);max-height:88vh;overflow:auto;background:var(--card,#fff);color:var(--text,#171717);border-radius:24px;padding:24px;box-shadow:0 25px 90px rgba(0,0,0,.25);position:relative}
+.book-search-top{display:flex;gap:10px;align-items:center;margin:14px 0}
+.book-search-top input{flex:1;padding:14px;border:1px solid var(--line);border-radius:14px;background:transparent;color:inherit;font-size:16px}
+.book-search-results{display:grid;gap:12px;margin-top:14px}
+.book-result{display:grid;grid-template-columns:74px 1fr auto;gap:14px;align-items:center;border:1px solid var(--line);border-radius:18px;padding:12px;background:rgba(127,127,127,.04)}
+.book-result img{width:74px;height:106px;object-fit:cover;border-radius:9px;background:#eee}
+.book-result h3{margin:0 0 4px;font-size:16px}.book-result .muted{font-size:13px;line-height:1.4}
+.book-result-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.edition-list{display:grid;gap:9px;margin-top:14px}.edition{display:grid;grid-template-columns:54px 1fr auto;gap:11px;align-items:center;border:1px solid var(--line);border-radius:15px;padding:9px}.edition img{width:54px;height:78px;object-fit:cover;border-radius:7px;background:#eee}.edition strong{display:block}.edition small{display:block;line-height:1.4;color:#777}.search-status{min-height:20px;margin-top:8px;font-size:13px}.add-success{padding:13px;border-radius:14px;background:rgba(60,180,100,.12);margin-top:12px}
+@media(max-width:650px){.book-search-dialog{padding:17px;border-radius:20px}.book-result{grid-template-columns:58px 1fr}.book-result img{width:58px;height:84px}.book-result-actions{grid-column:2;justify-content:flex-start}.edition{grid-template-columns:48px 1fr}.edition img{width:48px;height:70px}.edition button{grid-column:2;justify-self:start}}
 </style>
 
 
@@ -225,7 +239,7 @@ button{cursor:pointer}
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V29</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V31.6.5.5 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -266,7 +280,7 @@ button{cursor:pointer}
 <div class="sectionhead">
 <div><h2>Meine Bücher</h2><div class="muted" id="resultCount"></div><div class="muted" id="coversHint" style="margin-top:3px">Cover werden anhand der ISBN automatisch gesucht.</div></div>
 <div class="controls">
-<button class="viewbtn active" data-view="grid" onclick="setView('grid')">▦ Raster</button>
+<button class="btn dark" onclick="openBookSearch()">➕ Buch hinzufügen</button><button class="viewbtn active" data-view="grid" onclick="setView('grid')">▦ Raster</button>
 <button class="viewbtn" data-view="list" onclick="setView('list')">☰ Liste</button>
 <button class="viewbtn" data-view="covers" onclick="setView('covers')">▣ Cover</button>
 </div>
@@ -426,6 +440,16 @@ button{cursor:pointer}
   <div id="ratingChart"></div>
  </div>
 </div>
+
+
+<div id="bookSearchModal" class="book-search-modal"><div class="book-search-dialog">
+<button class="close" onclick="closeBookSearch()">×</button>
+<div class="muted">NEUES BUCH</div><h2 style="margin:5px 0 0">📚 Buch suchen & hinzufügen</h2>
+<p class="muted">Suche nach Titel, Autor oder ISBN. Danach kannst du die passende Ausgabe auswählen.</p>
+<div class="book-search-top"><input id="bookSearchInput" placeholder="z. B. Fourth Wing, Rebecca Yarros oder ISBN …" autocomplete="off"><button class="btn dark" onclick="searchExternalBooks()">🔎 Suchen</button></div>
+<div id="bookSearchStatus" class="search-status"></div><div id="bookSearchResults" class="book-search-results"></div>
+<div id="bookEditionArea" style="display:none;margin-top:22px"><hr style="border:0;border-top:1px solid var(--line)"><h3 id="bookEditionTitle">Ausgabe auswählen</h3><div class="muted">Wir zeigen konkrete Ausgaben mit ISBN, Seitenzahl, Verlag und Erscheinungsdatum.</div><div id="bookEditionList" class="edition-list"></div></div>
+</div></div>
 
 <div id="detailModal" class="modal"><div class="dialog">
 <button class="close" onclick="closeDetail()">×</button><div id="detail"></div>
@@ -1099,12 +1123,82 @@ refresh();setView(viewMode);
     }
   }
 
+  const BOOKSTATS_SOURCE = [{"isbn":"9783833233524","title":"assassin's creed: der offizielle roman zum film: roman zum film - videogameroman","status":"Gelesen","pages":352,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783789132346","title":"die tribute von panem: flammender zorn - filmausgabe","status":"Gelesen","pages":432,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453435773","title":"es: roman (heyne bücher, 43577)","status":"Gelesen","pages":1536,"rating":5,"start":"10.05.2022","end":"10.06.2022","hours":0,"minutes":0},{"isbn":"9783442482450","title":"fifty shades of grey - geheimes verlangen: band 1. buch zum film - roman","status":"Gelesen","pages":608,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453435797","title":"friedhof der kuscheltiere: roman","status":"Gelesen","pages":608,"rating":5,"start":"11.06.2022","end":"20.07.2022","hours":0,"minutes":0},{"isbn":"9781510051317","title":"harry potter and the cursed child","status":"Gelesen","pages":330,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783551559005","title":"harry potter und das verwunschene kind. teil eins und zwei (special rehearsal edition script) (harry potter)","status":"Gelesen","pages":336,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783745305944","title":"montanablack: vom junkie zum youtuber","status":"Gelesen","pages":250,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781407199795","title":"scary stories to tell in the dark: the complete collection","status":"Gelesen","pages":352,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783641053420","title":"the green mile: roman","status":"Gelesen","pages":592,"rating":5,"start":"20.07.2022","end":"29.07.2022","hours":0,"minutes":0},{"isbn":"9781409092360","title":"a brief history of time: from big bang to black holes (english edition)","status":"Ungelesen","pages":272,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783426524398","title":"abgeschlagen: true-crime-thriller (die paul herzfeld-reihe, band 1)","status":"Ungelesen","pages":416,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781694990778","title":"alles über satanismus: der satanische glaube","status":"Ungelesen","pages":46,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783833238390","title":"apex legends: der inoffizielle guide: so wird man zum champion der arena","status":"Ungelesen","pages":120,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783641064082","title":"aschenputtel: thriller (fredrika bergman / stockholm requiem 1)","status":"Ungelesen","pages":496,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453441088","title":"brennen muss salem: roman","status":"Ungelesen","pages":656,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783404180066","title":"carrie: roman .","status":"Gelesen","pages":304,"rating":5,"start":"01.05.2023","end":"21.07.2023","hours":0,"minutes":0},{"isbn":"9783453435735","title":"danse macabre: die welt des horrors","status":"Ungelesen","pages":800,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783752838862","title":"das buch der wahren schwarzen magie: la véritable magie noire","status":"Ungelesen","pages":160,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783641244286","title":"das institut","status":"Ungelesen","pages":652,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783641054007","title":"das leben und das schreiben: memoiren","status":"Ungelesen","pages":384,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783442473502","title":"das verhängnis: roman","status":"Ungelesen","pages":432,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783764507107","title":"der kinderflüsterer: roman","status":"Ungelesen","pages":448,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783548377308","title":"der totenleser: unglaubliche fälle aus der rechtsmedizin","status":"Ungelesen","pages":256,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9798687615242","title":"die 7 säulen der manipulation","status":"Ungelesen","pages":108,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783426411957","title":"die insel der besonderen kinder: roman (die besonderen kinder 1)","status":"Ungelesen","pages":416,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453440319","title":"die leiche: novelle","status":"Ungelesen","pages":256,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783426461945","title":"die siebte zeugin","status":"Ungelesen","pages":405,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783473491483","title":"disney der könig der löwen: der roman zum film","status":"Ungelesen","pages":288,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783570310991","title":"du neben mir und zwischen uns die ganze welt: der roman zum film (cbt taschenbücher, 31099)","status":"Ungelesen","pages":336,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783730603055","title":"e=mc2 - einführung in die allgemeine und spezielle relativitätstheorie","status":"Ungelesen","pages":144,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783505101564","title":"ein fall für dich und das tiger-team, bd.7, der alptraum-helikopter","status":"Ungelesen","pages":128,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453438453","title":"finderlohn: roman (bill-hodges-serie, band 2)","status":"Ungelesen","pages":560,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783764531522","title":"game of thrones 1: der winter naht","status":"Ungelesen","pages":832,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783764531591","title":"game of thrones 3: hört mich brüllen","status":"Ungelesen","pages":1212,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783862655007","title":"grenzverletzungen: eine geschichte über borderline, freundschaft und abhängigkeit","status":"Ungelesen","pages":288,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783785572726","title":"höhenflug abwärts: marie nimmt drogen - jugendroman ab 12 jahre","status":"Ungelesen","pages":168,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783990013656","title":"liebesbrief an unbekannt","status":"Ungelesen","pages":400,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783905831467","title":"make that change: michael jackson: botschaft und schicksal eines spirituellen revolutionärs.","status":"Ungelesen","pages":694,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783868822137","title":"menschen lesen: ein fbi-agent erklärt, wie man körpersprache entschlüsselt","status":"Ungelesen","pages":272,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453270862","title":"mind control: roman (bill-hodges-serie, band 3)","status":"Ungelesen","pages":544,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783944154206","title":"mit 11 wurde mein körper zur ware","status":"Ungelesen","pages":320,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783967750218","title":"montanablack ii: vom youtuber zum millionär","status":"Ungelesen","pages":256,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453419018","title":"mr. mercedes: roman (bill-hodges-serie, band 1)","status":"Ungelesen","pages":608,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783442159833","title":"notes from the upside down: das inoffizielle buch zu stranger things - die erfolgsserie auf netflix","status":"Ungelesen","pages":288,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781501178030","title":"notes from upside down unoff gt stranger things sc: an unofficial guide to stranger things","status":"Ungelesen","pages":240,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783739240183","title":"parapsychologie: telepathie, hellsehen, geister, geisterscheinungen, gedankenlesen, leben nach dem tod","status":"Ungelesen","pages":92,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453565098","title":"puls","status":"Ungelesen","pages":576,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781088403525","title":"quantenphysik","status":"Ungelesen","pages":140,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781471171635","title":"red sparrow: thriller","status":"Ungelesen","pages":672,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783401509952","title":"rote linien: ritzen bis aufs blut. sonderband:","status":"Ungelesen","pages":208,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783404130894","title":"shining: roman","status":"Gelesen","pages":624,"rating":5,"start":"01.09.2023","end":"11.09.2023","hours":0,"minutes":0},{"isbn":"9783453435834","title":"sie: roman","status":"Gelesen","pages":528,"rating":5,"start":"12.09.2023","end":"20.09.2023","hours":0,"minutes":0},{"isbn":"9781544982571","title":"so dunkel die angst: thriller","status":"Ungelesen","pages":302,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783864152641","title":"so werden sie ein mentalist","status":"Ungelesen","pages":240,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783641277383","title":"später","status":"Gelesen","pages":304,"rating":5,"start":"03.11.2023","end":"05.11.2023","hours":0,"minutes":0},{"isbn":"9783864150449","title":"stroh im kopf?","status":"Ungelesen","pages":336,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9780451478290","title":"13 reasons why: a novel","status":"Ungelesen","pages":326,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783747401651","title":"wenn du liebe willst, musst du liebe sein: das richtige mindset schaffen, um die wahre liebe zu erkennen und ins leben zu ziehen","status":"Ungelesen","pages":192,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783551317322","title":"wir kinder vom bahnhof zoo: eine kindheit zwischen heroin und kinderstrich ? nach einer wahren geschichte","status":"Ungelesen","pages":368,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783426415450","title":"zwillingsbrut: thriller (ein fall für alvarez und pescoli 3)","status":"Ungelesen","pages":560,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453272408","title":"es: roman. luxusausgabe: der horrorklassiker als limitierte prachtausgabe im schmuckschuber.","status":"Ungelesen","pages":1360,"rating":5,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9798699687152","title":"the trials of gabriel fernandez: the brutal murder and abuse of child gabriel","status":"Ungelesen","pages":92,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781922346360","title":"jeffrey dahmer: the milwaukee cannibal","status":"Ungelesen","pages":120,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"","title":"vom tatort ins labor: rechtsmediziner decken auf","status":"Ungelesen","pages":176,"rating":5,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9780008319748","title":"bird box. film tie-in","status":"Ungelesen","pages":400,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783641237745","title":"bird box - schließe deine augen: roman","status":"Ungelesen","pages":320,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783473580088","title":"die welle: bericht über einen unterrichtsversuch, der zu weit ging (ravensburger taschenbücher)","status":"Ungelesen","pages":192,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783548374086","title":"127 hours - im canyon: fünf tage und nächte bis zur schwierigsten entscheidung meines lebens (0)","status":"Gelesen","pages":384,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783732005437","title":"lass mich glücklich sein!","status":"Ungelesen","pages":176,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9780062961280","title":"scary stories to tell in the dark movie tie-in edition","status":"Ungelesen","pages":128,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783833863912","title":"du täter, du opfer: stark gegen mobbing und gewalt (gräfe und unzer einzeltitel)","status":"Gelesen","pages":208,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783868829211","title":"finde deinen fixstern: die eigenen lebensziele erkennen und erreichen","status":"Ungelesen","pages":160,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783961857623","title":"das schönste mädchen der welt: das buch zum film. mit songtexten und filmbildern: das buch zum film mit filmbildern","status":"Gelesen","pages":164,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783570176863","title":"mia und der weiße löwe - das buch zum film: filmstart am 31.01.2019","status":"Gelesen","pages":160,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781529365665","title":"billy summers: a novel","status":"Ungelesen","pages":432,"rating":5,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453441613","title":"joyland: roman","status":"Ungelesen","pages":368,"rating":5,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783742302496","title":"helter skelter: die wahre geschichte des serienmörders charles manson","status":"Ungelesen","pages":788,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453439559","title":"sleeping beauties: roman","status":"Ungelesen","pages":976,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453441675","title":"billy summers: roman","status":"Gelesen","pages":720,"rating":5,"start":"24.01.2023","end":"30.04.2023","hours":0,"minutes":0},{"isbn":"9783453432734","title":"feuerkind: roman","status":"Ungelesen","pages":560,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781473666931","title":"it: the classic book from stephen king with a new film tie-in cover to it: chapter 2, due for release september 2019","status":"Ungelesen","pages":1392,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453441163","title":"der nebel","status":"Ungelesen","pages":240,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453441583","title":"christine: roman","status":"Ungelesen","pages":896,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781476763835","title":"the road to jonestown: jim jones and peoples temple","status":"Ungelesen","pages":560,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453433960","title":"colorado kid: roman","status":"Ungelesen","pages":176,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453441590","title":"der anschlag: roman","status":"Ungelesen","pages":1072,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453432710","title":"cujo: roman","status":"Gelesen","pages":416,"rating":5,"start":"28.09.2023","end":"02.10.2023","hours":0,"minutes":0},{"isbn":"9783453160811","title":"sara: roman","status":"Ungelesen","pages":640,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453441392","title":"blutige nachrichten","status":"Ungelesen","pages":576,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453441873","title":"revival: roman","status":"Ungelesen","pages":528,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453434677","title":"sunset: storys","status":"Ungelesen","pages":496,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453435766","title":"dolores: roman","status":"Gelesen","pages":384,"rating":5,"start":"21.09.2023","end":"26.09.2023","hours":0,"minutes":0},{"isbn":"9783453274365","title":"friedhof der kuscheltiere: roman. luxusausgabe: der horrorklassiker als limitierte prachtausgabe im schmuckschuber.","status":"Ungelesen","pages":544,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453436879","title":"das bild: roman","status":"Ungelesen","pages":672,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453441811","title":"das spiel (gerald's game): roman","status":"Ungelesen","pages":480,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453441880","title":"duddits - dreamcatcher: roman","status":"Ungelesen","pages":896,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453274334","title":"holly: roman","status":"Ungelesen","pages":640,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"8601400269381","title":"'salem's lot","status":"Ungelesen","pages":672,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781984898104","title":"carrie","status":"Ungelesen","pages":320,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9780345806789","title":"the shining","status":"Ungelesen","pages":688,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783753478678","title":"janez: von den meisten gehasst - von wenigen geliebt","status":"Gelesen","pages":350,"rating":5,"start":"18.06.2024","end":"22.06.2024","hours":0,"minutes":0},{"isbn":"9783455017526","title":"suzukis rache: thriller | vom autor des bestsellers und filmhits »bullet train«!","status":"Gelesen","pages":304,"rating":5,"start":"23.06.2024","end":"28.06.2024","hours":0,"minutes":0},{"isbn":"9783987182273","title":"hunting adeline","status":"Gelesen","pages":715,"rating":5,"start":"10.08.2024","end":"25.08.2024","hours":0,"minutes":0},{"isbn":"9783745318586","title":"tokyo vice","status":"Gelesen","pages":379,"rating":0,"start":"30.06.2024","end":"07.07.2024","hours":0,"minutes":0},{"isbn":"9783987182242","title":"haunting adeline: dark romance | der tiktok-erfolg auf deutsch! mit limitiertem farbschnitt! (das katz-und-maus-duett)","status":"Gelesen","pages":623,"rating":5,"start":"05.08.2024","end":"09.08.2024","hours":0,"minutes":0},{"isbn":"9783548063768","title":"der blutkünstler: thriller | ein harter und packender serienmörder-thriller (tom-bachmann-serie, band 1)","status":"Gelesen","pages":364,"rating":5,"start":"21.07.2024","end":"27.07.2024","hours":0,"minutes":0},{"isbn":"9783455015669","title":"ingenium: das erste rätsel | erste auflage mit exklusivem farbschnitt","status":"Gelesen","pages":432,"rating":5,"start":"07.07.2024","end":"18.07.2024","hours":0,"minutes":0},{"isbn":"9783759715227","title":"suzanna - rebirth: eine atemberaubende dark romantasy story","status":"Gelesen","pages":340,"rating":5,"start":"19.07.2024","end":"21.07.2024","hours":0,"minutes":0},{"isbn":"9783868839029","title":"american sniper: die geschichte des scharfschützen chris kyle","status":"Gelesen","pages":416,"rating":5,"start":"27.07.2024","end":"04.08.2024","hours":0,"minutes":0},{"isbn":"9783455015454","title":"bullet train: thriller | verfilmt mit brad pitt und sandra bullock!","status":"Ungelesen","pages":384,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783985959723","title":"dark prince: gefährliches spiel, exklusiver farbschnitt ? nur solange der vorrat reicht!","status":"Gelesen","pages":469,"rating":5,"start":"26.08.2024","end":"04.09.2024","hours":0,"minutes":0},{"isbn":"9783989426191","title":"dark desire: verbotenes verlangen (royal reihe)","status":"Gelesen","pages":365,"rating":5,"start":"05.09.2024","end":"11.09.2024","hours":0,"minutes":0},{"isbn":"9783492507592","title":"hooked (never after 1): roman | die dark-romance booktok-sensation endlich auf deutsch!","status":"Gelesen","pages":328,"rating":5,"start":"02.10.2024","end":"07.10.2024","hours":0,"minutes":0},{"isbn":"9783492507608","title":"scarred (never after 2): roman | hooked 2: der dark-romance booktok-hits endlich auf deutsch!","status":"Ungelesen","pages":368,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783985852031","title":"boys of tommen 1: binding 13: die booktok sensation endlich auf deutsch - farbiger buchschnitt in limitierter auflage (1)","status":"Ungelesen","pages":788,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783985852048","title":"boys of tommen 2: keeping 13: band 2 der booktok sensation endlich auf deutsch - farbiger buchschnitt in limitierter auflage (2)","status":"Ungelesen","pages":872,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426436","title":"dark royalty: königliches begehren (royal reihe)","status":"Gelesen","pages":400,"rating":5,"start":"14.09.2024","end":"16.09.2024","hours":0,"minutes":0},{"isbn":"9783989426405","title":"catching beauty: du gehörst mir","status":"Ungelesen","pages":345,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426412","title":"catching beauty: du entkommst mir nicht","status":"Ungelesen","pages":311,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426429","title":"catching beauty: du bedeutest meinen tod","status":"Ungelesen","pages":348,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426122","title":"hunting angel: ich werde dich jagen","status":"Ungelesen","pages":258,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426139","title":"hunting angel: du wirst mir verfallen","status":"Ungelesen","pages":331,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426146","title":"hunting angel: fürchte dich vor mir","status":"Ungelesen","pages":327,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783455016994","title":"invictum: das zweite rätsel. thriller | das schwerste rätsel der welt ist eine tödliche falle","status":"Gelesen","pages":384,"rating":5,"start":"20.09.2024","end":"25.09.2024","hours":0,"minutes":0},{"isbn":"9783989426283","title":"darkside: du bist meine obsession | mit wunderschönem farbschnitt (hunted hearts chronicles): du bist meine obsession | mit wunderschönem farbschnitt solange der vorrat reicht","status":"Ungelesen","pages":455,"rating":5,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783492507615","title":"wretched (never after 3): roman | band 3 der dark-romance booktok-erfolgsserie endlich auf deutsch!","status":"Ungelesen","pages":320,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426276","title":"beautiful sinners: mit wunderschönem farbschnitt: mit wunderschönem farbschnitt solange der vorrat reicht","status":"Ungelesen","pages":346,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426252","title":"secrets and seduction: du wirst immer mein sein (preston academy, band 1) | mit wunderschönem farbschnitt","status":"Ungelesen","pages":349,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426443","title":"dark duty: tödliche sehnsucht (royal reihe)","status":"Ungelesen","pages":375,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989423251","title":"entführt: wie alles begann: band 1 (dark reverse harem) (florales cover mit farbschnitt) (entführt-reihe)","status":"Ungelesen","pages":290,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989423275","title":"entführt und verkauft: band 2 (dark reverse harem) (florales cover mit farbschitt) (entführt-reihe)","status":"Ungelesen","pages":332,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989423299","title":"entführt: du gehörst mir: band 3 (florales cover mit farbschnitt) (entführt-reihe)","status":"Ungelesen","pages":300,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989423763","title":"entführt: dunkle sehnsucht: band 4 (florales cover mit farbschnitt) (entführt-reihe): (dark reverse harem, florales cover mit exklusivem farbschnitt)","status":"Ungelesen","pages":298,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427488","title":"dark princess: dunkles geheimnis | mit wunderschönem farbschnitt (royal reihe)","status":"Ungelesen","pages":331,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426511","title":"darkside: du bist meine passion | mit wunderschönem farbschnitt (hunted hearts chronicles): du bist mein: du bist meine passion | mit wunderschönem farbschnitt solange der vorrat reicht","status":"Ungelesen","pages":457,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783987183416","title":"haunting adeline: dark romance | der tiktok-erfolg auf deutsch! (das katz-und-maus-duett)","status":"Gelesen","pages":623,"rating":5,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783987183423","title":"hunting adeline: dark romance | der tiktok-erfolg auf deutsch! (das katz-und-maus-duett)","status":"Gelesen","pages":654,"rating":5,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427525","title":"taken princess 1: du bist mein | mit wunderschönem farbschnitt","status":"Ungelesen","pages":270,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427532","title":"taken princess 2: mein herz ist dein | mit wunderschönem farbschnitt","status":"Ungelesen","pages":270,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427549","title":"taken princess 3: das ende ist unser | mit wunderschönem farbschnitt","status":"Ungelesen","pages":270,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783492707831","title":"escaping from houdini (die grausamen fälle der audrey rose 3): mord auf dem atlantik | mit limitiertem farbschnitt | historischer thriller um den größten entfesselungskünstler aller zeiten","status":"Ungelesen","pages":544,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783492707817","title":"stalking jack the ripper (die grausamen fälle der audrey rose 1): die spur in den schatten | endlich auf deutsch ? historischer thriller mit slow burn romance","status":"Ungelesen","pages":416,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783492707824","title":"hunting prince dracula (die grausamen fälle der audrey rose 2): die gefährliche jagd | ein historischer thriller um den berühmtesten vampir der geschichte: graf dracula","status":"Ungelesen","pages":528,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783492707848","title":"capturing the devil (die grausamen fälle der audrey rose 4): der teufel von chicago | mit limitiertem farbschnitt | historischer thriller: auf der spur des berüchtigten serienkillers h. h. holmes","status":"Ungelesen","pages":560,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427495","title":"dark kingdom: blutiges schicksal | mit wunderschönem farbschnitt (royal reihe)","status":"Ungelesen","pages":400,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783404194254","title":"heart & shadow: eine welt im chaos ? und eine liebe, die dem schicksal trotzt. roman (die chaos chroniken, band 1)","status":"Ungelesen","pages":624,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783734114540","title":"once you're mine: roman - fesselnd, düster, verführerisch: der dark-romance-hype endlich auf deutsch ? mit farbschnitt in limitierter auflage! (possessing her, band 1)","status":"Ungelesen","pages":320,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427044","title":"memories and madness | mit wunderschönem farbschnitt (preston academy)","status":"Ungelesen","pages":440,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426542","title":"regret: ertrinke zwischen uns (southside academy) | mit wunderschönem farbschnitt: ertrinke zwischen uns | mit wunderschönem farbschnitt solange der vorrat reicht","status":"Ungelesen","pages":368,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426290","title":"escape: brenne zwischen uns (southside academy) | mit wunderschönem farbschnitt","status":"Ungelesen","pages":456,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783987181252","title":"her soul to take: dark romance | mit limitiertem farbschnitt! (souls trilogy)","status":"Ungelesen","pages":500,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783734114533","title":"now you're mine: roman - fesselnd, düster, verführerisch: der dark-romance-hype endlich auf deutsch ? mit farbschnitt in limitierter auflage! (possessing her, band 2)","status":"Ungelesen","pages":256,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426993","title":"love me, badly: | mit wunderschönem farbschnitt (last-respects-reihe)","status":"Ungelesen","pages":432,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426528","title":"ruin and redemption (preston academy, band 2) | mit wunderschönem farbschnitt: mit wunderschönem farbschnitt solange der vorrat reicht","status":"Ungelesen","pages":368,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426535","title":"beautiful psychos: mit wunderschönem farbschnitt (beautiful sinners): mit wunderschönem farbschnitt solange der vorrat reicht","status":"Ungelesen","pages":368,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427020","title":"beautiful monsters | mit wunderschönem farbschnitt (beautiful sinners)","status":"Ungelesen","pages":400,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989425590","title":"haunted beauty - mit wunderschönem farbschnitt","status":"Ungelesen","pages":400,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9780349434278","title":"twisted love: the must-read brother's best friend romance","status":"Ungelesen","pages":368,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9780349434315","title":"twisted games: the must-read bodyguard romance","status":"Ungelesen","pages":464,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9780349434339","title":"twisted hate: the must-read enemies to lovers","status":"Ungelesen","pages":528,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9780349434285","title":"twisted lies: the must-read fake dating romance","status":"Ungelesen","pages":576,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783987183102","title":"where's molly: dark romance | ein spin-off des katz-und-maus-duetts","status":"Ungelesen","pages":300,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781728295350","title":"brutal prince: a dark mafia romance (brutal birthright)","status":"Ungelesen","pages":336,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781728295367","title":"stolen heir: a dark mafia romance (brutal birthright)","status":"Ungelesen","pages":352,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427518","title":"dark king: königliche liebe | mit wunderschönem farbschnitt (royal reihe)","status":"Ungelesen","pages":522,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781728295381","title":"bloody heart: a dark mafia romance (brutal birthright)","status":"Ungelesen","pages":400,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9781728295374","title":"savage lover: a dark mafia romance (brutal birthright)","status":"Ungelesen","pages":336,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783492508308","title":"twisted (never after 4): roman | die dark-romance booktok-sensation endlich auf deutsch!","status":"Ungelesen","pages":384,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783492073110","title":"source code: meine anfänge | die autobiographie der tech-ikone","status":"Ungelesen","pages":384,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989424401","title":"entführt: rette mich: band 5: rette mich: band 5 (dark reverse harem, florales cover mit exklusivem farbschnitt) (entführt-reihe)","status":"Ungelesen","pages":300,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426269","title":"regents: blute für uns (w&r academy) | mit wunderschönem farbschnitt und weißer schrift auf schwarzen seiten: blute für uns | mit wunderschönem ... schwarzen seiten - solange der vorrat reicht","status":"Ungelesen","pages":424,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783492508315","title":"crossed (never after 5): roman | die dark-romance booktok-sensation endlich auf deutsch!","status":"Ungelesen","pages":408,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426177","title":"very bad liars: kingston university, spring break (dark bully reverse harem) | mit wunderschönem farbschnitt (very bad kings)","status":"Ungelesen","pages":334,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426184","title":"very bad choice: kingston university, die entscheidung (bully reverse harem) | mit wunderschönem farbschnitt (very bad kings)","status":"Ungelesen","pages":336,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426108","title":"very bad truth: kingston university, graduation gala (reverse harem) | mit wunderschönem farbschnitt (very bad kings)","status":"Ungelesen","pages":338,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426115","title":"very bad bastards: kingston university, 3. semester (bully reverse harem) | mit wunderschönem farbschnitt (very bad kings)","status":"Ungelesen","pages":291,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426375","title":"very bad devils: kingston university, 3. semester: der widerstand | mit wunderschönem farbschnitt (very bad kings)","status":"Ungelesen","pages":426,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426399","title":"very bad revenge: kingston university, viertes semester | mit wunderschönem farbschnitt (very bad kings)","status":"Ungelesen","pages":430,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426382","title":"very bad sinners: kingston university, winter break (band 8) | mit wunderschönem farbschnitt (very bad kings)","status":"Ungelesen","pages":378,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783958353862","title":"die katakomben: horrorthriller (die beängstigendsten orte der welt 2)","status":"Ungelesen","pages":369,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783958351813","title":"suicide forest (die beängstigendsten orte der welt): horrorthriller","status":"Ungelesen","pages":518,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426160","title":"very bad elite: kingston university, 2. semester (reverse harem) | mit wunderschönem farbschnitt (very bad kings)","status":"Ungelesen","pages":352,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989426153","title":"very bad kings: kingston university, 1. semester (dark romance) | mit wunderschönem farbschnitt","status":"Ungelesen","pages":456,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427143","title":"beautiful killers | mit wunderschönem farbschnitt (beautiful sinners)","status":"Ungelesen","pages":400,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427099","title":"praeda: leide für uns | mit wunderschönem farbschnitt und weißer schrift auf schwarzen seiten (w&r academy)","status":"Ungelesen","pages":480,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783989427167","title":"hurt me, deeply | mit wunderschönem farbschnitt (last-respects-reihe)","status":"Ungelesen","pages":440,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783690282932","title":"bad prince 1: royales spiel | mit wunderschönem farbschnitt (bad prince reihe)","status":"Ungelesen","pages":364,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783987183607","title":"satan's affair: dark romance | die vorgeschichte des katz-und-maus-duetts","status":"Ungelesen","pages":253,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453442238","title":"scythe & sparrow - die große liebe erscheint manchmal im finstersten moment: roman - mit farbig gestaltetem buchschnitt - nur in limitierter ... und tiktok-sensation! (ruinous love, band 3)","status":"Ungelesen","pages":398,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453429963","title":"butcher & blackbird - selbst die dunkelsten seelen sehnen sich nach liebe: roman - mit farbig gestaltetem buchschnitt - nur in limitierter erstauflage ... und tiktok-sensation! (ruinous love, band 1)","status":"Ungelesen","pages":347,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783453429970","title":"leather & lark - hass und liebe liegen nah beieinander: roman - mit farbig gestaltetem buchschnitt - nur in limitierter erstauflage der gedruckten ... und tiktok-sensation! (ruinous love, band 2)","status":"Ungelesen","pages":399,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783764533243","title":"powerless - die flucht: roman - die fortsetzung der epischen enemies-to-lovers-romantasy von booktok-sensation lauren roberts! mit farbschnitt in limitierter auflage! (die powerless-trilogie, band 2)","status":"Ungelesen","pages":462,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783764533182","title":"powerless - das spiel: roman - der auftakt der epischen enemies-to-lovers-romantasy von booktok-sensation lauren roberts! mit farbschnitt in limitierter auflage! (die powerless-trilogie, band 1)","status":"Ungelesen","pages":655,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783690282949","title":"bad prince 2: royale flucht | mit wunderschönem farbschnitt (bad prince reihe)","status":"Ungelesen","pages":356,"rating":0,"start":"","end":"","hours":0,"minutes":0},{"isbn":"9783690282581","title":"fear us | aufwendig gestaltete ausgabe mit farbschnitt (your sanctuary)","status":"Ungelesen","pages":388,"rating":0,"start":"","end":"","hours":0,"minutes":0}];
+  function normISBN(v){return String(v||'').replace(/[^0-9Xx]/g,'').toUpperCase();}
+  function normTitle(v){return String(v||'').trim().toLowerCase().replace(/\s+/g,' ');}
+  function findBookstatsMatch(r){
+    const b=r?.books||{};
+    const isbn=normISBN(b.isbn);
+    if(isbn){ const hit=BOOKSTATS_SOURCE.find(x=>x.isbn===isbn); if(hit)return hit; }
+    const title=normTitle(b.title);
+    if(title){ const hit=BOOKSTATS_SOURCE.find(x=>x.title===title); if(hit)return hit; }
+    return null;
+  }
+  function bookstatsDate(v){
+    const s=String(v||'').trim();
+    if(!s) return null;
+    const m=s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+    if(m) return `${m[3]}-${m[2]}-${m[1]}`;
+    return s;
+  }
+
+  async function reconcileBookstatsOnce(rows,user){
+    // V31.6: Bookstats is the authoritative source for the original 196 books.
+    // Never let a migration error prevent login; apply only valid patches.
+    const flag='lesezeit_bookstats_reconciled_v2';
+    if(localStorage.getItem(flag)==='1') return rows;
+    const matches=rows.map(r=>({row:r,src:findBookstatsMatch(r)})).filter(x=>x.src);
+    if(!matches.length){
+      localStorage.setItem(flag,'1');
+      return rows;
+    }
+    let changed=0;
+    for(const x of matches){
+      const r=x.row,s=x.src;
+      const nextStatus=s.status==='Gelesen'?'read':'to_read';
+      const nextPage=s.status==='Gelesen'?(Number(s.pages)||0):0;
+      const patch={
+        status:nextStatus,
+        current_page:nextPage,
+        rating:(Number(s.rating)||0)>0 ? Number(s.rating) : null,
+        start_date:bookstatsDate(s.start),
+        end_date:bookstatsDate(s.end),
+        reading_duration_hours:Number(s.hours)||0,
+        reading_duration_minutes:Number(s.minutes)||0
+      };
+      const same=r.status===patch.status &&
+        Number(r.current_page||0)===nextPage &&
+        Number(r.rating||0)===(Number(s.rating)||0) &&
+        String(r.start_date||'')===String(patch.start_date||'') &&
+        String(r.end_date||'')===String(patch.end_date||'') &&
+        Number(r.reading_duration_hours||0)===patch.reading_duration_hours &&
+        Number(r.reading_duration_minutes||0)===patch.reading_duration_minutes;
+      if(!same){
+        const res=await client.from('user_books').update(patch).eq('id',r.id).eq('user_id',user.id);
+        if(res.error){
+          console.error('Bookstats-Abgleich: Eintrag konnte nicht aktualisiert werden',r.id,res.error);
+          continue;
+        }
+        Object.assign(r,patch);
+        changed++;
+      }
+    }
+    localStorage.setItem(flag,'1');
+    console.log('Lesezeit: Bookstats-Abgleich abgeschlossen ('+matches.length+' Treffer, '+changed+' geändert).');
+    return rows;
+  }
+
   async function loadCloud(user){
     show("v22Loading",true);
     try{
       const {data,error}=await client.from("user_books").select("*, books(*)").order("created_at",{ascending:false});
       if(error)throw error;
-      const rows=data||[];
+      let rows=data||[];
+      // Einmaliger Abgleich mit dem ursprünglichen Bookstats-Export.
+      // Dadurch werden die 37 tatsächlich gelesenen Bücher und ihre gelesenen Seiten wiederhergestellt.
+      try{ rows=await reconcileBookstatsOnce(rows,user); }catch(reconcileError){
+        console.error("Bookstats-Abgleich übersprungen:",reconcileError);
+      }
       // If the old app exposes a books array, replace it with the user's cloud library.
       if(Array.isArray(books) && rows.length){
         const mapped=rows.map(r=>{
@@ -1418,6 +1512,148 @@ refresh();setView(viewMode);
   if($('profilePage')?.classList.contains('active')) window.renderProfile();
 });
  document.addEventListener('DOMContentLoaded',()=>updateStats());
+})();
+</script>
+<script id="v31-book-search-js">
+(function(){
+  const API='https://openlibrary.org';
+  let currentWork=null;
+  const $=id=>document.getElementById(id);
+  const cleanISBN=v=>String(v||'').replace(/[^0-9Xx]/g,'');
+  const cover=isbn=>isbn?'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(cleanISBN(isbn))+'-M.jpg?default=false':'';
+  const first=v=>Array.isArray(v)?v[0]:v;
+  const yearFrom=v=>{const m=String(v||'').match(/(\d{4})/);return m?Number(m[1]):''};
+  const authorName=d=>Array.isArray(d.author_name)?d.author_name.slice(0,3).join(', '):(d.author_name||'Unbekannt');
+  const setStatus=(m,err=false)=>{const e=$('bookSearchStatus');if(e){e.textContent=m||'';e.style.color=err?'#d33':'';}};
+  const open=()=>{$('bookSearchModal')?.classList.add('open');setTimeout(()=>$('bookSearchInput')?.focus(),50)};
+  window.openBookSearch=open;
+  window.closeBookSearch=()=>{$('bookSearchModal')?.classList.remove('open');currentWork=null;setStatus('');if($('bookSearchResults'))$('bookSearchResults').innerHTML='';if($('bookEditionArea'))$('bookEditionArea').style.display='none';};
+  function escLocal(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  async function getJSON(url){const r=await fetch(url,{headers:{'Accept':'application/json'}});if(!r.ok)throw new Error('Buchdaten konnten nicht geladen werden ('+r.status+').');return r.json();}
+  window.searchExternalBooks=async function(){
+    const q=$('bookSearchInput')?.value.trim();if(!q){setStatus('Bitte einen Titel, Autor oder ISBN eingeben.',true);return;}
+    setStatus('Suche läuft …');$('bookSearchResults').innerHTML='';$('bookEditionArea').style.display='none';
+    try{
+      const params=new URLSearchParams({q,limit:'8',lang:'de',fields:'key,title,author_name,first_publish_year,isbn,publisher,publish_date,number_of_pages,cover_i,edition_key,language,subject'});
+      const data=await getJSON(API+'/search.json?'+params.toString());
+      const docs=(data.docs||[]).filter(d=>d.title);
+      if(!docs.length){setStatus('Keine passenden Bücher gefunden.');return;}
+      setStatus(docs.length+' Treffer gefunden.');
+      $('bookSearchResults').innerHTML=docs.map((d,i)=>{
+        const isbn=(d.isbn||[]).map(cleanISBN).find(x=>x.length===13)||cleanISBN(first(d.isbn));
+        const pub=first(d.publisher)||'';const date=first(d.publish_date)||d.first_publish_year||'';const pages=first(d.number_of_pages)||'';
+        const img=d.cover_i?'https://covers.openlibrary.org/b/id/'+d.cover_i+'-M.jpg?default=false':(isbn?cover(isbn):'');
+        return `<div class="book-result"><img src="${img}" alt="" onerror="this.style.visibility='hidden'"><div><h3>${escLocal(d.title)}</h3><div class="muted">${escLocal(authorName(d))}</div><div class="muted">${escLocal(String(date||'—'))}${pub?' · '+escLocal(pub):''}${pages?' · '+escLocal(String(pages))+' Seiten':''}</div><div class="muted">ISBN: ${escLocal(isbn||'—')}</div></div><div class="book-result-actions"><button class="btn dark" onclick="loadBookEditions(${i})">Ausgaben auswählen</button></div></div>`;
+      }).join('');
+      window._v31SearchDocs=docs;
+    }catch(e){setStatus(e.message||String(e),true);}
+  };
+  window.loadBookEditions=async function(i){
+    const d=window._v31SearchDocs?.[i];if(!d?.key)return;currentWork=d;
+    const workId=d.key.split('/').pop();setStatus('Lade Ausgaben …');
+    $('bookEditionArea').style.display='block';$('bookEditionTitle').textContent='Ausgaben für „'+d.title+'“';$('bookEditionList').innerHTML='<div class="muted">Lade …</div>';
+    try{
+      const data=await getJSON(API+'/works/'+encodeURIComponent(workId)+'/editions.json?limit=30');
+      const docs=data.entries||data.docs||[];
+      if(!docs.length){$('bookEditionList').innerHTML='<div class="muted">Keine konkreten Ausgaben gefunden.</div>';return;}
+      $('bookEditionList').innerHTML=docs.slice(0,24).map((e,j)=>{
+        const isb=(e.isbn||[]).map(cleanISBN).find(x=>x.length===13)||cleanISBN(first(e.isbn_13));
+        const pub=first(e.publishers)||'';const date=first(e.publish_date)||'';const pages=e.number_of_pages||'';const img=(e.covers&&e.covers[0])?'https://covers.openlibrary.org/b/id/'+e.covers[0]+'-M.jpg?default=false':(isb?cover(isb):'');
+        const title=e.title||d.title;const lang=Array.isArray(e.languages)?e.languages.map(x=>x.key?.split('/').pop()).join(', '):'';
+        const payload={title,author:authorName(d),isbn:isb,publisher:pub,publication_year:yearFrom(date)||d.first_publish_year||'',pages,cover:img,genre:(d.subject||[]).slice(0,3).join(', '),language:lang,workKey:d.key,editionKey:e.key||''};
+        window._v31Editions=window._v31Editions||{};window._v31Editions[j]=payload;
+        return `<div class="edition"><img src="${img}" alt="" onerror="this.style.visibility='hidden'"><div><strong>${escLocal(title)}</strong><small>${escLocal(pub||'Verlag unbekannt')} · ${escLocal(date||'Jahr unbekannt')}${pages?' · '+pages+' Seiten':''}<br>ISBN: ${escLocal(isb||'nicht vorhanden')}${lang?' · '+escLocal(lang):''}</small></div><button class="btn dark" ${isb?'':'disabled'} onclick="addEdition(${j})">Hinzufügen</button></div>`;
+      }).join('');
+      setStatus('Wähle die passende Ausgabe aus.');
+    }catch(e){$('bookEditionList').innerHTML='<div class="muted">'+escLocal(e.message||String(e))+'</div>';setStatus('Ausgaben konnten nicht geladen werden.',true);}
+  };
+  function baseFromDoc(d){
+    const isbn=(d.isbn||[]).map(cleanISBN).find(x=>x.length===13)||cleanISBN(first(d.isbn));
+    return {title:d.title,author:authorName(d),isbn,publisher:first(d.publisher)||'',publication_year:d.first_publish_year||'',pages:first(d.number_of_pages)||0,cover:d.cover_i?'https://covers.openlibrary.org/b/id/'+d.cover_i+'-M.jpg?default=false':(isbn?cover(isbn):''),genre:(d.subject||[]).slice(0,3).join(', ')};
+  }
+  window.addSearchEdition=async function(i){const d=window._v31SearchDocs?.[i];if(!d)return;await addBook(baseFromDoc(d));};
+  window.addEdition=async function(i){const d=window._v31Editions?.[i];if(!d)return;await addBook(d);};
+  async function addBook(b){
+    const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
+    if(!sb||!u){setStatus('Bitte zuerst anmelden.',true);return;}
+    const isbn=cleanISBN(b.isbn);
+    if(isbn && (Array.isArray(window.books)?window.books:[]).some(x=>cleanISBN(x.ISBN)===isbn)){
+      setStatus('Dieses Buch ist bereits in deiner Bibliothek.',true);return;
+    }
+    setStatus('Buch wird hinzugefügt …');
+    try{
+      // 1) Globales Buch suchen – bei ISBN zuerst, sonst über Titel + Autor.
+      let existing=null;
+      if(isbn){
+        const r=await sb.from('books').select('id,isbn,title,author,publisher,publication_year,pages,genre,official_cover_url').eq('isbn',isbn).limit(1);
+        if(r.error) throw r.error;
+        existing=r.data?.[0]||null;
+      }else{
+        const r=await sb.from('books').select('id,isbn,title,author,publisher,publication_year,pages,genre,official_cover_url').eq('title',b.title||'').eq('author',b.author||'').limit(1);
+        if(r.error) throw r.error;
+        existing=r.data?.[0]||null;
+      }
+
+      // 2) Falls die Ausgabe noch nicht global existiert, anlegen.
+      let bookRow=existing;
+      if(!bookRow){
+        const ins={
+          isbn:isbn||null,
+          title:b.title||'Unbekannt',
+          author:b.author||'Unbekannt',
+          publisher:b.publisher||null,
+          publication_year:Number(b.publication_year)||null,
+          pages:Number(b.pages)||0,
+          genre:b.genre||null,
+          description:null,
+          official_cover_url:b.cover||null
+        };
+        const r=await sb.from('books').insert(ins).select('id,isbn,title,author,publisher,publication_year,pages,genre,official_cover_url').single();
+        if(r.error){
+          // Falls zwischenzeitlich ein identischer Datensatz angelegt wurde, erneut laden.
+          if(isbn){
+            const retry=await sb.from('books').select('id,isbn,title,author,publisher,publication_year,pages,genre,official_cover_url').eq('isbn',isbn).limit(1);
+            if(retry.error) throw r.error;
+            bookRow=retry.data?.[0]||null;
+          }
+          if(!bookRow) throw r.error;
+        }else bookRow=r.data;
+      }
+
+      // 3) Prüfen, ob diese Ausgabe schon im persönlichen Regal liegt.
+      const check=await sb.from('user_books').select('id').eq('user_id',u.id).eq('book_id',bookRow.id).limit(1);
+      if(check.error) throw check.error;
+      if(check.data?.length){setStatus('Dieses Buch ist bereits in deiner Bibliothek.',true);return;}
+
+      // 4) Persönliches Buch anlegen. Nur Spalten verwenden, die wir bereits für V29 nutzen.
+      const insertUser={
+        user_id:u.id,
+        book_id:bookRow.id,
+        status:'to_read',
+        current_page:0,
+        rating:null,
+        notes:null,
+        book_type:null,
+        category:b.genre||null,
+        received_as:null,
+        reading_duration_hours:0,
+        reading_duration_minutes:0
+      };
+      const added=await sb.from('user_books').insert(insertUser).select('id').single();
+      if(added.error) throw added.error;
+
+      // 5) Cloud-Bibliothek neu laden, damit XP, Medaillen und Bibliothek sofort stimmen.
+      await syncCloud();
+      setStatus('✓ Buch wurde deiner Bibliothek hinzugefügt.');
+      const note=$('bookSearchStatus');
+      if(note){note.className='search-status add-success';}
+      setTimeout(()=>{ const m=$('bookSearchModal'); if(m) m.style.display='none'; },500);
+    }catch(e){
+      console.error('Lesezeit: Buch hinzufügen fehlgeschlagen',e);
+      setStatus('Buch konnte nicht hinzugefügt werden: '+(e?.message||e?.details||e?.hint||String(e)),true);
+    }
+  }
+  $('bookSearchInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')window.searchExternalBooks();});
 })();
 </script>
 </body>
