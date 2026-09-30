@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit V23 – Bookstats Next</title>
+<title>Lesezeit V24 – Bookstats Next</title>
 <style>
 :root{
  --bg:#f4f4f7;--card:#fff;--text:#18181b;--muted:#74747d;--line:#e6e6eb;
@@ -182,7 +182,7 @@ button{cursor:pointer}
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V22</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V24</div></header>
 
 <section class="hero">
 <div>
@@ -304,21 +304,22 @@ button{cursor:pointer}
 
 
 <div id="profilePage" class="page">
-<div class="page-head"><div><div class="eyebrow">MEIN KONTO</div><h1>Mein Profil</h1><p class="muted">Dein persönlicher Bereich bei Lesezeit.</p></div></div>
+<div class="page-head"><div><div class="eyebrow">MEIN KONTO</div><h1>Mein Profil</h1><p class="muted">Dein persönlicher Bereich bei Lesezeit.</p><div class="muted" style="margin-top:8px">Dein Profil wird mit deinem Lesezeit-Konto gespeichert.</div></div></div>
 <div class="profile-grid">
 <section class="card profile-card"><div class="profile-avatar-wrap">
 <img id="profileAvatar" class="profile-avatar" alt="Profilbild">
 <label class="avatar-upload"><input id="profileAvatarInput" type="file" accept="image/*">📷 Profilbild ändern</label>
+<button id="profileAvatarRemove" class="secondary-btn" type="button">Bild entfernen</button>
 </div><div class="profile-fields">
 <label>Anzeigename<input id="profileDisplayName" class="field" maxlength="40" placeholder="Dein Anzeigename"></label>
 <label>E-Mail<input id="profileEmail" class="field" type="email" disabled></label>
-<button id="profileSaveBtn" class="primary-btn">Profil speichern</button>
-<button id="profileLogoutBtn" class="secondary-btn">Abmelden</button>
+<button id="profileSaveBtn" class="primary-btn" type="button">Profil speichern</button>
+<button id="profileLogoutBtn" class="secondary-btn" type="button">Abmelden</button>
 <div id="profileStatus" class="muted"></div></div></section>
 <section class="profile-stats-grid">
-<div class="card stat-card"><span>📚</span><strong id="profileBooks">0</strong><small>Bücher</small></div>
-<div class="card stat-card"><span>📄</span><strong id="profilePages">0</strong><small>Seiten</small></div>
-<div class="card stat-card"><span>⏱️</span><strong id="profileHours">0</strong><small>Lesestunden</small></div>
+<div class="card stat-card"><span>📚</span><strong id="profileBooks">0</strong><small>Gelesene Bücher</small></div>
+<div class="card stat-card"><span>📄</span><strong id="profilePages">0</strong><small>Gelesene Seiten</small></div>
+<div class="card stat-card"><span>⏱️</span><strong id="profileHours">0,0</strong><small>Lesestunden</small></div>
 <div class="card stat-card"><span>🏆</span><strong id="profileLevel">1</strong><small>Level</small></div>
 </section></div></div>
 
@@ -685,16 +686,19 @@ function renderDesign(){
 
 
 function showPage(page){
- document.getElementById('libraryPage').classList.toggle('active',page==='library');
- document.getElementById('statsPage').classList.toggle('active',page==='stats');
- document.getElementById('designPage').classList.toggle('active',page==='design');
- document.getElementById('navLibrary').classList.toggle('active',page==='library');
- document.getElementById('navStats').classList.toggle('active',page==='stats');
- document.getElementById('navDesign').classList.toggle('active',page==='design');
- if(page==='stats')renderStats();
- if(page==='design')renderDesign(); document.getElementById('profilePage').classList.toggle('active',page==='profile');
- document.getElementById('navProfile').classList.toggle('active',page==='profile');
- if(page==='profile')renderProfile();
+ const pages=['library','stats','design','profile'];
+ pages.forEach(p=>{
+   const el=document.getElementById(p+'Page');
+   if(el) el.classList.toggle('active',page===p);
+ });
+ document.getElementById('navLibrary')?.classList.toggle('active',page==='library');
+ document.getElementById('navStats')?.classList.toggle('active',page==='stats');
+ document.getElementById('navDesign')?.classList.toggle('active',page==='design');
+ document.getElementById('navProfile')?.classList.toggle('active',page==='profile');
+ if(page==='stats' && typeof renderStats==='function') renderStats();
+ if(page==='design' && typeof renderDesign==='function') renderDesign();
+ if(page==='profile' && typeof window.renderProfile==='function') window.renderProfile();
+ window.scrollTo({top:0,behavior:'smooth'});
 }
 function renderStats(){
  const read=books.filter(b=>status(b)==='Gelesen');
@@ -1127,28 +1131,91 @@ document.addEventListener('DOMContentLoaded',()=>{
 })();
 </script>
 
-<script id="v23-profile-js">
+<script id="v24-profile-js">
 (function(){
 const $=id=>document.getElementById(id);
 let avatarData='';
-const fallback=n=>'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="100%" height="100%" rx="150" fill="#eee"/><text x="50%" y="55%" text-anchor="middle" font-size="130" font-family="Arial" fill="#777">'+(n||'L').trim().charAt(0).toUpperCase()+'</text></svg>');
-window.renderProfile=async function(){
- const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;if(!sb||!u)return;
- $('profileEmail').value=u.email||'';
- const b=Array.isArray(window.books)?window.books:[];
- $('profileBooks').textContent=b.length;
- $('profilePages').textContent=b.reduce((n,x)=>n+(Number(x.Seitenanzahl)||0),0).toLocaleString('de-DE');
- $('profileHours').textContent=b.reduce((n,x)=>n+(Number(x['Dauer (Stunden)'])||0)+(Number(x['Dauer (Minuten)'])||0)/60,0).toFixed(1);
- $('profileLevel').textContent=Math.max(1,Math.floor(b.length/10)+1);
- try{
-  const {data,error}=await sb.from('profiles').select('display_name,avatar_url').eq('id',u.id).maybeSingle(); if(error)throw error;
-  const n=data?.display_name||localStorage.getItem('lesezeit_pending_display_name')||u.email.split('@')[0];
-  $('profileDisplayName').value=n;avatarData=data?.avatar_url||'';$('profileAvatar').src=avatarData||fallback(n);
- }catch(e){const n=localStorage.getItem('lesezeit_pending_display_name')||u.email.split('@')[0];$('profileDisplayName').value=n;$('profileAvatar').src=fallback(n);}
+const fallback=n=>{
+ const letter=(n||'L').trim().charAt(0).toUpperCase();
+ return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="100%" height="100%" rx="150" fill="#eee"/><text x="50%" y="56%" text-anchor="middle" font-size="130" font-family="Arial" fill="#777">'+letter+'</text></svg>');
 };
-$('profileAvatarInput')?.addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>2*1024*1024){$('profileStatus').textContent='Maximal 2 MB.';return;}const r=new FileReader();r.onload=()=>{avatarData=r.result;$('profileAvatar').src=avatarData};r.readAsDataURL(f)});
-$('profileSaveBtn')?.addEventListener('click',async()=>{const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser,n=$('profileDisplayName').value.trim();if(!n)return;$('profileStatus').textContent='Speichere …';try{const {error}=await sb.from('profiles').upsert({id:u.id,display_name:n,avatar_url:avatarData||null,updated_at:new Date().toISOString()},{onConflict:'id'});if(error)throw error;localStorage.removeItem('lesezeit_pending_display_name');$('profileStatus').textContent='Profil gespeichert ✓'}catch(e){$('profileStatus').textContent='Fehler: '+e.message}});
+function setStatus(text,error=false){const el=$('profileStatus');if(el){el.textContent=text||'';el.style.color=error?'#d33':'';}}
+function updateStats(){
+ const b=Array.isArray(window.books)?window.books:[];
+ const read=b.filter(x=>typeof status==='function' && status(x)==='Gelesen');
+ $('profileBooks').textContent=read.length.toLocaleString('de-DE');
+ $('profilePages').textContent=read.reduce((n,x)=>n+(Number(x.Seitenanzahl)||0),0).toLocaleString('de-DE');
+ const hours=read.reduce((n,x)=>n+(Number(x['Dauer (Stunden)'])||0)+(Number(x['Dauer (Minuten)'])||0)/60,0);
+ $('profileHours').textContent=hours.toFixed(1).replace('.',',');
+ $('profileLevel').textContent=Math.max(1,Math.floor(read.length/10)+1);
+}
+window.renderProfile=async function(){
+ const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
+ if(!sb||!u){
+   setStatus('Bitte zuerst anmelden.',true);
+   return;
+ }
+ $('profileEmail').value=u.email||'';
+ updateStats();
+ setStatus('Lade Profil …');
+ try{
+  const {data,error}=await sb.from('profiles').select('display_name,avatar_url').eq('id',u.id).maybeSingle();
+  if(error)throw error;
+  const n=data?.display_name||localStorage.getItem('lesezeit_pending_display_name')||u.email.split('@')[0];
+  $('profileDisplayName').value=n;
+  avatarData=data?.avatar_url||'';
+  $('profileAvatar').src=avatarData||fallback(n);
+  setStatus('');
+ }catch(e){
+  const n=localStorage.getItem('lesezeit_pending_display_name')||u.email.split('@')[0];
+  $('profileDisplayName').value=n;
+  $('profileAvatar').src=avatarData||fallback(n);
+  setStatus('Profil konnte nicht geladen werden: '+(e.message||e),true);
+ }
+};
+function resizeImage(file,done){
+ const reader=new FileReader();
+ reader.onload=()=>{
+  const img=new Image();
+  img.onload=()=>{
+   const max=700, scale=Math.min(1,max/Math.max(img.width,img.height));
+   const c=document.createElement('canvas'); c.width=Math.max(1,Math.round(img.width*scale)); c.height=Math.max(1,Math.round(img.height*scale));
+   const ctx=c.getContext('2d'); ctx.drawImage(img,0,0,c.width,c.height);
+   done(c.toDataURL('image/jpeg',0.82));
+  };
+  img.onerror=()=>setStatus('Das Bild konnte nicht gelesen werden.',true);
+  img.src=reader.result;
+ };
+ reader.onerror=()=>setStatus('Das Bild konnte nicht gelesen werden.',true);
+ reader.readAsDataURL(file);
+}
+$('profileAvatarInput')?.addEventListener('change',e=>{
+ const f=e.target.files?.[0]; if(!f)return;
+ if(f.size>5*1024*1024){setStatus('Das Bild darf maximal 5 MB groß sein.',true);e.target.value='';return;}
+ setStatus('Bild wird vorbereitet …');
+ resizeImage(f,data=>{avatarData=data;$('profileAvatar').src=data;setStatus('Bild ausgewählt – jetzt „Profil speichern“ drücken.');});
+});
+$('profileAvatarRemove')?.addEventListener('click',()=>{
+ avatarData='';
+ const n=$('profileDisplayName').value.trim()||'L';
+ $('profileAvatar').src=fallback(n);
+ setStatus('Profilbild entfernt – jetzt „Profil speichern“ drücken.');
+});
+$('profileSaveBtn')?.addEventListener('click',async()=>{
+ const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser,n=$('profileDisplayName').value.trim();
+ if(!sb||!u){setStatus('Nicht angemeldet.',true);return;}
+ if(!n){setStatus('Bitte einen Anzeigenamen eingeben.',true);return;}
+ setStatus('Speichere …');
+ try{
+  const {error}=await sb.from('profiles').upsert({id:u.id,display_name:n,avatar_url:avatarData||null,updated_at:new Date().toISOString()},{onConflict:'id'});
+  if(error)throw error;
+  localStorage.removeItem('lesezeit_pending_display_name');
+  $('profileAvatar').src=avatarData||fallback(n);
+  setStatus('Profil gespeichert ✓');
+ }catch(e){setStatus('Fehler beim Speichern: '+(e.message||e),true);}
+});
 $('profileLogoutBtn')?.addEventListener('click',()=>window.LesezeitLogout?.());
+window.addEventListener('lesezeit-auth-ready',()=>{if(document.getElementById('profilePage')?.classList.contains('active'))window.renderProfile();});
 })();
 </script></body>
 </html>
