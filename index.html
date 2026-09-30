@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit V24 – Bookstats Next</title>
+<title>Lesezeit V26 – Bookstats Next</title>
 <style>
 :root{
  --bg:#f4f4f7;--card:#fff;--text:#18181b;--muted:#74747d;--line:#e6e6eb;
@@ -182,7 +182,7 @@ button{cursor:pointer}
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V24</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V26</div></header>
 
 <section class="hero">
 <div>
@@ -301,7 +301,7 @@ button{cursor:pointer}
    <button class="btn dark" style="margin-top:15px" onclick="resetDesign()">Design zurücksetzen</button>
   </div>
  </div>
-
+</div>
 
 <div id="profilePage" class="page">
 <div class="page-head"><div><div class="eyebrow">MEIN KONTO</div><h1>Mein Profil</h1><p class="muted">Dein persönlicher Bereich bei Lesezeit.</p><div class="muted" style="margin-top:8px">Dein Profil wird mit deinem Lesezeit-Konto gespeichert.</div></div></div>
@@ -1031,7 +1031,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(error)throw error;
       const rows=data||[];
       // If the old app exposes a books array, replace it with the user's cloud library.
-      if(Array.isArray(window.books) && rows.length){
+      if(Array.isArray(books) && rows.length){
         const mapped=rows.map(r=>{
           const b=r.books||{};
           return {
@@ -1056,7 +1056,7 @@ document.addEventListener('DOMContentLoaded',()=>{
             _id:String(r.id),_cloud:true,_customCover:r.custom_cover_url||""
           };
         });
-        window.books.splice(0,window.books.length,...mapped);
+        books.splice(0,books.length,...mapped);
         try{ if(typeof window.save==="function")window.save(); }catch(e){}
         try{ if(typeof window.renderBooks==="function")window.renderBooks(); }catch(e){}
         try{ if(typeof window.updateHomeStats==="function")window.updateHomeStats(); }catch(e){}
@@ -1141,38 +1141,45 @@ const fallback=n=>{
 };
 function setStatus(text,error=false){const el=$('profileStatus');if(el){el.textContent=text||'';el.style.color=error?'#d33':'';}}
 function updateStats(){
- const b=Array.isArray(window.books)?window.books:[];
- const read=b.filter(x=>typeof status==='function' && status(x)==='Gelesen');
- $('profileBooks').textContent=read.length.toLocaleString('de-DE');
- $('profilePages').textContent=read.reduce((n,x)=>n+(Number(x.Seitenanzahl)||0),0).toLocaleString('de-DE');
+ const b=Array.isArray(books)?books:[];
+ const read=b.filter(x=>{try{return typeof status==='function' ? status(x)==='Gelesen' : x.Lesestatus==='Gelesen';}catch(e){return x.Lesestatus==='Gelesen';}});
+ const pages=read.reduce((n,x)=>n+(Number(x.Seitenanzahl)||0),0);
  const hours=read.reduce((n,x)=>n+(Number(x['Dauer (Stunden)'])||0)+(Number(x['Dauer (Minuten)'])||0)/60,0);
- $('profileHours').textContent=hours.toFixed(1).replace('.',',');
- $('profileLevel').textContent=Math.max(1,Math.floor(read.length/10)+1);
+ const elBooks=$('profileBooks'),elPages=$('profilePages'),elHours=$('profileHours'),elLevel=$('profileLevel');
+ if(elBooks)elBooks.textContent=read.length.toLocaleString('de-DE');
+ if(elPages)elPages.textContent=pages.toLocaleString('de-DE');
+ if(elHours)elHours.textContent=hours.toFixed(1).replace('.',',');
+ if(elLevel)elLevel.textContent=Math.max(1,Math.floor(read.length/10)+1);
 }
+
 window.renderProfile=async function(){
  const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
- if(!sb||!u){
-   setStatus('Bitte zuerst anmelden.',true);
-   return;
- }
- $('profileEmail').value=u.email||'';
+ const emailEl=$('profileEmail'),nameEl=$('profileDisplayName'),avatarEl=$('profileAvatar');
+ if(!u){ setStatus('Bitte zuerst anmelden.',true); return; }
+ if(emailEl) emailEl.value=u.email||'';
  updateStats();
+ const fallbackName=localStorage.getItem('lesezeit_pending_display_name')||((u.email||'L').split('@')[0]);
+ if(nameEl && !nameEl.value) nameEl.value=fallbackName;
+ if(avatarEl && !avatarEl.src) avatarEl.src=fallback(nameEl?.value||fallbackName);
+ if(!sb){ setStatus('Supabase ist noch nicht verbunden.',true); return; }
  setStatus('Lade Profil …');
  try{
   const {data,error}=await sb.from('profiles').select('display_name,avatar_url').eq('id',u.id).maybeSingle();
   if(error)throw error;
-  const n=data?.display_name||localStorage.getItem('lesezeit_pending_display_name')||u.email.split('@')[0];
-  $('profileDisplayName').value=n;
+  const n=data?.display_name||fallbackName;
+  if(nameEl) nameEl.value=n;
   avatarData=data?.avatar_url||'';
-  $('profileAvatar').src=avatarData||fallback(n);
+  if(avatarEl) avatarEl.src=avatarData||fallback(n);
+  updateStats();
   setStatus('');
  }catch(e){
-  const n=localStorage.getItem('lesezeit_pending_display_name')||u.email.split('@')[0];
-  $('profileDisplayName').value=n;
-  $('profileAvatar').src=avatarData||fallback(n);
+  if(nameEl) nameEl.value=nameEl.value||fallbackName;
+  if(avatarEl) avatarEl.src=avatarData||fallback(nameEl?.value||fallbackName);
+  updateStats();
   setStatus('Profil konnte nicht geladen werden: '+(e.message||e),true);
  }
 };
+
 function resizeImage(file,done){
  const reader=new FileReader();
  reader.onload=()=>{
