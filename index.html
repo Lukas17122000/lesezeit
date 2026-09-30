@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit V26 – Bookstats Next</title>
+<title>Lesezeit V27 – Bookstats Next</title>
 <style>
 :root{
  --bg:#f4f4f7;--card:#fff;--text:#18181b;--muted:#74747d;--line:#e6e6eb;
@@ -102,9 +102,50 @@ button{cursor:pointer}
 .navbtn{border:1px solid var(--line);background:#fff;padding:9px 14px;border-radius:11px;font-weight:700}
 .navbtn.active{background:var(--dark);color:#fff}
 
-<style id="v23-profile-css">
-.profile-grid{display:grid;grid-template-columns:minmax(280px,1fr) minmax(260px,1fr);gap:18px}.profile-card{display:flex;gap:24px;align-items:center;padding:24px}.profile-avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px}.profile-avatar{width:140px;height:140px;border-radius:50%;object-fit:cover;background:var(--soft,#eee);border:4px solid var(--accent,#6d5dfc)}.avatar-upload{cursor:pointer;border-radius:12px;padding:9px 12px;background:var(--soft,#eee);font-size:12px;font-weight:700}.avatar-upload input{display:none}.profile-fields{display:flex;flex-direction:column;gap:11px;flex:1}.profile-fields label{font-size:12px;font-weight:700;text-align:left}.profile-fields .field{display:block;width:100%;box-sizing:border-box;margin-top:5px}.primary-btn,.secondary-btn{border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}.primary-btn{background:var(--accent,#6d5dfc);color:#fff}.secondary-btn{background:var(--soft,#eee);color:inherit}.profile-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.stat-card{padding:22px;display:flex;flex-direction:column;gap:7px}.stat-card span{font-size:24px}.stat-card strong{font-size:28px}.stat-card small{opacity:.6}@media(max-width:760px){.profile-grid{grid-template-columns:1fr}.profile-card{flex-direction:column}.profile-avatar{width:120px;height:120px}}
-</style></style>
+
+<style id="v27-profile-css">
+.profile-shell{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:18px;margin-top:16px}
+.profile-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#171717,#41395f);color:#fff;border:0;padding:28px}
+.profile-hero:after{content:"";position:absolute;width:240px;height:240px;border-radius:50%;right:-90px;top:-110px;background:rgba(255,255,255,.08)}
+.profile-main{display:flex;align-items:center;gap:22px;position:relative;z-index:1}
+.profile-avatar-wrap{display:flex;flex-direction:column;align-items:center;gap:9px;min-width:132px}
+.profile-avatar{width:128px;height:128px;border-radius:50%;object-fit:cover;background:#eee;border:4px solid rgba(255,255,255,.9);box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.avatar-upload{cursor:pointer;border-radius:12px;padding:8px 11px;background:rgba(255,255,255,.13);font-size:12px;font-weight:750}
+.avatar-upload input{display:none}
+.profile-identity{min-width:0;flex:1}
+.profile-identity .eyebrow{font-size:11px;letter-spacing:.12em;font-weight:800;opacity:.6}
+.profile-identity h2{font-size:30px;line-height:1.1;margin:7px 0 5px;overflow-wrap:anywhere}
+.profile-identity .email{font-size:13px;opacity:.68;overflow-wrap:anywhere}
+.level-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
+.level-badge{font-weight:850;background:rgba(255,255,255,.13);padding:7px 10px;border-radius:999px}
+.level-xp{font-size:12px;opacity:.72}
+.level-track{height:9px;background:rgba(255,255,255,.16);border-radius:99px;overflow:hidden;margin-top:8px}
+.level-track i{display:block;height:100%;background:#fff;border-radius:99px;width:0}
+.profile-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;position:relative;z-index:1}
+.profile-actions .secondary-btn{background:rgba(255,255,255,.12);color:#fff}
+.profile-edit{padding:22px}
+.profile-edit h3{margin:0 0 5px}
+.profile-fields{display:flex;flex-direction:column;gap:11px}
+.profile-fields label{font-size:12px;font-weight:750}
+.profile-fields .field{display:block;width:100%;box-sizing:border-box;margin-top:5px}
+.primary-btn,.secondary-btn{border:0;border-radius:12px;padding:11px 14px;font-weight:800;cursor:pointer}
+.primary-btn{background:var(--accent,#6d5dfc);color:#fff}
+.secondary-btn{background:#f0f0f3;color:inherit}
+.profile-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.stat-card{padding:20px;display:flex;flex-direction:column;gap:7px}
+.stat-card span{font-size:23px}
+.stat-card strong{font-size:27px}
+.stat-card small{opacity:.6}
+.profile-achievements{margin-top:18px}
+.profile-achievements .card{padding:22px}
+.achievement-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:13px}
+.achievement{border:1px solid var(--line);border-radius:15px;padding:13px;text-align:center;background:#fafafd}
+.achievement .icon{font-size:27px}.achievement strong{display:block;font-size:12px;margin-top:5px}.achievement small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.profile-status{min-height:18px;margin-top:2px}
+@media(max-width:900px){.profile-shell{grid-template-columns:1fr}}
+@media(max-width:650px){.profile-main{flex-direction:column;text-align:center}.profile-avatar-wrap{min-width:0}.profile-identity h2{font-size:25px}.level-row{text-align:left}.achievement-row{grid-template-columns:1fr 1fr}}
+</style>
+
 
 <style id="v12-cloud-css">
 #v12CloudPanel{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);z-index:99999;display:none;align-items:center;justify-content:center;padding:20px}
@@ -182,7 +223,7 @@ button{cursor:pointer}
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V26</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V27</div></header>
 
 <section class="hero">
 <div>
@@ -303,25 +344,68 @@ button{cursor:pointer}
  </div>
 </div>
 
+
 <div id="profilePage" class="page">
-<div class="page-head"><div><div class="eyebrow">MEIN KONTO</div><h1>Mein Profil</h1><p class="muted">Dein persönlicher Bereich bei Lesezeit.</p><div class="muted" style="margin-top:8px">Dein Profil wird mit deinem Lesezeit-Konto gespeichert.</div></div></div>
-<div class="profile-grid">
-<section class="card profile-card"><div class="profile-avatar-wrap">
-<img id="profileAvatar" class="profile-avatar" alt="Profilbild">
-<label class="avatar-upload"><input id="profileAvatarInput" type="file" accept="image/*">📷 Profilbild ändern</label>
-<button id="profileAvatarRemove" class="secondary-btn" type="button">Bild entfernen</button>
-</div><div class="profile-fields">
-<label>Anzeigename<input id="profileDisplayName" class="field" maxlength="40" placeholder="Dein Anzeigename"></label>
-<label>E-Mail<input id="profileEmail" class="field" type="email" disabled></label>
-<button id="profileSaveBtn" class="primary-btn" type="button">Profil speichern</button>
-<button id="profileLogoutBtn" class="secondary-btn" type="button">Abmelden</button>
-<div id="profileStatus" class="muted"></div></div></section>
-<section class="profile-stats-grid">
-<div class="card stat-card"><span>📚</span><strong id="profileBooks">0</strong><small>Gelesene Bücher</small></div>
-<div class="card stat-card"><span>📄</span><strong id="profilePages">0</strong><small>Gelesene Seiten</small></div>
-<div class="card stat-card"><span>⏱️</span><strong id="profileHours">0,0</strong><small>Lesestunden</small></div>
-<div class="card stat-card"><span>🏆</span><strong id="profileLevel">1</strong><small>Level</small></div>
-</section></div></div>
+ <div class="sectionhead">
+  <div><h2>Mein Profil</h2><div class="muted">Dein persönlicher Bereich bei Lesezeit.</div></div>
+ </div>
+
+ <div class="profile-shell">
+  <section class="card profile-hero">
+   <div class="profile-main">
+    <div class="profile-avatar-wrap">
+     <img id="profileAvatar" class="profile-avatar" alt="Profilbild">
+     <label class="avatar-upload"><input id="profileAvatarInput" type="file" accept="image/*">📷 Bild ändern</label>
+    </div>
+    <div class="profile-identity">
+     <div class="eyebrow">MEIN LESEZEIT-KONTO</div>
+     <h2 id="profileNameDisplay">Mein Profil</h2>
+     <div id="profileEmailDisplay" class="email"></div>
+     <div class="level-row">
+      <span id="profileLevelBadge" class="level-badge">🏆 Level 1</span>
+      <span id="profileXpText" class="level-xp">0 / 500 XP</span>
+     </div>
+     <div class="level-track"><i id="profileLevelBar"></i></div>
+    </div>
+   </div>
+   <div class="profile-actions">
+    <button id="profileLogoutBtn" class="secondary-btn" type="button">Abmelden</button>
+   </div>
+  </section>
+
+  <section class="card profile-edit">
+   <h3>Profil bearbeiten</h3>
+   <div class="muted">Dein Name und Profilbild werden in Supabase gespeichert.</div>
+   <div class="profile-fields" style="margin-top:14px">
+    <label>Anzeigename<input id="profileDisplayName" class="field" maxlength="40" placeholder="Dein Anzeigename"></label>
+    <label>E-Mail<input id="profileEmail" class="field" type="email" disabled></label>
+    <button id="profileSaveBtn" class="primary-btn" type="button">Profil speichern</button>
+    <button id="profileAvatarRemove" class="secondary-btn" type="button">Profilbild entfernen</button>
+    <div id="profileStatus" class="muted profile-status"></div>
+   </div>
+  </section>
+ </div>
+
+ <section class="profile-stats-grid" style="margin-top:18px">
+  <div class="card stat-card"><span>📚</span><strong id="profileBooks">0</strong><small>Gelesene Bücher</small></div>
+  <div class="card stat-card"><span>📄</span><strong id="profilePages">0</strong><small>Gelesene Seiten</small></div>
+  <div class="card stat-card"><span>⏱️</span><strong id="profileHours">0,0</strong><small>Lesestunden</small></div>
+  <div class="card stat-card"><span>🔥</span><strong id="profileStreak">0</strong><small>Tage Lesestreak</small></div>
+ </section>
+
+ <section class="profile-achievements">
+  <div class="card">
+   <h3 style="margin:0">🏅 Deine ersten Erfolge</h3>
+   <div class="muted">Weitere Medaillen bauen wir im nächsten Schritt aus.</div>
+   <div class="achievement-row">
+    <div class="achievement"><div class="icon">📖</div><strong id="achievementBooks">0 / 1</strong><small>Erstes Buch</small></div>
+    <div class="achievement"><div class="icon">📚</div><strong id="achievement10">0 / 10</strong><small>10 Bücher</small></div>
+    <div class="achievement"><div class="icon">📄</div><strong id="achievement1000">0 / 1.000</strong><small>1.000 Seiten</small></div>
+    <div class="achievement"><div class="icon">⏱️</div><strong id="achievementHour">0 / 1 h</strong><small>1 Stunde lesen</small></div>
+   </div>
+  </div>
+ </section>
+</div>
 
 <div id="statsPage" class="page">
  <div class="sectionhead">
@@ -1131,98 +1215,172 @@ document.addEventListener('DOMContentLoaded',()=>{
 })();
 </script>
 
-<script id="v24-profile-js">
+
+<script id="v27-profile-js">
 (function(){
-const $=id=>document.getElementById(id);
-let avatarData='';
-const fallback=n=>{
- const letter=(n||'L').trim().charAt(0).toUpperCase();
- return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="100%" height="100%" rx="150" fill="#eee"/><text x="50%" y="56%" text-anchor="middle" font-size="130" font-family="Arial" fill="#777">'+letter+'</text></svg>');
-};
-function setStatus(text,error=false){const el=$('profileStatus');if(el){el.textContent=text||'';el.style.color=error?'#d33':'';}}
-function updateStats(){
- const b=Array.isArray(books)?books:[];
- const read=b.filter(x=>{try{return typeof status==='function' ? status(x)==='Gelesen' : x.Lesestatus==='Gelesen';}catch(e){return x.Lesestatus==='Gelesen';}});
- const pages=read.reduce((n,x)=>n+(Number(x.Seitenanzahl)||0),0);
- const hours=read.reduce((n,x)=>n+(Number(x['Dauer (Stunden)'])||0)+(Number(x['Dauer (Minuten)'])||0)/60,0);
- const elBooks=$('profileBooks'),elPages=$('profilePages'),elHours=$('profileHours'),elLevel=$('profileLevel');
- if(elBooks)elBooks.textContent=read.length.toLocaleString('de-DE');
- if(elPages)elPages.textContent=pages.toLocaleString('de-DE');
- if(elHours)elHours.textContent=hours.toFixed(1).replace('.',',');
- if(elLevel)elLevel.textContent=Math.max(1,Math.floor(read.length/10)+1);
-}
+ const $=id=>document.getElementById(id);
+ let avatarData='';
+ let profileLoaded=false;
 
-window.renderProfile=async function(){
- const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
- const emailEl=$('profileEmail'),nameEl=$('profileDisplayName'),avatarEl=$('profileAvatar');
- if(!u){ setStatus('Bitte zuerst anmelden.',true); return; }
- if(emailEl) emailEl.value=u.email||'';
- updateStats();
- const fallbackName=localStorage.getItem('lesezeit_pending_display_name')||((u.email||'L').split('@')[0]);
- if(nameEl && !nameEl.value) nameEl.value=fallbackName;
- if(avatarEl && !avatarEl.src) avatarEl.src=fallback(nameEl?.value||fallbackName);
- if(!sb){ setStatus('Supabase ist noch nicht verbunden.',true); return; }
- setStatus('Lade Profil …');
- try{
-  const {data,error}=await sb.from('profiles').select('display_name,avatar_url').eq('id',u.id).maybeSingle();
-  if(error)throw error;
-  const n=data?.display_name||fallbackName;
-  if(nameEl) nameEl.value=n;
-  avatarData=data?.avatar_url||'';
-  if(avatarEl) avatarEl.src=avatarData||fallback(n);
-  updateStats();
-  setStatus('');
- }catch(e){
-  if(nameEl) nameEl.value=nameEl.value||fallbackName;
-  if(avatarEl) avatarEl.src=avatarData||fallback(nameEl?.value||fallbackName);
-  updateStats();
-  setStatus('Profil konnte nicht geladen werden: '+(e.message||e),true);
- }
-};
-
-function resizeImage(file,done){
- const reader=new FileReader();
- reader.onload=()=>{
-  const img=new Image();
-  img.onload=()=>{
-   const max=700, scale=Math.min(1,max/Math.max(img.width,img.height));
-   const c=document.createElement('canvas'); c.width=Math.max(1,Math.round(img.width*scale)); c.height=Math.max(1,Math.round(img.height*scale));
-   const ctx=c.getContext('2d'); ctx.drawImage(img,0,0,c.width,c.height);
-   done(c.toDataURL('image/jpeg',0.82));
-  };
-  img.onerror=()=>setStatus('Das Bild konnte nicht gelesen werden.',true);
-  img.src=reader.result;
+ const fallback=n=>{
+  const letter=(n||'L').trim().charAt(0).toUpperCase();
+  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(
+   '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="100%" height="100%" rx="150" fill="#eee"/><text x="50%" y="56%" text-anchor="middle" font-size="130" font-family="Arial" fill="#777">'+letter+'</text></svg>'
+  );
  };
- reader.onerror=()=>setStatus('Das Bild konnte nicht gelesen werden.',true);
- reader.readAsDataURL(file);
-}
-$('profileAvatarInput')?.addEventListener('change',e=>{
- const f=e.target.files?.[0]; if(!f)return;
- if(f.size>5*1024*1024){setStatus('Das Bild darf maximal 5 MB groß sein.',true);e.target.value='';return;}
- setStatus('Bild wird vorbereitet …');
- resizeImage(f,data=>{avatarData=data;$('profileAvatar').src=data;setStatus('Bild ausgewählt – jetzt „Profil speichern“ drücken.');});
-});
-$('profileAvatarRemove')?.addEventListener('click',()=>{
- avatarData='';
- const n=$('profileDisplayName').value.trim()||'L';
- $('profileAvatar').src=fallback(n);
- setStatus('Profilbild entfernt – jetzt „Profil speichern“ drücken.');
-});
-$('profileSaveBtn')?.addEventListener('click',async()=>{
- const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser,n=$('profileDisplayName').value.trim();
- if(!sb||!u){setStatus('Nicht angemeldet.',true);return;}
- if(!n){setStatus('Bitte einen Anzeigenamen eingeben.',true);return;}
- setStatus('Speichere …');
- try{
-  const {error}=await sb.from('profiles').upsert({id:u.id,display_name:n,avatar_url:avatarData||null,updated_at:new Date().toISOString()},{onConflict:'id'});
-  if(error)throw error;
-  localStorage.removeItem('lesezeit_pending_display_name');
-  $('profileAvatar').src=avatarData||fallback(n);
-  setStatus('Profil gespeichert ✓');
- }catch(e){setStatus('Fehler beim Speichern: '+(e.message||e),true);}
-});
-$('profileLogoutBtn')?.addEventListener('click',()=>window.LesezeitLogout?.());
-window.addEventListener('lesezeit-auth-ready',()=>{if(document.getElementById('profilePage')?.classList.contains('active'))window.renderProfile();});
+ const setStatus=(text,error=false)=>{
+  const el=$('profileStatus');
+  if(el){el.textContent=text||'';el.style.color=error?'#d33':'';}
+ };
+ const getReadBooks=()=>{
+  const arr=Array.isArray(window.books)?window.books:[];
+  return arr.filter(x=>{
+   try{return typeof window.status==='function' ? window.status(x)==='Gelesen' : x.Lesestatus==='Gelesen';}
+   catch(e){return x.Lesestatus==='Gelesen';}
+  });
+ };
+ const calcStats=()=>{
+  const read=getReadBooks();
+  const pages=read.reduce((n,x)=>n+(Number(x.Seitenanzahl)||0),0);
+  const bookHours=read.reduce((n,x)=>n+(Number(x['Dauer (Stunden)'])||0)+(Number(x['Dauer (Minuten)'])||0)/60,0);
+  const sessionSeconds=(window.state?.sessions||[]).reduce((n,x)=>n+(Number(x.duration)||0),0);
+  const hours=Math.max(bookHours,sessionSeconds/3600);
+  return {readCount:read.length,pages,hours};
+ };
+ const calcStreak=()=>{
+  const sessions=Array.isArray(window.state?.sessions)?window.state.sessions:[];
+  const dates=new Set();
+  sessions.forEach(s=>{
+   const d=new Date(s.startedAt||s.created_at||'');
+   if(!isNaN(d))dates.add(d.toISOString().slice(0,10));
+  });
+  if(!dates.size)return 0;
+  let streak=0,d=new Date();
+  for(;;){
+   const key=d.toISOString().slice(0,10);
+   if(!dates.has(key))break;
+   streak++;
+   d.setDate(d.getDate()-1);
+  }
+  return streak;
+ };
+ const updateStats=()=>{
+  const st=calcStats();
+  const xp=st.readCount*100+st.pages+Math.round(st.hours*25);
+  const level=Math.max(1,Math.floor(xp/500)+1);
+  const base=(level-1)*500,next=level*500;
+  const into=Math.max(0,xp-base),need=next-base;
+  const pct=Math.min(100,Math.round(into/need*100));
+  const vals={
+   profileBooks:st.readCount.toLocaleString('de-DE'),
+   profilePages:st.pages.toLocaleString('de-DE'),
+   profileHours:st.hours.toFixed(1).replace('.',','),
+   profileStreak:String(calcStreak()),
+   profileLevelBadge:'🏆 Level '+level,
+   profileXpText:xp.toLocaleString('de-DE')+' / '+next.toLocaleString('de-DE')+' XP',
+   achievementBooks:(st.readCount>=1?'✓ ':'')+st.readCount+' / 1',
+   achievement10:st.readCount+' / 10',
+   achievement1000:st.pages.toLocaleString('de-DE')+' / 1.000',
+   achievementHour:st.hours.toFixed(1).replace('.',',')+' / 1 h'
+  };
+  Object.entries(vals).forEach(([id,v])=>{const el=$(id);if(el)el.textContent=v;});
+  const bar=$('profileLevelBar');if(bar)bar.style.width=pct+'%';
+ };
+
+ window.renderProfile=async function(){
+  const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
+  if(!u){setStatus('Bitte zuerst anmelden.',true);return;}
+  const email=u.email||'';
+  const fallbackName=localStorage.getItem('lesezeit_pending_display_name')||((email.split('@')[0])||'Leser');
+  const emailEl=$('profileEmail'),emailDisplay=$('profileEmailDisplay'),nameEl=$('profileDisplayName'),nameDisplay=$('profileNameDisplay'),avatarEl=$('profileAvatar');
+  if(emailEl)emailEl.value=email;
+  if(emailDisplay)emailDisplay.textContent=email;
+  if(nameEl&&!nameEl.value)nameEl.value=fallbackName;
+  if(nameDisplay)nameDisplay.textContent=nameEl?.value||fallbackName;
+  if(avatarEl&&!avatarEl.getAttribute('src'))avatarEl.src=fallback(nameEl?.value||fallbackName);
+  updateStats();
+  if(!sb){setStatus('Supabase ist noch nicht verbunden.',true);return;}
+  if(profileLoaded){return;}
+  setStatus('Lade Profil …');
+  try{
+   const {data,error}=await sb.from('profiles').select('display_name,avatar_url').eq('id',u.id).maybeSingle();
+   if(error)throw error;
+   const n=data?.display_name||fallbackName;
+   if(nameEl)nameEl.value=n;
+   if(nameDisplay)nameDisplay.textContent=n;
+   avatarData=data?.avatar_url||'';
+   if(avatarEl)avatarEl.src=avatarData||fallback(n);
+   profileLoaded=true;
+   updateStats();
+   setStatus('');
+  }catch(e){
+   if(avatarEl)avatarEl.src=avatarData||fallback(nameEl?.value||fallbackName);
+   setStatus('Profil konnte nicht geladen werden: '+(e.message||e),true);
+  }
+ };
+
+ $('profileDisplayName')?.addEventListener('input',()=>{
+  const n=$('profileDisplayName').value.trim()||'Mein Profil';
+  const d=$('profileNameDisplay');if(d)d.textContent=n;
+  const a=$('profileAvatar');if(a&&!avatarData)a.src=fallback(n);
+ });
+
+ function resizeImage(file,done){
+  const reader=new FileReader();
+  reader.onload=()=>{
+   const img=new Image();
+   img.onload=()=>{
+    const max=700,scale=Math.min(1,max/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(img.width*scale));c.height=Math.max(1,Math.round(img.height*scale));
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    done(c.toDataURL('image/jpeg',0.82));
+   };
+   img.onerror=()=>setStatus('Das Bild konnte nicht gelesen werden.',true);
+   img.src=reader.result;
+  };
+  reader.onerror=()=>setStatus('Das Bild konnte nicht gelesen werden.',true);
+  reader.readAsDataURL(file);
+ }
+ $('profileAvatarInput')?.addEventListener('change',e=>{
+  const f=e.target.files?.[0];if(!f)return;
+  if(f.size>5*1024*1024){setStatus('Das Bild darf maximal 5 MB groß sein.',true);e.target.value='';return;}
+  setStatus('Bild wird vorbereitet …');
+  resizeImage(f,data=>{avatarData=data;$('profileAvatar').src=data;setStatus('Bild ausgewählt – jetzt „Profil speichern“ drücken.');});
+ });
+ $('profileAvatarRemove')?.addEventListener('click',()=>{
+  avatarData='';
+  const n=$('profileDisplayName').value.trim()||'L';
+  $('profileAvatar').src=fallback(n);
+  setStatus('Profilbild entfernt – jetzt „Profil speichern“ drücken.');
+ });
+ $('profileSaveBtn')?.addEventListener('click',async()=>{
+  const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser,n=$('profileDisplayName').value.trim();
+  if(!sb||!u){setStatus('Nicht angemeldet.',true);return;}
+  if(!n){setStatus('Bitte einen Anzeigenamen eingeben.',true);return;}
+  setStatus('Speichere …');
+  try{
+   const {error}=await sb.from('profiles').upsert(
+    {id:u.id,display_name:n,avatar_url:avatarData||null,updated_at:new Date().toISOString()},
+    {onConflict:'id'}
+   );
+   if(error)throw error;
+   localStorage.removeItem('lesezeit_pending_display_name');
+   $('profileNameDisplay').textContent=n;
+   $('profileAvatar').src=avatarData||fallback(n);
+   profileLoaded=true;
+   setStatus('Profil gespeichert ✓');
+  }catch(e){setStatus('Fehler beim Speichern: '+(e.message||e),true);}
+ });
+ $('profileLogoutBtn')?.addEventListener('click',()=>window.LesezeitLogout?.());
+ window.addEventListener('lesezeit-auth-ready',()=>{
+  profileLoaded=false;
+  if($('profilePage')?.classList.contains('active'))window.renderProfile();
+  else updateStats();
+ });
+ window.addEventListener('lesezeit-cloud-ready',()=>updateStats());
+ document.addEventListener('DOMContentLoaded',()=>updateStats());
 })();
-</script></body>
+</script>
+</body>
 </html>
