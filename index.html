@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit V28 – Bookstats Next</title>
+<title>Lesezeit V29 – Bookstats Next</title>
 <style>
 :root{
  --bg:#f4f4f7;--card:#fff;--text:#18181b;--muted:#74747d;--line:#e6e6eb;
@@ -223,7 +223,7 @@ button{cursor:pointer}
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V28</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V29</div></header>
 
 <section class="hero">
 <div>
@@ -1247,8 +1247,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const pages=read.reduce((n,x)=>n+(Number(x.Seitenanzahl)||0),0);
   const bookHours=read.reduce((n,x)=>n+(Number(x['Dauer (Stunden)'])||0)+(Number(x['Dauer (Minuten)'])||0)/60,0);
   const sessionSeconds=(window.state?.sessions||[]).reduce((n,x)=>n+(Number(x.duration)||0),0);
-  const hours=Math.max(bookHours,sessionSeconds/3600);
-  return {readCount:read.length,pages,hours};
+  return {readCount:read.length,pages,hours:Math.max(bookHours,sessionSeconds/3600)};
  };
  const calcStreak=()=>{
   const sessions=Array.isArray(window.state?.sessions)?window.state.sessions:[];
@@ -1267,8 +1266,23 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   return streak;
  };
- const updateStats=()=>{
-  const st=calcStats();
+ async function loadAuthoritativeStats(){
+  const sb=window.LesezeitSupabase;
+  const u=window.LesezeitCurrentUser;
+  if(!sb||!u) return null;
+  const {data,error}=await sb.from('user_books')
+    .select('status,reading_duration_hours,reading_duration_minutes,books(pages)')
+    .eq('user_id',u.id);
+  if(error) throw error;
+  const rows=data||[];
+  const read=rows.filter(r=>r.status==='read');
+  const pages=read.reduce((n,r)=>n+(Number(r.books?.pages)||0),0);
+  const hours=read.reduce((n,r)=>n+(Number(r.reading_duration_hours)||0)+(Number(r.reading_duration_minutes)||0)/60,0);
+  return {readCount:read.length,pages,hours};
+ }
+
+ const updateStats=(override)=>{
+  const st=override||calcStats();
   const xp=st.readCount*100+st.pages+Math.round(st.hours*25);
   const level=Math.max(1,Math.floor(xp/500)+1);
   const base=(level-1)*500,next=level*500;
@@ -1303,6 +1317,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(avatarEl&&!avatarEl.getAttribute('src'))avatarEl.src=fallback(nameEl?.value||fallbackName);
   updateStats();
   if(!sb){setStatus('Supabase ist noch nicht verbunden.',true);return;}
+  try{
+   const cloudStats=await loadAuthoritativeStats();
+   if(cloudStats) updateStats(cloudStats);
+  }catch(e){
+   setStatus('Statistiken konnten nicht aus der Cloud geladen werden: '+(e.message||e),true);
+  }
   if(profileLoaded){return;}
   setStatus('Lade Profil …');
   try{
@@ -1314,7 +1334,7 @@ document.addEventListener('DOMContentLoaded',()=>{
    avatarData=data?.avatar_url||'';
    if(avatarEl)avatarEl.src=avatarData||fallback(n);
    profileLoaded=true;
-   updateStats();
+   try{const cloudStats=await loadAuthoritativeStats(); if(cloudStats) updateStats(cloudStats);}catch(e){}
    setStatus('');
   }catch(e){
    if(avatarEl)avatarEl.src=avatarData||fallback(nameEl?.value||fallbackName);
@@ -1381,7 +1401,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   if($('profilePage')?.classList.contains('active'))window.renderProfile();
   else updateStats();
  });
- window.addEventListener('lesezeit-cloud-ready',()=>{updateStats(); if($('profilePage')?.classList.contains('active')) window.renderProfile();});
+ window.addEventListener('lesezeit-cloud-ready',async()=>{
+  try{const cloudStats=await loadAuthoritativeStats(); if(cloudStats) updateStats(cloudStats);}catch(e){}
+  if($('profilePage')?.classList.contains('active')) window.renderProfile();
+});
  document.addEventListener('DOMContentLoaded',()=>updateStats());
 })();
 </script>
