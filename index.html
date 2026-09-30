@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V33 – Lesezeitewelt</title>
+<title>Lesezeit · V34.3 – Lesezeitewelt</title>
 <style>
 :root{
  --bg:#f4f4f7;--card:#fff;--text:#18181b;--muted:#74747d;--line:#e6e6eb;
@@ -170,6 +170,22 @@ button{cursor:pointer}
 .v33-save-msg{font-size:13px;opacity:.7}
 @media(max-width:520px){.v33-editgrid{grid-template-columns:1fr}}
 
+
+/* V34 — integrierter Lesetimer */
+.v34-timer-card{margin-top:18px;padding:18px;border-radius:20px;background:rgba(127,127,127,.08)}
+.v34-timer-display{font-size:42px;font-weight:800;letter-spacing:.5px;text-align:center;margin:8px 0 16px}
+.v34-timer-actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+.v34-timer-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.v34-timer-fields label{display:block;font-size:12px;opacity:.65;margin-bottom:5px}
+.v34-timer-fields input{width:100%;box-sizing:border-box;padding:10px;border-radius:11px;border:1px solid rgba(127,127,127,.25);background:var(--card,#fff);font:inherit}
+.v34-timer-msg{text-align:center;font-size:13px;opacity:.7;margin-top:10px;min-height:18px}
+@media(max-width:520px){.v34-timer-fields{grid-template-columns:1fr}}
+
+
+/* V34.2 — sichere Session-Anzeige */
+.v34-session-history{margin-top:14px}
+.v34-session-row{padding:10px 12px;border-radius:12px;background:rgba(127,127,127,.08);margin-top:7px;font-size:13px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}.v34-session-delete{border:0;background:transparent;cursor:pointer;font-size:14px;opacity:.65;padding:4px 7px;border-radius:8px}.v34-session-delete:hover{background:rgba(220,50,50,.12);opacity:1}
+
 </style>
 
 
@@ -249,7 +265,7 @@ button{cursor:pointer}
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V33 ✨</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V34.9 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -469,7 +485,13 @@ button{cursor:pointer}
 <button class="close" onclick="closeTimer()">×</button>
 <div class="muted">LESESESSION</div><h2 id="timerBook">Buch</h2>
 <div id="timer" class="timer">00:00:00</div>
+<div class="v34-timer-fields" style="margin:14px 0">
+  <div><label>Startseite</label><input id="timerStartPage" type="number" min="0" value="0"></div>
+  <div><label>Endseite beim Stoppen</label><input id="timerEndPage" type="number" min="0" value="0"></div>
+</div>
+<div class="muted" style="font-size:12px;margin:0 0 12px">Die Endseite kannst du direkt hier eintragen, bevor du den Timer beendest.</div>
 <button id="timerButton" class="btn dark timerbtn" onclick="toggleTimer()">▶ Starten</button>
+<div id="timerMsg" class="v34-timer-msg"></div>
 <div class="sessions"><h3>Letzte Sessions</h3><div id="sessionList"></div></div>
 </div></div>
 
@@ -587,8 +609,40 @@ function renderBooks(){
  </article>`).join('')||'<div class="empty">Keine Bücher gefunden.</div>';
  setTimeout(loadVisibleCovers,80);
 }
-function openDetail(id){
+async function ensureFourthWingData(){
+  try{
+    const fw=books.find(b=>String(b.Titel||'').toLowerCase().includes('fourth wing'));
+    if(!fw) return;
+    const startAt='2026-09-30T16:28:00+02:00', endAt='2026-09-30T17:12:00+02:00';
+    // Der von dir bereits gelesene Abschnitt: Seite 1 bis 30, 44 Minuten.
+    if(Number(state.progress[fw._id]||0)<30) state.progress[fw._id]=30;
+    if(status(fw)==='Ungelesen') state.status[fw._id]='Lese ich gerade';
+    state.sessions=state.sessions||[];
+    const localHas=state.sessions.some(x=>String(x.book_id)===String(fw._id) && Number(x.duration_minutes||0)===44 && Number(x.start_page||0)===1 && Number(x.end_page||0)===30);
+    if(!localHas){
+      state.sessions.push({id:'seed_fourth_wing_20260930',book_id:fw._id,start_page:1,end_page:30,pages_read:29,duration_minutes:44,duration_seconds:2640,started_at:startAt,ended_at:endAt,seeded:true});
+    }
+    save();
+
+    // Cloud: Fortschritt und erste Lesesession ebenfalls einmalig speichern.
+    const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+    if(sb && u && fw._cloud){
+      const upd=await sb.from('user_books').update({current_page:30,status:'reading'}).eq('id',fw._id).eq('user_id',u.id);
+      if(upd.error) console.warn('Fourth Wing Fortschritt:',upd.error.message);
+      const existing=await sb.from('reading_sessions').select('id').eq('user_id',u.id).eq('user_book_id',fw._id).eq('started_at',startAt).eq('ended_at',endAt).limit(1);
+      if(existing.error){
+        console.warn('Fourth Wing Session-Abfrage:',existing.error.message);
+      }else if(!existing.data?.length){
+        const ins=await sb.from('reading_sessions').insert({user_id:u.id,user_book_id:fw._id,started_at:startAt,ended_at:endAt,duration_minutes:44,start_page:1,end_page:30});
+        if(ins.error) console.warn('Fourth Wing Session speichern:',ins.error.message);
+      }
+    }
+  }catch(e){console.warn('Fourth Wing Daten:',e);}
+}
+
+async function openDetail(id){
  selected=books.find(b=>b._id===String(id)); if(!selected)return;
+ await ensureFourthWingData();
  const p=progress(selected), pc=pct(selected);
  const personal=state.personal[selected._id]||{};
  const rating=personal.rating ?? Number(selected.Bewertung||0);
@@ -638,6 +692,22 @@ function openDetail(id){
   </div>
  </div>
 
+ <div class="v34-timer-card">
+   <h3 style="margin-top:0">⏱️ Lesetimer</h3>
+   <div id="v34TimerDisplay" class="v34-timer-display">00:00:00</div>
+   <div class="v34-timer-actions">
+     <button class="btn dark" id="v34TimerStart" onclick="v34StartTimer()">▶ Start</button>
+     <button class="btn" onclick="v34PauseTimer()">⏸ Pause</button>
+     <button class="btn" onclick="v34StopTimer()">⏹ Beenden & speichern</button>
+   </div>
+   <div class="v34-timer-fields">
+     <div><label>Startseite</label><input id="v34StartPage" type="number" min="0" max="${selected.Seitenanzahl||0}" value="${p}"></div>
+     <div><label>Endseite beim Stoppen</label><input id="v34EndPage" type="number" min="0" max="${selected.Seitenanzahl||0}" value="${p}"></div>
+   </div>
+   <div class="muted" style="margin-top:8px;font-size:12px">Beim Beenden trägst du hier direkt die Seite ein, auf der du aufgehört hast. Sie wird automatisch als neuer Fortschritt gespeichert.</div>
+   <div id="v34TimerMsg" class="v34-timer-msg"></div><div id="v34SessionHistory" class="v34-session-history"></div>
+ </div>
+
  <h3>Meine Bewertung</h3>
  <div class="rating-edit">
   ${[1,2,3,4,5].map(n=>`<button class="starbtn ${rating>=n?'active':''}" onclick="setRating(${n})">★</button>`).join('')}
@@ -679,7 +749,190 @@ function openDetail(id){
  const bt=document.getElementById('v33BookType'); if(bt) bt.value=bookType;
  const ra=document.getElementById('v33ReceivedAs'); if(ra) ra.value=receivedAs;
  document.getElementById('detailModal').classList.add('open');
+  v34RenderSessionHistory();
+  v34RenderTimer();
 }
+
+
+/* V34 timer */
+window.v34TimerState = window.v34TimerState || {bookId:null, startedAt:null, elapsed:0, interval:null, running:false};
+
+function v34Format(ms){
+  const sec=Math.max(0,Math.floor(ms/1000));
+  const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+  return [h,m,s].map((x,i)=>String(x).padStart(2,'0')).join(':');
+}
+function v34RenderTimer(){
+  const st=window.v34TimerState||{};
+  const now=Date.now();
+  const elapsed=Number(st.elapsed||0)+(st.running&&st.startedAt?now-st.startedAt:0);
+  const text=v34Format(elapsed);
+  const el=document.getElementById('v34TimerDisplay');
+  if(el) el.textContent=text;
+  const legacy=document.getElementById('timer');
+  if(legacy) legacy.textContent=text;
+  const active=!!st.running;
+  const btn=document.getElementById('timerButton');
+  if(btn) btn.textContent=active?'■ Stoppen':'▶ Starten';
+  const msg=document.getElementById('timerMsg');
+  if(msg && active) msg.textContent='Timer läuft …';
+}
+function v34StartTimer(){
+  if(!selected)return;
+  // Keep the page fields synchronized with the book's current progress when starting a fresh session.
+  const st0=window.v34TimerState;
+  if(!st0.running && (!st0.bookId || st0.bookId!==selected._id)){
+    const current=Number(progress(selected)||0);
+    const sp=document.getElementById('v34StartPage');
+    const ep=document.getElementById('v34EndPage');
+    if(sp) sp.value=current;
+    if(ep) ep.value=current;
+  }
+  const st=window.v34TimerState;
+  if(st.bookId!==selected._id){st.bookId=selected._id;st.startedAt=null;st.elapsed=0;}
+  if(!st.running){st.startedAt=Date.now();st.running=true;}
+  clearInterval(st.interval);
+  st.interval=setInterval(v34RenderTimer,500);
+  v34RenderTimer();
+  const msg=document.getElementById('v34TimerMsg'); if(msg)msg.textContent='Timer läuft …';
+  const legacyMsg=document.getElementById('timerMsg'); if(legacyMsg)legacyMsg.textContent='Timer läuft …';
+  const legacyBtn=document.getElementById('timerButton'); if(legacyBtn)legacyBtn.textContent='■ Stoppen';
+}
+function v34PauseTimer(){
+  const st=window.v34TimerState;
+  if(!st.running)return;
+  st.elapsed += Date.now()-st.startedAt;
+  st.startedAt=null;st.running=false;
+  clearInterval(st.interval);st.interval=null;
+  v34RenderTimer();
+  const msg=document.getElementById('v34TimerMsg'); if(msg)msg.textContent='Pausiert';
+}
+async function v34StopTimer(){
+  const st=window.v34TimerState;
+  if(!st || !st.bookId)return;
+  if(st.running){st.elapsed += Date.now()-st.startedAt;st.startedAt=null;st.running=false;}
+  clearInterval(st.interval);st.interval=null;
+  const bookId=String(st.bookId);
+  const book=books.find(b=>String(b._id)===bookId) || (selected && String(selected._id)===bookId ? selected : null);
+  const startEl=document.getElementById('v34StartPage') || document.getElementById('timerStartPage');
+  const endEl=document.getElementById('v34EndPage') || document.getElementById('timerEndPage');
+  const current=book ? Number(progress(book)||0) : 0;
+  const startPage=Number(startEl?.value||current);
+  const endPage=Number(endEl?.value||startPage);
+  const pagesRead=Math.max(0,endPage-startPage);
+  const durationSeconds=Math.max(0,Math.floor(Number(st.elapsed||0)/1000));
+  const durationMin=Math.max(0,Math.round(durationSeconds/60));
+  const startedAt=new Date(Date.now()-Number(st.elapsed||0)).toISOString();
+  const endedAt=new Date().toISOString();
+  const msg=document.getElementById('v34TimerMsg') || document.getElementById('timerMsg');
+  let savedSession=null;
+  try{
+    // Always create the local session first so it is immediately visible in the book.
+    state.sessions=state.sessions||[];
+    savedSession={
+      id:'local_'+Date.now(),
+      book_id:bookId,
+      start_page:startPage,
+      end_page:endPage,
+      pages_read:pagesRead,
+      duration_minutes:durationMin,
+      duration_seconds:durationSeconds,
+      duration:durationSeconds,
+      started_at:startedAt,
+      ended_at:endedAt
+    };
+    state.sessions.push(savedSession);
+    save();
+
+    // Persist to Supabase and keep the returned cloud id for reliable deletion.
+    const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+    if(sb && u){
+      const payload={user_id:u.id,user_book_id:bookId,started_at:startedAt,ended_at:endedAt,duration_minutes:durationMin,start_page:startPage,end_page:endPage};
+      const {data,error}=await sb.from('reading_sessions').insert(payload).select('id').single();
+      if(error) console.warn('reading_sessions:',error.message);
+      else if(data?.id){ savedSession.cloud_id=String(data.id); save(); }
+    }
+
+    // Update progress for the same book even if the detail view was closed.
+    if(book) {
+      state.progress[book._id]=endPage;
+      if(endPage>0 && status(book)==='Ungelesen') state.status[book._id]='Lese ich gerade';
+      if(Number(book.Seitenanzahl||0)>0 && endPage>=Number(book.Seitenanzahl)) state.status[book._id]='Gelesen';
+      save();
+    }
+    // Immediately refresh every session view.
+    if(typeof renderSessions==='function') renderSessions();
+    if(typeof v34RenderSessionHistory==='function') v34RenderSessionHistory();
+    if(typeof refresh==='function') refresh();
+    if(typeof renderBooks==='function') renderBooks();
+    if(typeof renderStats==='function') renderStats();
+    if(msg)msg.textContent=`✓ Session gespeichert · ${durationMin} Min · ${pagesRead} Seiten`;
+  }catch(e){
+    console.error('V34 timer save',e);
+    if(msg)msg.textContent='Fehler beim Speichern: '+(e?.message||'unbekannter Fehler');
+  }finally{
+    st.bookId=null;st.elapsed=0;st.startedAt=null;st.running=false;
+    clearInterval(st.interval);st.interval=null;
+    v34RenderTimer();
+    const legacyMsg=document.getElementById('timerMsg'); if(legacyMsg)legacyMsg.textContent=msg?.textContent||'';
+    const legacyBtn=document.getElementById('timerButton'); if(legacyBtn)legacyBtn.textContent='▶ Starten';
+  }
+}
+
+
+function v34FormatSessionDate(value, session){
+  try{
+    // The first Fourth Wing session is a fixed historical entry.
+    if(session && String(session.id||'')==='seed_fourth_wing_20260930') return '30.09.2026';
+    const raw=value;
+    const s=typeof raw==='string'?raw.trim():String(raw??'').trim();
+    if(!s) return '';
+    // ISO date/time: YYYY-MM-DD...
+    let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if(m) return `${String(m[3]).padStart(2,'0')}.${String(m[2]).padStart(2,'0')}.${m[1]}`;
+    // German date: DD.MM.YYYY...
+    m=s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+    if(m) return `${String(m[1]).padStart(2,'0')}.${String(m[2]).padStart(2,'0')}.${m[3]}`;
+    const d=new Date(s);
+    if(!Number.isNaN(d.getTime())){
+      const dd=String(d.getDate()).padStart(2,'0');
+      const mm=String(d.getMonth()+1).padStart(2,'0');
+      return `${dd}.${mm}.${d.getFullYear()}`;
+    }
+    return '';
+  }catch(e){ return ''; }
+}
+
+function v34RenderSessionHistory(){
+  try{
+    const box=document.getElementById('v34SessionHistory');
+    if(!box || !selected) return;
+    const list=(state.sessions||[]).filter(x=>String(x.book_id)===String(selected._id))
+      .sort((a,b)=>String(b.started_at||'').localeCompare(String(a.started_at||'')));
+    if(!list.length){
+      box.innerHTML='<div class="muted">Noch keine Lesesessions gespeichert.</div>';
+      return;
+    }
+    box.innerHTML='<h4 style="margin:14px 0 6px">📚 Lesesessions</h4>'+
+      list.map(x=>{
+        const mins=Number(x.duration_minutes||0);
+        const pages=Number(x.pages_read ?? Math.max(0,Number(x.end_page||0)-Number(x.start_page||0)));
+        const date=v34FormatSessionDate(x.started_at, x);
+        const dateLabel=date||'Datum unbekannt';
+        return `<div class="v34-session-row"><span>${dateLabel} · ${mins} Min</span><span>Seite ${Number(x.start_page||0)}–${Number(x.end_page||0)} · ${pages} Seiten</span><button class="v34-session-delete" title="Session löschen" onclick="deleteReadingSession('${String(x.id)}')">🗑️</button></div>`;
+      }).join('');
+  }catch(e){console.warn('V34.4 session history',e);}
+}
+
+// Seed the already completed Fourth Wing session only after the cloud library is available.
+// This also makes the 30-page progress visible on the home screen after login.
+window.addEventListener('lesezeit-auth-ready',async()=>{
+  try{
+    await ensureFourthWingData();
+    if(typeof window.refresh==='function') window.refresh();
+    if(typeof window.renderStats==='function') window.renderStats();
+  }catch(e){console.warn('V34.4 Fourth Wing auth sync',e);}
+});
 
 async function savePersonalBookData(){
  if(!selected)return;
@@ -777,13 +1030,23 @@ function setNotes(value){
  save();
 }
 
-function setCurrentPage(v){
+async function setCurrentPage(v){
  if(!selected)return;
  let n=Math.max(0,Math.min(Number(selected.Seitenanzahl||0),Number(v)||0));
  state.progress[selected._id]=n;
  if(n>0&&status(selected)==='Ungelesen')state.status[selected._id]='Lese ich gerade';
  if(n>=Number(selected.Seitenanzahl||0)&&Number(selected.Seitenanzahl||0)>0)state.status[selected._id]='Gelesen';
- save(); refresh(); renderBooks(); openDetail(selected._id);
+ save();
+ // Fortschritt nicht nur lokal, sondern auch im Supabase-Konto speichern.
+ try{
+   const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+   if(sb && u && selected._cloud){
+     const cloudStatus=n>=Number(selected.Seitenanzahl||0)&&Number(selected.Seitenanzahl||0)>0?'read':(n>0?'reading':'to_read');
+     const {error}=await sb.from('user_books').update({current_page:n,status:cloudStatus}).eq('id',selected._id).eq('user_id',u.id);
+     if(error) console.warn('Fortschritt konnte nicht in Supabase gespeichert werden:',error.message);
+   }
+ }catch(e){console.warn('Fortschritt speichern:',e);}
+ refresh(); renderBooks(); openDetail(selected._id);
 }
 function updateProgress(v){
  if(!selected)return; state.progress[selected._id]=Number(v);
@@ -798,29 +1061,74 @@ function openCurrent(){const b=books.find(x=>status(x)==='Lese ich gerade')||boo
 function startReading(){closeDetail();openTimer()}
 function openTimer(){
  if(!selected)selected=books.find(x=>status(x)==='Lese ich gerade')||books[0];
+ const current=Number(progress(selected)||0);
+ const st=window.v34TimerState||{};
+ const active=st.running && String(st.bookId)===String(selected._id);
  document.getElementById('timerBook').textContent=selected.Titel;
- document.getElementById('timerModal').classList.add('open'); renderSessions();
+ const sp=document.getElementById('timerStartPage'), ep=document.getElementById('timerEndPage');
+ if(sp)sp.value=active?Number(sp.value||current):current;
+ if(ep)ep.value=active?Number(ep.value||current):current;
+ const elapsed=active ? Number(st.elapsed||0)+(st.startedAt?Date.now()-st.startedAt:0) : Number(st.elapsed||0);
+ document.getElementById('timer').textContent=v34Format(elapsed);
+ const msg=document.getElementById('timerMsg'); if(msg)msg.textContent=active?'Timer läuft …':'';
+ const btn=document.getElementById('timerButton'); if(btn)btn.textContent=active?'■ Stoppen':'▶ Starten';
+ document.getElementById('timerModal').classList.add('open');
+ renderSessions();
 }
-function closeTimer(){if(running)stopTimer();document.getElementById('timerModal').classList.remove('open')}
-function toggleTimer(){running?stopTimer():startTimer()}
-function startTimer(){
- state.status[selected._id]='Lese ich gerade';save();refresh();renderBooks();
- running=true;seconds=0;document.getElementById('timerButton').textContent='■ Stoppen';
- timerId=setInterval(()=>{seconds++;document.getElementById('timer').textContent=new Date(seconds*1000).toISOString().slice(11,19)},1000);
+function closeTimer(){document.getElementById('timerModal').classList.remove('open')}
+function toggleTimer(){
+ const st=window.v34TimerState||{};
+ if(st.running && String(st.bookId)===String(selected?._id)) v34StopTimer();
+ else v34StartTimer();
 }
-function stopTimer(){
- clearInterval(timerId);running=false;
- if(seconds>0){
-  state.sessions.unshift({bookId:selected._id,title:selected.Titel,duration:seconds,date:new Date().toISOString()});
- }
- save();seconds=0;document.getElementById('timer').textContent='00:00:00';document.getElementById('timerButton').textContent='▶ Starten';
- refresh();renderSessions();
+function startTimer(){v34StartTimer();}
+async function stopTimer(){await v34StopTimer();}
+
+async function deleteReadingSession(id){
+ const session=(state.sessions||[]).find(x=>String(x.id)===String(id));
+ if(!session)return;
+ if(!confirm('Diese Lesesession wirklich löschen?'))return;
+ try{
+   const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+   if(sb && u){
+     // Always try to remove the matching cloud row, including locally-created sessions.
+     let q;
+     if(session.cloud_id){
+       q=await sb.from('reading_sessions').delete().eq('id',String(session.cloud_id)).eq('user_id',u.id);
+     }else if(session.started_at && session.ended_at && session.book_id){
+       q=await sb.from('reading_sessions').delete()
+         .eq('user_id',u.id)
+         .eq('user_book_id',session.book_id)
+         .eq('started_at',session.started_at)
+         .eq('ended_at',session.ended_at);
+     }
+     if(q?.error)throw q.error;
+   }
+   state.sessions=(state.sessions||[]).filter(x=>String(x.id)!==String(id));
+   save();
+   renderSessions(); v34RenderSessionHistory();
+   if(typeof renderStats==='function')renderStats();
+   if(typeof refresh==='function')refresh();
+ }catch(e){ console.error('Session löschen',e); alert('Die Session konnte nicht gelöscht werden.'); }
 }
+
 function renderSessions(){
- const a=state.sessions.slice(0,8);
- document.getElementById('sessionList').innerHTML=a.length?a.map(s=>`<div class="session"><span>${esc(s.title)}</span><b>${fmt(s.duration)}</b></div>`).join(''):'<div class="muted">Noch keine gespeicherten Sessions.</div>';
+ const list=(state.sessions||[]).filter(s=>String(s.book_id??s.bookId)===String(selected?._id));
+ list.sort((a,b)=>String(b.started_at||b.date||'').localeCompare(String(a.started_at||a.date||'')));
+ const a=list.slice(0,8);
+ document.getElementById('sessionList').innerHTML=a.length?a.map(s=>{
+   const dur=Number(s.duration_seconds??s.duration??(Number(s.duration_minutes||0)*60));
+   const mins=Math.floor(dur/60);
+   const pages=Number(s.pages_read ?? Math.max(0,Number(s.end_page||0)-Number(s.start_page||0)));
+   const raw=s.started_at||s.date||'';
+   let date='';
+   const m=String(raw).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+   if(m)date=`${String(m[3]).padStart(2,'0')}.${String(m[2]).padStart(2,'0')}.${m[1]}`;
+   else {const d=new Date(raw); if(!Number.isNaN(d.getTime()))date=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;}
+   return `<div class="session"><div><b>${date||'Datum unbekannt'}</b><div class="muted">Seite ${Number(s.start_page||0)}–${Number(s.end_page||0)} · ${pages} Seiten</div></div><span style="display:flex;align-items:center;gap:8px"><b>${mins} Min</b><button class="v34-session-delete" title="Session löschen" onclick="deleteReadingSession('${String(s.id)}')">🗑️</button></span></div>`;
+ }).join(''):'<div class="muted">Noch keine gespeicherten Sessions.</div>';
 }
-function fmt(n){n=Math.round(n);return [Math.floor(n/3600),Math.floor(n%3600/60),n%60].map(x=>String(x).padStart(2,'0')).join(':')}
+function fmt(n){n=Math.round(Number(n)||0);return [Math.floor(n/3600),Math.floor(n%3600/60),n%60].map(x=>String(x).padStart(2,'0')).join(':')}
 
 function applyDesign(){
  const d=state.design||{};
@@ -1325,6 +1633,25 @@ refresh();setView(viewMode);
         try{ if(typeof window.renderStats==="function")window.renderStats(); }catch(e){}
         try{ if(typeof window.renderProfile==="function")window.renderProfile(); }catch(e){}
       }
+      // V34.7: Lesesessions aus Supabase laden und mit lokalen Sessions synchronisieren.
+      try{
+        const {data:cloudSessions,error:sessionError}=await client.from("reading_sessions").select("*").eq("user_id",user.id).order("started_at",{ascending:false});
+        if(sessionError) throw sessionError;
+        const cloud=(cloudSessions||[]).map(r=>({
+          id:String(r.id), cloud_id:String(r.id), book_id:String(r.user_book_id),
+          start_page:Number(r.start_page||0), end_page:Number(r.end_page||0),
+          pages_read:Math.max(0,Number(r.end_page||0)-Number(r.start_page||0)),
+          duration_minutes:Number(r.duration_minutes||0),
+          duration_seconds:Number(r.duration_seconds||0)||Number(r.duration_minutes||0)*60,
+          duration:Number(r.duration_seconds||0)||Number(r.duration_minutes||0)*60,
+          started_at:r.started_at, ended_at:r.ended_at
+        }));
+        const key=x=>`${String(x.book_id)}|${String(x.started_at||'')}|${String(x.ended_at||'')}`;
+        const cloudKeys=new Set(cloud.map(key));
+        const local=(state.sessions||[]).filter(x=>!cloudKeys.has(key(x)));
+        state.sessions=[...cloud,...local];
+        save();
+      }catch(sessionLoadError){ console.warn("Lesesessions konnten nicht aus Supabase geladen werden:",sessionLoadError); }
       show("v22Loading",false);
       show("v22AuthScreen",false);
       window.LesezeitCurrentUser=user;
@@ -1750,6 +2077,9 @@ refresh();setView(viewMode);
   }
   $('bookSearchInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')window.searchExternalBooks();});
 })();
+
+/* V34.3: Fourth Wing wird sicher erst nach dem Cloud-Laden synchronisiert. */
+
 </script>
 </body>
 </html>
