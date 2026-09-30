@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit V27 – Bookstats Next</title>
+<title>Lesezeit V28 – Bookstats Next</title>
 <style>
 :root{
  --bg:#f4f4f7;--card:#fff;--text:#18181b;--muted:#74747d;--line:#e6e6eb;
@@ -223,7 +223,7 @@ button{cursor:pointer}
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V27</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V28</div></header>
 
 <section class="hero">
 <div>
@@ -1232,12 +1232,15 @@ document.addEventListener('DOMContentLoaded',()=>{
   const el=$('profileStatus');
   if(el){el.textContent=text||'';el.style.color=error?'#d33':'';}
  };
+ const getBookStatus=(x)=>{
+  const own=String(x?.Lesestatus||'').trim();
+  if(own) return own;
+  try{return typeof window.status==='function' ? window.status(x) : '';}
+  catch(e){return '';}
+ };
  const getReadBooks=()=>{
   const arr=Array.isArray(window.books)?window.books:[];
-  return arr.filter(x=>{
-   try{return typeof window.status==='function' ? window.status(x)==='Gelesen' : x.Lesestatus==='Gelesen';}
-   catch(e){return x.Lesestatus==='Gelesen';}
-  });
+  return arr.filter(x=>getBookStatus(x)==='Gelesen');
  };
  const calcStats=()=>{
   const read=getReadBooks();
@@ -1378,7 +1381,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   if($('profilePage')?.classList.contains('active'))window.renderProfile();
   else updateStats();
  });
- window.addEventListener('lesezeit-cloud-ready',()=>updateStats());
+ window.addEventListener('lesezeit-cloud-ready',()=>{updateStats(); if($('profilePage')?.classList.contains('active')) window.renderProfile();});
  document.addEventListener('DOMContentLoaded',()=>updateStats());
 })();
 </script>
