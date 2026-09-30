@@ -805,7 +805,7 @@ function showPage(page){
  if(page==='profile' && typeof window.renderProfile==='function') window.renderProfile();
  window.scrollTo({top:0,behavior:'smooth'});
 }
-function renderStats(){
+window.renderStats=function renderStats(){
  const read=books.filter(b=>status(b)==='Gelesen');
  const pages=read.reduce((n,b)=>n+(Number(b.Seitenanzahl)||0),0);
  const secs=state.sessions.reduce((n,s)=>n+(Number(s.duration)||0),0);
@@ -826,7 +826,7 @@ function renderStats(){
  document.getElementById('ratingChart').innerHTML=ratings.map(([k,v])=>`<div class="barrow"><span>${'★'.repeat(k)}</span><div class="bar"><i style="width:${v/rm*100}%"></i></div><b>${v}</b></div>`).join('');
 }
 
-function refresh(){
+window.refresh=function refresh(){
  document.getElementById('bookCount').textContent=books.length;
  document.getElementById('readCount').textContent=books.filter(b=>status(b)==='Gelesen').length;
  const totalPages=books.reduce((n,b)=>n+(Number(b.Seitenanzahl)||0),0);
@@ -1228,7 +1228,11 @@ refresh();setView(viewMode);
         books.splice(0,books.length,...mapped);
         try{ if(typeof window.save==="function")window.save(); }catch(e){}
         try{ if(typeof window.renderBooks==="function")window.renderBooks(); }catch(e){}
-        try{ if(typeof window.updateHomeStats==="function")window.updateHomeStats(); }catch(e){}
+        // V31.7: refresh the home statistics from the current cloud library.
+        // This makes the "Bücher" card count newly added books such as Fourth Wing.
+        try{ if(typeof window.refresh==="function")window.refresh(); }catch(e){}
+        try{ if(typeof window.renderStats==="function")window.renderStats(); }catch(e){}
+        try{ if(typeof window.renderProfile==="function")window.renderProfile(); }catch(e){}
       }
       show("v22Loading",false);
       show("v22AuthScreen",false);
