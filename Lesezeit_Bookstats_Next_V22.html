@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lesezeit V22 – Bookstats Next</title>
+<style>
+:root{
+ --bg:#f4f4f7;--card:#fff;--text:#18181b;--muted:#74747d;--line:#e6e6eb;
+ --accent:#6d5dfc;--soft:#efedff;--dark:#171717
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+.app{max-width:1180px;margin:auto;padding:22px 20px 80px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.brand{font-weight:850;font-size:25px}.pill{padding:7px 12px;border-radius:99px;background:var(--soft);color:var(--accent);font-size:13px;font-weight:700}
+.hero{background:linear-gradient(135deg,#171717,#41395f);color:#fff;border-radius:28px;padding:28px;display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+.hero h1{font-size:40px;line-height:1.05;margin:8px 0}.hero p{color:#d5d5dc;max-width:620px}
+.reading{background:#ffffff18;padding:20px;border-radius:22px}.reading .book{font-weight:800;font-size:18px;line-height:1.25;margin-top:5px}
+.progress{height:9px;background:#ffffff30;border-radius:20px;overflow:hidden;margin:14px 0}.progress i{display:block;height:100%;background:#fff;width:0}
+.btn{border:0;border-radius:14px;padding:11px 15px;font-weight:750}
+.start{background:#fff;color:#171717}.dark{background:var(--dark);color:#fff}.ghost{background:#f0f0f3;color:#171717}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin:16px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:17px}
+.stat b{font-size:24px;display:block}
+.pageStat .miniProgress{height:7px;background:#e9e9ee;border-radius:99px;overflow:hidden;margin-top:10px}
+.pageStat .miniProgress i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.pageStat .sub{font-size:11px;color:var(--muted);margin-top:5px}
+.muted{color:var(--muted);font-size:13px}
+.sectionhead{display:flex;align-items:end;justify-content:space-between;gap:15px;margin-top:26px}
+.sectionhead h2{margin:0 0 4px}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.search{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:14px;background:#fff;outline:none;margin-top:12px}
+.filters{display:flex;gap:8px;margin:12px 0;overflow:auto}
+.tab,.viewbtn,.sortbtn{border:1px solid var(--line);background:#fff;padding:9px 13px;border-radius:10px;white-space:nowrap}
+.tab.active,.viewbtn.active{background:var(--dark);color:#fff}
+.books{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.bookcard{cursor:pointer;transition:.15s transform}.bookcard:hover{transform:translateY(-2px)}
+
+.cover img{width:100%;height:100%;object-fit:cover;display:block}
+.cover.fallback{background:linear-gradient(145deg,#d2d2d7,#777)}
+.cover.loading{background:#e9e9ee}
+.cover{height:150px;border-radius:15px;background:linear-gradient(145deg,#d2d2d7,#777);display:flex;align-items:end;padding:13px;font-weight:800;color:#fff;margin-bottom:12px;overflow:hidden}
+.cover span{text-shadow:0 1px 4px #0009;line-height:1.15}
+.bookcard h3{font-size:15px;margin:0 0 5px;line-height:1.25}.meta{font-size:12px;color:var(--muted)}
+.tag{display:inline-block;margin-top:9px;padding:5px 8px;border-radius:8px;background:#f0f0f3;font-size:11px}
+.empty{padding:30px;text-align:center;color:var(--muted);grid-column:1/-1}
+.books.list{display:flex;flex-direction:column;gap:8px}
+.books.list .bookcard{display:grid;grid-template-columns:56px 1fr auto;align-items:center;gap:14px;padding:10px 13px}
+.books.list .cover{width:56px;height:72px;margin:0;padding:7px;border-radius:10px}
+.books.list .bookcard h3{margin:0}.books.list .tag{margin:0}
+.books.covers{grid-template-columns:repeat(6,1fr)}
+.books.covers .bookcard{padding:9px}.books.covers .cover{height:215px;margin:0}
+.books.covers .bookcard h3,.books.covers .meta,.books.covers .tag{display:none}
+
+.nav{display:flex;gap:7px;margin:18px 0 4px}
+.navbtn{border:1px solid var(--line);background:#fff;padding:9px 14px;border-radius:11px;font-weight:700}
+.navbtn.active{background:var(--dark);color:#fff}
+.page{display:none}.page.active{display:block}
+.statsgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:16px}
+.bigstat{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px}
+.bigstat b{font-size:30px;display:block;margin-top:5px}
+.chart{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;margin-top:13px}
+.barrow{display:grid;grid-template-columns:90px 1fr 55px;gap:10px;align-items:center;margin:11px 0}
+.bar{height:12px;background:#ededf1;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.cover-input{display:flex;gap:8px;margin-top:8px}.cover-input input{flex:1}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
+.modal.open{display:flex}.dialog{background:#fff;border-radius:25px;max-width:650px;width:100%;padding:24px;max-height:90vh;overflow:auto}
+.close{float:right;border:0;background:#eee;border-radius:50%;width:34px;height:34px}
+
+.book-cover-image{width:100%;height:100%;object-fit:cover;border-radius:18px}
+.detail-title{font-size:28px;line-height:1.08;margin:5px 0}
+.rating-edit{display:flex;gap:6px;margin:8px 0 16px}
+.starbtn{border:0;background:#f1f1f4;border-radius:10px;padding:8px 10px;font-size:20px}
+.starbtn.active{background:#fff0a8}
+.formrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.formfield{background:#f5f5f7;border:0;border-radius:13px;padding:11px;width:100%}
+.notes{width:100%;min-height:100px;resize:vertical;background:#f5f5f7;border:0;border-radius:13px;padding:12px}
+.detail-cover{height:205px;border-radius:18px;background:linear-gradient(145deg,#cfcfd5,#777);display:flex;align-items:end;padding:18px;color:#fff;font-weight:850;font-size:22px;margin:10px 0 18px}
+.detail-cover span{text-shadow:0 1px 5px #0009}.detailgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.info{background:#f5f5f7;border-radius:14px;padding:12px}.info b{display:block;margin-bottom:3px}
+.range{width:100%}.timer{font-size:54px;text-align:center;font-variant-numeric:tabular-nums;margin:25px 0}
+.timerbtn{width:100%}.sessions{margin-top:18px}.session{display:flex;justify-content:space-between;border-top:1px solid var(--line);padding:10px 0;font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px}
+@media(max-width:850px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}.books{grid-template-columns:repeat(2,1fr)}.books.covers{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:520px){.app{padding:15px 12px 60px}.hero h1{font-size:31px}.books{grid-template-columns:1fr 1fr}.books.covers{grid-template-columns:repeat(3,1fr)}.books.list .bookcard{grid-template-columns:48px 1fr}.books.list .tag{grid-column:2}.detailgrid{grid-template-columns:1fr}}
+
+.design{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.designcard{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px}
+.designcard h3{margin-top:0}.swatches{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.swatch{width:38px;height:38px;border-radius:50%;border:3px solid transparent;cursor:pointer}
+.swatch.active{border-color:#171717;box-shadow:0 0 0 2px #fff inset}
+.theme-options{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}
+.theme-option{border:1px solid var(--line);background:#f7f7f8;border-radius:14px;padding:13px;text-align:left;cursor:pointer}
+.theme-option strong{display:block;margin-bottom:4px}.theme-option.active{border:2px solid var(--accent)}
+.bg-preview{height:120px;border-radius:15px;margin-top:12px;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;text-shadow:0 1px 5px #000}
+.filelabel{display:inline-block;border-radius:12px;background:#171717;color:#fff;padding:10px 13px;font-weight:700;cursor:pointer;margin-top:10px}
+@media(max-width:700px){.design{grid-template-columns:1fr}.theme-options{grid-template-columns:1fr 1fr}}
+.nav{display:flex;gap:7px;margin:18px 0 4px}
+.navbtn{border:1px solid var(--line);background:#fff;padding:9px 14px;border-radius:11px;font-weight:700}
+.navbtn.active{background:var(--dark);color:#fff}
+
+</style>
+
+<style id="v12-cloud-css">
+#v12CloudPanel{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);z-index:99999;display:none;align-items:center;justify-content:center;padding:20px}
+#v12CloudCard{width:min(560px,100%);background:var(--card,#171717);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:28px;box-shadow:0 25px 80px rgba(0,0,0,.45)}
+#v12CloudCard h2{margin:0 0 8px;font-size:25px}
+#v12CloudCard p{opacity:.72;line-height:1.5}
+.v12field{width:100%;box-sizing:border-box;margin:8px 0;padding:13px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:inherit;font-size:14px}
+.v12cloudbtn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;margin-top:8px}
+#v12CloudStatus{font-size:13px;margin-top:12px;min-height:18px}
+.v12cloud-note{font-size:12px;opacity:.55}
+</style>
+
+<style>
+#v12CloudCard .v12field{display:block!important;width:100%!important;min-height:44px!important;margin:10px 0!important;box-sizing:border-box!important;background:#f7f7f8!important;color:#111!important;border:1px solid #d5d5da!important}
+#v12CloudCard .v12field::placeholder{color:#777!important}
+</style></head>
+<body>
+<style id="v22-auth-css">
+#v22AuthScreen{
+  position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;
+  padding:24px;box-sizing:border-box;background:var(--bg,#f4f4f7);
+}
+#v22AuthCard{
+  width:min(430px,100%);padding:28px 24px;border-radius:26px;background:var(--card,#fff);
+  box-shadow:0 18px 60px rgba(0,0,0,.14);text-align:center;
+}
+#v22AuthCard .v22logo{font-size:46px;margin-bottom:6px}
+#v22AuthCard h1{margin:0 0 7px;font-size:29px}
+#v22AuthCard p{margin:0 0 22px;opacity:.65;line-height:1.45}
+.v22tabs{display:flex;gap:4px;padding:4px;border-radius:14px;background:rgba(127,127,127,.12);margin-bottom:16px}
+.v22tabs button{flex:1;border:0;background:transparent;color:inherit;padding:10px;border-radius:10px;font-weight:700}
+.v22tabs button.active{background:var(--card,#fff);box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.v22input{
+  display:block;width:100%;box-sizing:border-box;padding:13px 14px;margin:9px 0;
+  border:1px solid rgba(127,127,127,.25);border-radius:13px;background:transparent;color:inherit;font-size:15px;
+}
+.v22primary{width:100%;border:0;border-radius:13px;padding:13px;margin-top:5px;background:var(--accent,#6d5dfc);color:#fff;font-weight:800;font-size:15px}
+.v22secondary{border:0;background:none;color:var(--accent,#6d5dfc);font-weight:700;margin-top:12px}
+#v22Status{min-height:20px;margin-top:14px;font-size:13px}
+#v22Loading{display:none;position:fixed;inset:0;z-index:100000;align-items:center;justify-content:center;background:var(--bg,#f4f4f7)}
+#v22LoadingCard{background:var(--card,#fff);padding:26px;border-radius:22px;text-align:center;box-shadow:0 18px 60px rgba(0,0,0,.12)}
+</style>
+
+<div id="v22AuthScreen">
+  <div id="v22AuthCard">
+    <div class="v22logo">📚</div>
+    <h1>Willkommen bei Lesezeit</h1>
+    <p>Deine Bibliothek, Lesefortschritte und Statistiken an einem Ort.</p>
+
+    <div class="v22tabs">
+      <button id="v22LoginTab" class="active">Anmelden</button>
+      <button id="v22RegisterTab">Konto erstellen</button>
+    </div>
+
+    <div id="v22LoginForm">
+      <input id="v22LoginEmail" class="v22input" type="email" placeholder="E-Mail-Adresse" autocomplete="username">
+      <input id="v22LoginPassword" class="v22input" type="password" placeholder="Passwort" autocomplete="current-password">
+      <button id="v22LoginBtn" class="v22primary">Anmelden</button>
+      <button id="v22ForgotBtn" class="v22secondary">Passwort vergessen?</button>
+    </div>
+
+    <div id="v22RegisterForm" style="display:none">
+      <input id="v22Name" class="v22input" placeholder="Anzeigename" autocomplete="name">
+      <input id="v22RegEmail" class="v22input" type="email" placeholder="E-Mail-Adresse" autocomplete="email">
+      <input id="v22RegPassword" class="v22input" type="password" placeholder="Passwort (mind. 6 Zeichen)" autocomplete="new-password">
+      <input id="v22RegPassword2" class="v22input" type="password" placeholder="Passwort wiederholen" autocomplete="new-password">
+      <button id="v22RegisterBtn" class="v22primary">Konto erstellen</button>
+    </div>
+
+    <div id="v22Status"></div>
+  </div>
+</div>
+<div id="v22Loading">
+  <div id="v22LoadingCard">☁️<br><strong>Bibliothek wird geladen …</strong></div>
+</div>
+
+<div class="app">
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Bookstats Next · V22</div></header>
+
+<section class="hero">
+<div>
+<div class="muted" style="color:#bbb">DEINE BÜCHER</div>
+<h1>Schön, dass du liest.</h1>
+<p>Deine Bookstats-Bibliothek ist importiert. Die App merkt sich deinen Fortschritt und deine bevorzugte Ansicht.</p>
+<button class="btn start" onclick="openTimer()">▶ Ich lese gerade</button>
+</div>
+<div class="reading">
+<div class="muted" style="color:#bbb">AKTUELL</div>
+<div id="currentBook" class="book">Noch kein Buch ausgewählt</div>
+<div class="progress"><i id="currentProgress"></i></div>
+<div id="currentProgressText" class="muted" style="color:#ccc">0 / 0 Seiten</div>
+<button class="btn" style="margin-top:12px" onclick="openCurrent()">Buch öffnen</button>
+</div>
+</section>
+
+<div class="nav">
+ <button class="navbtn active" id="navLibrary" onclick="showPage('library')">📚 Bibliothek</button>
+ <button class="navbtn" id="navStats" onclick="showPage('stats')">📊 Statistiken</button><button class="navbtn" id="navDesign" onclick="showPage('design')">🎨 Design</button>
+</div>
+
+<div id="libraryPage" class="page active">
+<div class="grid">
+<div class="card stat"><span class="muted">Bücher</span><b id="bookCount">0</b></div>
+<div class="card stat"><span class="muted">Gelesen</span><b id="readCount">0</b></div>
+<div class="card stat"><span class="muted">Seiten</span><b id="pageCount">0</b></div>
+<div class="card stat pageStat">
+ <span class="muted">Gelesene Seiten</span>
+ <b id="readPages">0</b>
+ <div class="sub" id="readPagesTotal">von 0 Seiten</div>
+ <div class="miniProgress"><i id="readPagesBar" style="width:0%"></i></div>
+ <div class="sub" id="readPagesPct">0 % deiner Bibliothek</div>
+</div>
+<div class="card stat"><span class="muted">Lesesessions</span><b id="sessionCount">0</b></div>
+</div>
+
+<div class="sectionhead">
+<div><h2>Meine Bücher</h2><div class="muted" id="resultCount"></div><div class="muted" id="coversHint" style="margin-top:3px">Cover werden anhand der ISBN automatisch gesucht.</div></div>
+<div class="controls">
+<button class="viewbtn active" data-view="grid" onclick="setView('grid')">▦ Raster</button>
+<button class="viewbtn" data-view="list" onclick="setView('list')">☰ Liste</button>
+<button class="viewbtn" data-view="covers" onclick="setView('covers')">▣ Cover</button>
+</div>
+</div>
+
+<input id="search" class="search" placeholder="Titel, Autor, ISBN oder Genre suchen …" oninput="renderBooks()">
+
+<div class="filters">
+<button class="tab active" onclick="setFilter('Alle',this)">Alle</button>
+<button class="tab" onclick="setFilter('Gelesen',this)">Gelesen</button>
+<button class="tab" onclick="setFilter('Ungelesen',this)">Ungelesen</button>
+<button class="tab" onclick="setFilter('Lese ich gerade',this)">Lese ich gerade</button>
+</div>
+
+<div class="controls" style="margin-bottom:12px">
+<span class="muted">Sortieren:</span>
+<select id="sort" class="sortbtn" onchange="renderBooks()">
+<option value="title">Titel A–Z</option>
+<option value="author">Autor A–Z</option>
+<option value="pages">Seitenzahl</option>
+<option value="rating">Bewertung</option>
+<option value="year">Erscheinungsjahr</option>
+</select>
+</div>
+
+<div id="books" class="books"></div>
+</div>
+
+
+</div>
+
+<div id="designPage" class="page">
+ <div class="sectionhead">
+  <div><h2>Design & Theme</h2><div class="muted">Mach Lesezeit zu deiner eigenen App.</div></div>
+ </div>
+
+ <div class="design">
+  <div class="designcard">
+   <h3>Akzentfarbe</h3>
+   <div class="muted">Buttons, Fortschrittsbalken und Hervorhebungen.</div>
+   <div class="swatches">
+    <button class="swatch" style="background:#6d5dfc" onclick="setAccent('#6d5dfc')"></button>
+    <button class="swatch" style="background:#e85d75" onclick="setAccent('#e85d75')"></button>
+    <button class="swatch" style="background:#e08a22" onclick="setAccent('#e08a22')"></button>
+    <button class="swatch" style="background:#2e9b70" onclick="setAccent('#2e9b70')"></button>
+    <button class="swatch" style="background:#2684d9" onclick="setAccent('#2684d9')"></button>
+    <button class="swatch" style="background:#a04fbd" onclick="setAccent('#a04fbd')"></button>
+    <button class="swatch" style="background:#222" onclick="setAccent('#222222')"></button>
+   </div>
+  </div>
+
+  <div class="designcard">
+   <h3>Theme</h3>
+   <div class="muted">Voreinstellungen für die gesamte Oberfläche.</div>
+   <div class="theme-options">
+    <button class="theme-option" onclick="setTheme('light')"><strong>☀️ Classic</strong><span class="muted">Hell & clean</span></button>
+    <button class="theme-option" onclick="setTheme('dark')"><strong>🌙 Midnight</strong><span class="muted">Dunkel & gemütlich</span></button>
+    <button class="theme-option" onclick="setTheme('soft')"><strong>🌸 Soft</strong><span class="muted">Warm & sanft</span></button>
+   </div>
+  </div>
+
+  <div class="designcard">
+   <h3>App-Hintergrund</h3>
+   <div class="muted">Später kannst du hier z. B. ein Bild deiner Lieblingsbuchszene verwenden.</div>
+   <div id="bgPreview" class="bg-preview">Dein Hintergrund</div>
+   <label class="filelabel">🖼️ Eigenes Bild auswählen
+    <input id="bgFile" type="file" accept="image/*" hidden onchange="setBackground(this.files[0])">
+   </label>
+   <button class="btn ghost" style="margin-top:10px" onclick="clearBackground()">Hintergrund zurücksetzen</button>
+  </div>
+
+  <div class="designcard">
+   <h3>Deine Einstellungen</h3>
+   <div class="muted">Die Design-Einstellungen werden in dieser V1 lokal gespeichert. Bei der späteren echten App werden sie mit deinem Konto synchronisiert.</div>
+   <button class="btn dark" style="margin-top:15px" onclick="resetDesign()">Design zurücksetzen</button>
+  </div>
+ </div>
+
+
+<div id="statsPage" class="page">
+ <div class="sectionhead">
+  <div><h2>Deine Statistiken</h2><div class="muted">Deine bisherige Leseleistung</div></div>
+ </div>
+ <div class="statsgrid">
+  <div class="bigstat"><span class="muted">Bücher gelesen</span><b id="statBooks">0</b></div>
+  <div class="bigstat"><span class="muted">Seiten gelesen</span><b id="statPages">0</b></div>
+  <div class="bigstat"><span class="muted">Lesestunden</span><b id="statHours">0</b></div>
+ </div>
+ <div class="chart">
+  <h3>Status deiner Bibliothek</h3>
+  <div id="statusChart"></div>
+ </div>
+ <div class="chart">
+  <h3>Top Genres</h3>
+  <div id="genreChart"></div>
+ </div>
+ <div class="chart">
+  <h3>Bewertungen</h3>
+  <div id="ratingChart"></div>
+ </div>
+</div>
+
+<div id="detailModal" class="modal"><div class="dialog">
+<button class="close" onclick="closeDetail()">×</button><div id="detail"></div>
+</div></div>
+
+<div id="timerModal" class="modal"><div class="dialog">
+<button class="close" onclick="closeTimer()">×</button>
+<div class="muted">LESESESSION</div><h2 id="timerBook">Buch</h2>
+<div id="timer" class="timer">00:00:00</div>
+<button id="timerButton" class="btn dark timerbtn" onclick="toggleTimer()">▶ Starten</button>
+<div class="sessions"><h3>Letzte Sessions</h3><div id="sessionList"></div></div>
+</div></div>
+
+<script>
+const books=[{"Titel": "Assassin's Creed: Der offizielle Roman zum Film: Roman zum Film - Videogameroman", "Autor(en)": "Golden, Christie", "ISBN": "9783833233524", "ASIN": "", "Erscheinungsjahr": 2017, "Genre": "Fantasy", "Seitenanzahl": 352, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "14,99", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "18.10.2022", "_id": "0"}, {"Titel": "Die Tribute von Panem: Flammender Zorn - Filmausgabe", "Autor(en)": "Collins, Suzanne", "ISBN": "9783789132346", "ASIN": "", "Erscheinungsjahr": 2014, "Genre": "Dystopische Bücher", "Seitenanzahl": 432, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "3,94", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "1"}, {"Titel": "Es: Roman (Heyne Bücher, 43577)", "Autor(en)": "Stephen King", "ISBN": "9783453435773", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "Fantasy & Science Fiction", "Seitenanzahl": 1536, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,95", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "10.05.2022", "Leseende": "10.06.2022", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "09.05.2022", "_id": "2"}, {"Titel": "Fifty Shades of Grey - Geheimes Verlangen: Band 1. Buch zum Film - Roman", "Autor(en)": "James, E L", "ISBN": "9783442482450", "ASIN": "", "Erscheinungsjahr": 2015, "Genre": "Literatur", "Seitenanzahl": 608, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,99", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "3"}, {"Titel": "Friedhof der Kuscheltiere: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453435797", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "Fantasy & Science Fiction", "Seitenanzahl": 608, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "11,90", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "11.06.2022", "Leseende": "20.07.2022", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "25.05.2022", "_id": "4"}, {"Titel": "Harry Potter and the Cursed Child", "Autor(en)": "Unbekannt", "ISBN": "9781510051317", "ASIN": "", "Erscheinungsjahr": 2016, "Genre": "Alben", "Seitenanzahl": 330, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "24,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "5"}, {"Titel": "Harry Potter und das verwunschene Kind. Teil eins und zwei (Special Rehearsal Edition Script) (Harry Potter)", "Autor(en)": "Rowling, J.K., Tiffany, John, Thorne, Jack", "ISBN": "9783551559005", "ASIN": "", "Erscheinungsjahr": 2016, "Genre": "Zauberer & Hexen", "Seitenanzahl": 336, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "4,06", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "6"}, {"Titel": "MontanaBlack: Vom Junkie zum YouTuber", "Autor(en)": "MontanaBlack, Marcel Eris, Dennis Sand", "ISBN": "9783745305944", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Biography & Autobiography", "Seitenanzahl": 250, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "E-Book", "Preis": "19,99", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "18.10.2022", "_id": "7"}, {"Titel": "Scary Stories to Tell in the Dark: The Complete Collection", "Autor(en)": "Alvin Schwartz", "ISBN": "9781407199795", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Juvenile Fiction", "Seitenanzahl": 352, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "0,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "8"}, {"Titel": "The Green Mile: Roman", "Autor(en)": "Stephen King", "ISBN": "9783641053420", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "Fiction", "Seitenanzahl": 592, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,95", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "20.07.2022", "Leseende": "29.07.2022", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "25.05.2022", "_id": "9"}, {"Titel": "A Brief History Of Time: From Big Bang To Black Holes (English Edition)", "Autor(en)": "Stephen Hawking", "ISBN": "9781409092360", "ASIN": "", "Erscheinungsjahr": 2009, "Genre": "Science", "Seitenanzahl": 272, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "E-Book", "Preis": "0,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "10"}, {"Titel": "Abgeschlagen: True-Crime-Thriller (Die Paul Herzfeld-Reihe, Band 1)", "Autor(en)": "Tsokos, Michael", "ISBN": "9783426524398", "ASIN": "", "Erscheinungsjahr": 2021, "Genre": "Thriller & Suspense", "Seitenanzahl": 416, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "11"}, {"Titel": "Alles über Satanismus: Der Satanische Glaube", "Autor(en)": "Walinsky, Igor", "ISBN": "9781694990778", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Literatur & Belletristik", "Seitenanzahl": 46, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "7,48", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "12"}, {"Titel": "APEX Legends: Der inoffizielle Guide: So wird man zum Champion der Arena", "Autor(en)": "Unbekannt", "ISBN": "9783833238390", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Computer- & Videospiele", "Seitenanzahl": 120, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "13"}, {"Titel": "Aschenputtel: Thriller (Fredrika Bergman / Stockholm Requiem 1)", "Autor(en)": "Kristina Ohlsson", "ISBN": "9783641064082", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "Fiction", "Seitenanzahl": 496, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "E-Book", "Preis": "0,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "14"}, {"Titel": "Brennen muss Salem: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453441088", "ASIN": "", "Erscheinungsjahr": 2020, "Genre": "Parapsychologie", "Seitenanzahl": 656, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "11,30", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "16.09.2022", "_id": "15"}, {"Titel": "Carrie: Roman .", "Autor(en)": "Stephen King", "ISBN": "9783404180066", "ASIN": "", "Erscheinungsjahr": 2020, "Genre": "Fantasy & Science Fiction", "Seitenanzahl": 304, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,33", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "01.05.2023", "Leseende": "21.07.2023", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "08.06.2022", "_id": "16"}, {"Titel": "Danse Macabre: Die Welt des Horrors", "Autor(en)": "Stephen King", "ISBN": "9783453435735", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "Krimis & Thriller", "Seitenanzahl": 800, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "25.07.2022", "_id": "17"}, {"Titel": "Das Buch der wahren schwarzen Magie: La véritable magie noire", "Autor(en)": "Grego, Iroé", "ISBN": "9783752838862", "ASIN": "", "Erscheinungsjahr": 2018, "Genre": "Übersinnliches & Okkultismus", "Seitenanzahl": 160, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "8,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "18"}, {"Titel": "Das Institut", "Autor(en)": "Stephen King", "ISBN": "9783641244286", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Fiction", "Seitenanzahl": 652, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "13,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "25.05.2022", "_id": "19"}, {"Titel": "Das Leben und das Schreiben: Memoiren", "Autor(en)": "Stephen King", "ISBN": "9783641054007", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "Biography & Autobiography", "Seitenanzahl": 384, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "25.07.2022", "_id": "20"}, {"Titel": "Das Verhängnis: Roman", "Autor(en)": "Fielding, Joy", "ISBN": "9783442473502", "ASIN": "", "Erscheinungsjahr": 2012, "Genre": "Psycho-Thriller", "Seitenanzahl": 432, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "21"}, {"Titel": "Der Kinderflüsterer: Roman", "Autor(en)": "North, Alex", "ISBN": "9783764507107", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Parapsychologie", "Seitenanzahl": 448, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "13,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "22"}, {"Titel": "Der Totenleser: Unglaubliche Fälle aus der Rechtsmedizin", "Autor(en)": "Prof. Dr. Michael Tsokos", "ISBN": "9783548377308", "ASIN": "", "Erscheinungsjahr": 2020, "Genre": "Soziologische Aspekte", "Seitenanzahl": 256, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "23"}, {"Titel": "Die 7 Säulen der Manipulation", "Autor(en)": "Victor von Ebersberg", "ISBN": "9798687615242", "ASIN": "", "Erscheinungsjahr": 2021, "Genre": "Ratgeber", "Seitenanzahl": 108, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "08.06.2022", "_id": "24"}, {"Titel": "Die Insel der besonderen Kinder: Roman (Die besonderen Kinder 1)", "Autor(en)": "Ransom Riggs", "ISBN": "9783426411957", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "Fiction", "Seitenanzahl": 416, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "14,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "25"}, {"Titel": "Die Leiche: Novelle", "Autor(en)": "Stephen King", "ISBN": "9783453440319", "ASIN": "", "Erscheinungsjahr": 2020, "Genre": "Suspense", "Seitenanzahl": 256, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "11,31", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "16.09.2022", "_id": "26"}, {"Titel": "Die siebte Zeugin", "Autor(en)": "Florian Schwiecker, Michael Tsokos", "ISBN": "9783426461945", "ASIN": "", "Erscheinungsjahr": 2021, "Genre": "Fiction", "Seitenanzahl": 405, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "27"}, {"Titel": "Disney Der König der Löwen: Der Roman zum Film", "Autor(en)": "The Walt Disney Company", "ISBN": "9783473491483", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Klassiker", "Seitenanzahl": 288, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "15,41", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.09.2019", "_id": "28"}, {"Titel": "Du neben mir und zwischen uns die ganze Welt: Der Roman zum Film (cbt Taschenbücher, 31099)", "Autor(en)": "Yoon, Nicola", "ISBN": "9783570310991", "ASIN": "", "Erscheinungsjahr": 2017, "Genre": "Mythen & Legenden", "Seitenanzahl": 336, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,27", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "05.04.2019", "_id": "29"}, {"Titel": "E=mc2 - Einführung in die allgemeine und spezielle Relativitätstheorie", "Autor(en)": "Bührke, Thomas", "ISBN": "9783730603055", "ASIN": "", "Erscheinungsjahr": 2015, "Genre": "Relativitätstheorie", "Seitenanzahl": 144, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "4,95", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "30"}, {"Titel": "Ein Fall für dich und das Tiger-Team, Bd.7, Der Alptraum-Helikopter", "Autor(en)": "Brezina, Thomas", "ISBN": "9783505101564", "ASIN": "", "Erscheinungsjahr": 1995, "Genre": "Belletristik", "Seitenanzahl": 128, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "1,23", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "Signiert von Thomas Brezina (Autor) auf meinen Namen !!??\nÄLTESTES BUCH VON MEINER SAMMLUNG !!\n1995", "Erhalten am": "", "_id": "31"}, {"Titel": "Finderlohn: Roman (Bill-Hodges-Serie, Band 2)", "Autor(en)": "Stephen King", "ISBN": "9783453438453", "ASIN": "", "Erscheinungsjahr": 2016, "Genre": "Thriller & Suspense", "Seitenanzahl": 560, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "11,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "13.05.2022", "_id": "32"}, {"Titel": "Game of Thrones 1: Der Winter naht", "Autor(en)": "Martin, George R.R.", "ISBN": "9783764531522", "ASIN": "", "Erscheinungsjahr": 2016, "Genre": "Fantasy", "Seitenanzahl": 832, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "30,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.12.2016", "_id": "33"}, {"Titel": "Game of Thrones 3: Hört mich brüllen", "Autor(en)": "Martin, George R.R.", "ISBN": "9783764531591", "ASIN": "", "Erscheinungsjahr": 2016, "Genre": "Fantasy", "Seitenanzahl": 1212, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "30,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.12.2016", "_id": "34"}, {"Titel": "Grenzverletzungen: Eine Geschichte über Borderline, Freundschaft und Abhängigkeit", "Autor(en)": "Wegberg, T.A.", "ISBN": "9783862655007", "ASIN": "", "Erscheinungsjahr": 2015, "Genre": "Literatur", "Seitenanzahl": 288, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "35"}, {"Titel": "Höhenflug abwärts: Marie nimmt Drogen - Jugendroman ab 12 Jahre", "Autor(en)": "Frey, Jana", "ISBN": "9783785572726", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "Mythen & Legenden", "Seitenanzahl": 168, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "5,95", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "36"}, {"Titel": "Liebesbrief an Unbekannt", "Autor(en)": "Thomas Brezina", "ISBN": "9783990013656", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Liebesroman", "Seitenanzahl": 400, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "20,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "Signiert von Thomas Brezina (Autor) auf meinen Namen !!??", "Erhalten am": "", "_id": "37"}, {"Titel": "MAKE THAT CHANGE: Michael Jackson: Botschaft und Schicksal eines spirituellen Revolutionärs.", "Autor(en)": "Risi, Armin, Pade, Sophia", "ISBN": "9783905831467", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Musiktheorie", "Seitenanzahl": 694, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "24,67", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.09.2019", "_id": "38"}, {"Titel": "Menschen lesen: Ein FBI-Agent erklärt, wie man Körpersprache entschlüsselt", "Autor(en)": "Navarro, Joe", "ISBN": "9783868822137", "ASIN": "", "Erscheinungsjahr": 2010, "Genre": "Psychologie & Hilfe", "Seitenanzahl": 272, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,95", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "39"}, {"Titel": "Mind Control: Roman (Bill-Hodges-Serie, Band 3)", "Autor(en)": "Stephen King", "ISBN": "9783453270862", "ASIN": "", "Erscheinungsjahr": 2016, "Genre": "Parapsychologie", "Seitenanzahl": 544, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "22,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "13.05.2022", "_id": "40"}, {"Titel": "Mit 11 wurde mein Körper zur Ware", "Autor(en)": "Kerry Cohen", "ISBN": "9783944154206", "ASIN": "", "Erscheinungsjahr": 2015, "Genre": "", "Seitenanzahl": 320, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "41"}, {"Titel": "MontanaBlack II: Vom Youtuber zum Millionär", "Autor(en)": "Marcel Eris, Dennis Sand, MontanaBlack", "ISBN": "9783967750218", "ASIN": "", "Erscheinungsjahr": 2021, "Genre": "Rock", "Seitenanzahl": 256, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "19,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "42"}, {"Titel": "Mr. Mercedes: Roman (Bill-Hodges-Serie, Band 1)", "Autor(en)": "Stephen King", "ISBN": "9783453419018", "ASIN": "", "Erscheinungsjahr": 2015, "Genre": "Suspense", "Seitenanzahl": 608, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "14,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "13.05.2022", "_id": "43"}, {"Titel": "Notes from the upside down: Das inoffizielle Buch zu Stranger Things - Die Erfolgsserie auf Netflix", "Autor(en)": "Adams, Guy", "ISBN": "9783442159833", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Science Fiction", "Seitenanzahl": 288, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "44"}, {"Titel": "Notes from upside down unoff gt stranger things sc: An Unofficial Guide to Stranger Things", "Autor(en)": "Adams, Guy", "ISBN": "9781501178030", "ASIN": "", "Erscheinungsjahr": 2017, "Genre": "Biografien & Erinnerungen", "Seitenanzahl": 240, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "45"}, {"Titel": "Parapsychologie: Telepathie, Hellsehen, Geister, Geisterscheinungen, Gedankenlesen, Leben nach dem Tod", "Autor(en)": "Duthel, Heinz", "ISBN": "9783739240183", "ASIN": "", "Erscheinungsjahr": 2016, "Genre": "Parawissenschaft", "Seitenanzahl": 92, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "8,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "46"}, {"Titel": "Puls", "Autor(en)": "Stephen King", "ISBN": "9783453565098", "ASIN": "", "Erscheinungsjahr": 2007, "Genre": "Science Fiction", "Seitenanzahl": 576, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "25.07.2022", "_id": "47"}, {"Titel": "Quantenphysik", "Autor(en)": "Dieter Schuster", "ISBN": "9781088403525", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "", "Seitenanzahl": 140, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "8,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "48"}, {"Titel": "Red Sparrow: Thriller", "Autor(en)": "Matthews, Jason", "ISBN": "9781471171635", "ASIN": "", "Erscheinungsjahr": 2018, "Genre": "Spionage", "Seitenanzahl": 672, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,27", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "02.07.2019", "_id": "49"}, {"Titel": "Rote Linien: Ritzen bis aufs Blut. Sonderband:", "Autor(en)": "Blobel, Brigitte", "ISBN": "9783401509952", "ASIN": "", "Erscheinungsjahr": 2017, "Genre": "Mythen & Legenden", "Seitenanzahl": 208, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "8,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "50"}, {"Titel": "Shining: Roman", "Autor(en)": "Stephen King", "ISBN": "9783404130894", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Geister", "Seitenanzahl": 624, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "11,90", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "01.09.2023", "Leseende": "11.09.2023", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "25.05.2022", "_id": "51"}, {"Titel": "Sie: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453435834", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "Fantasy & Science Fiction", "Seitenanzahl": 528, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "11,90", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "12.09.2023", "Leseende": "20.09.2023", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "25.05.2022", "_id": "52"}, {"Titel": "So dunkel die Angst: Thriller", "Autor(en)": "Schwermer, Melisa", "ISBN": "9781544982571", "ASIN": "", "Erscheinungsjahr": 2017, "Genre": "Thriller & Suspense", "Seitenanzahl": 302, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,98", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "53"}, {"Titel": "So werden Sie ein Mentalist", "Autor(en)": "Simon Winthrop", "ISBN": "9783864152641", "ASIN": "", "Erscheinungsjahr": 2012, "Genre": "Psychology", "Seitenanzahl": 240, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "54"}, {"Titel": "Später", "Autor(en)": "Stephen King", "ISBN": "9783641277383", "ASIN": "", "Erscheinungsjahr": 2021, "Genre": "Parapsychologie", "Seitenanzahl": 304, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,95", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "03.11.2023", "Leseende": "05.11.2023", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "13.05.2022", "_id": "55"}, {"Titel": "Stroh im Kopf?", "Autor(en)": "Vera F. Birkenbihl", "ISBN": "9783864150449", "ASIN": "", "Erscheinungsjahr": 2013, "Genre": "Self-Help", "Seitenanzahl": 336, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,24", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "02.07.2019", "_id": "56"}, {"Titel": "13 Reasons Why: A novel", "Autor(en)": "Jay Asher", "ISBN": "9780451478290", "ASIN": "", "Erscheinungsjahr": 2017, "Genre": "Englisch", "Seitenanzahl": 326, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "57"}, {"Titel": "Wenn du Liebe willst, musst du Liebe sein: Das richtige Mindset schaffen, um die wahre Liebe zu erkennen und ins Leben zu ziehen", "Autor(en)": "Ulubaev, Isa", "ISBN": "9783747401651", "ASIN": "", "Erscheinungsjahr": 2020, "Genre": "Männer in der Partnerschaft", "Seitenanzahl": 192, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "14,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "58"}, {"Titel": "Wir Kinder vom Bahnhof Zoo: Eine Kindheit zwischen Heroin und Kinderstrich ? nach einer wahren Geschichte", "Autor(en)": "Hermann, Kai, Rieck, Horst, F., Christiane", "ISBN": "9783551317322", "ASIN": "", "Erscheinungsjahr": 2017, "Genre": "Mythen & Legenden", "Seitenanzahl": 368, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "59"}, {"Titel": "Zwillingsbrut: Thriller (Ein Fall für Alvarez und Pescoli 3)", "Autor(en)": "Lisa Jackson", "ISBN": "9783426415450", "ASIN": "", "Erscheinungsjahr": 2012, "Genre": "Fiction", "Seitenanzahl": 560, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "60"}, {"Titel": "Es: Roman. Luxusausgabe: Der Horrorklassiker als limitierte Prachtausgabe im Schmuckschuber.", "Autor(en)": "Stephen King", "ISBN": "9783453272408", "ASIN": "", "Erscheinungsjahr": 2022, "Genre": "Horror", "Seitenanzahl": 1360, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "78,50", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 5, "Kategorie": "", "Notizen": "Luxusedition zum 75. Geburtstag von Stephan King \nLimitiert auf 10.000 stück (laut internet)", "Erhalten am": "25.10.2022", "_id": "61"}, {"Titel": "The Trials of Gabriel Fernandez: The Brutal Murder and Abuse of Child Gabriel", "Autor(en)": "Edward Collins", "ISBN": "9798699687152", "ASIN": "", "Erscheinungsjahr": 2020, "Genre": "Kriminalität", "Seitenanzahl": 92, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "8,68", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "11.10.2022", "_id": "62"}, {"Titel": "Jeffrey Dahmer: The Milwaukee Cannibal", "Autor(en)": "Savannah Crawford", "ISBN": "9781922346360", "ASIN": "", "Erscheinungsjahr": 2021, "Genre": "Kriminalität", "Seitenanzahl": 120, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "25.10.2022", "_id": "63"}, {"Titel": "VOM TATORT INS LABOR: RECHTSMEDIZINER DECKEN AUF", "Autor(en)": "Navena Widulin, Thomas Schnalke, Michael Tsokos ", "ISBN": "", "ASIN": "", "Erscheinungsjahr": 2009, "Genre": "Begleitkatalog", "Seitenanzahl": 176, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "0,00", "Erhalten als": "Gewinn", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 5, "Kategorie": "", "Notizen": "Begleitkatalog zur Austellung im Berliner Medizinhistorischen Museum der Charitè \n2500 Auflagen ( ich habe 0287 ) \nMit autogramm von Dr. Michael Tsokos ", "Erhalten am": "", "_id": "64"}, {"Titel": "Bird Box. Film Tie-In", "Autor(en)": "Malerman, Josh", "ISBN": "9780008319748", "ASIN": "", "Erscheinungsjahr": 2018, "Genre": "Parapsychologie", "Seitenanzahl": 400, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,24", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.11.2019", "_id": "65"}, {"Titel": "Bird Box - Schließe deine Augen: Roman", "Autor(en)": "Josh Malerman", "ISBN": "9783641237745", "ASIN": "", "Erscheinungsjahr": 2018, "Genre": "Fiction", "Seitenanzahl": 320, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,27", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.11.2019", "_id": "66"}, {"Titel": "Die Welle: Bericht über einen Unterrichtsversuch, der zu weit ging (Ravensburger Taschenbücher)", "Autor(en)": "Rhue, Morton", "ISBN": "9783473580088", "ASIN": "", "Erscheinungsjahr": 1997, "Genre": "Dystopische Bücher", "Seitenanzahl": 192, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,24", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.11.2019", "_id": "67"}, {"Titel": "127 Hours - Im Canyon: Fünf Tage und Nächte bis zur schwierigsten Entscheidung meines Lebens (0)", "Autor(en)": "Ralston, Aron", "ISBN": "9783548374086", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "Industrie", "Seitenanzahl": 384, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,27", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.11.2019", "_id": "68"}, {"Titel": "Lass mich glücklich sein!", "Autor(en)": "Jana Frey", "ISBN": "9783732005437", "ASIN": "", "Erscheinungsjahr": 2016, "Genre": "Juvenile Fiction", "Seitenanzahl": 176, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "6,20", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.11.2019", "_id": "69"}, {"Titel": "Scary Stories to Tell in the Dark Movie Tie-In Edition", "Autor(en)": "Alvin Schwartz", "ISBN": "9780062961280", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Juvenile Fiction", "Seitenanzahl": 128, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "8,55", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "02.11.2019", "_id": "70"}, {"Titel": "Du Täter, du Opfer: Stark gegen Mobbing und Gewalt (Gräfe und Unzer Einzeltitel)", "Autor(en)": "Jürgen Lemke Carsten Stahl", "ISBN": "9783833863912", "ASIN": "", "Erscheinungsjahr": 2018, "Genre": "Therapien & Behandlungen", "Seitenanzahl": 208, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "18,49", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "02.07.2019", "_id": "71"}, {"Titel": "Finde deinen Fixstern: Die eigenen Lebensziele erkennen und erreichen", "Autor(en)": "Birkenbihl, Vera F.", "ISBN": "9783868829211", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Tod", "Seitenanzahl": 160, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "13,35", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "02.07.2019", "_id": "72"}, {"Titel": "Das schönste Mädchen der Welt: Das Buch zum Film. Mit Songtexten und Filmbildern: Das Buch zum Film mit Filmbildern", "Autor(en)": "Kiesler, Miha", "ISBN": "9783961857623", "ASIN": "", "Erscheinungsjahr": 2018, "Genre": "Mythen & Legenden", "Seitenanzahl": 164, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "13,27", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.04.2019", "_id": "73"}, {"Titel": "Mia und der weiße Löwe - Das Buch zum Film: Filmstart am 31.01.2019", "Autor(en)": "Prune de Maistre", "ISBN": "9783570176863", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Recycling & umweltbewusstes Leben", "Seitenanzahl": 160, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "12,33", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "05.04.2019", "_id": "74"}, {"Titel": "Billy Summers: a novel", "Autor(en)": "Stephen King", "ISBN": "9781529365665", "ASIN": "", "Erscheinungsjahr": 2022, "Genre": "Thriller & Suspense", "Seitenanzahl": 432, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,44", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "28.12.2022", "_id": "75"}, {"Titel": "Joyland: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453441613", "ASIN": "", "Erscheinungsjahr": 2022, "Genre": "Krimis", "Seitenanzahl": 368, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,86", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "30.12.2022", "_id": "76"}, {"Titel": "Helter Skelter: Die wahre Geschichte des Serienmörders Charles Manson", "Autor(en)": "Vincent Bugliosi", "ISBN": "9783742302496", "ASIN": "", "Erscheinungsjahr": 2017, "Genre": "Rechtsratgeber", "Seitenanzahl": 788, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "03.01.2023", "_id": "77"}, {"Titel": "Sleeping Beauties: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453439559", "ASIN": "", "Erscheinungsjahr": 2019, "Genre": "Fantasy & Science Fiction", "Seitenanzahl": 976, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "13,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "03.01.2023", "_id": "78"}, {"Titel": "Billy Summers: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453441675", "ASIN": "", "Erscheinungsjahr": 2022, "Genre": "Thriller & Suspense", "Seitenanzahl": 720, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,49", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "24.01.2023", "Leseende": "30.04.2023", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "29.12.2022", "_id": "79"}, {"Titel": "Feuerkind: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453432734", "ASIN": "", "Erscheinungsjahr": 2007, "Genre": "Fantasy & Science Fiction", "Seitenanzahl": 560, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "03.01.2023", "_id": "80"}, {"Titel": "It: The classic book from Stephen King with a new film tie-in cover to IT: CHAPTER 2, due for release September 2019", "Autor(en)": "Stephen King", "ISBN": "9781473666931", "ASIN": "", "Erscheinungsjahr": 2017, "Genre": "Fantasy", "Seitenanzahl": 1392, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,89", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "03.01.2023", "_id": "81"}, {"Titel": "Der Nebel", "Autor(en)": "Stephen King", "ISBN": "9783453441163", "ASIN": "", "Erscheinungsjahr": 2020, "Genre": "Literatur", "Seitenanzahl": 240, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,30", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.01.2023", "_id": "82"}, {"Titel": "Christine: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453441583", "ASIN": "", "Erscheinungsjahr": 2022, "Genre": "Parapsychologie", "Seitenanzahl": 896, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "15,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "14.01.2023", "_id": "83"}, {"Titel": "The Road to Jonestown: Jim Jones and Peoples Temple", "Autor(en)": "Jeff Guinn", "ISBN": "9781476763835", "ASIN": "", "Erscheinungsjahr": 2018, "Genre": "Religion & Glaube", "Seitenanzahl": 560, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "15,19", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "14.01.2023", "_id": "84"}, {"Titel": "Colorado Kid: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453433960", "ASIN": "", "Erscheinungsjahr": 2009, "Genre": "Kriminalromane", "Seitenanzahl": 176, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "11,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "14.01.2023", "_id": "85"}, {"Titel": "Der Anschlag: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453441590", "ASIN": "", "Erscheinungsjahr": 2022, "Genre": "Science Fiction", "Seitenanzahl": 1072, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "15,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "21.01.2023", "_id": "86"}, {"Titel": "Cujo: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453432710", "ASIN": "", "Erscheinungsjahr": 2007, "Genre": "Fantasy & Science Fiction", "Seitenanzahl": 416, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "11,95", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "28.09.2023", "Leseende": "02.10.2023", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "27.01.2023", "_id": "87"}, {"Titel": "Sara: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453160811", "ASIN": "", "Erscheinungsjahr": 1999, "Genre": "Fantasy & Science Fiction", "Seitenanzahl": 640, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "11,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "27.01.2023", "_id": "88"}, {"Titel": "Blutige Nachrichten", "Autor(en)": "Stephen King", "ISBN": "9783453441392", "ASIN": "", "Erscheinungsjahr": 2021, "Genre": "Parapsychologie", "Seitenanzahl": 576, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "11,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "02.05.2023", "_id": "89"}, {"Titel": "Revival: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453441873", "ASIN": "", "Erscheinungsjahr": 2023, "Genre": "Autoren", "Seitenanzahl": 528, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "12,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "90"}, {"Titel": "Sunset: Storys", "Autor(en)": "Stephen King", "ISBN": "9783453434677", "ASIN": "", "Erscheinungsjahr": 2010, "Genre": "Fantasy & Science Fiction", "Seitenanzahl": 496, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "91"}, {"Titel": "Dolores: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453435766", "ASIN": "", "Erscheinungsjahr": 2011, "Genre": "RH_Fantasy", "Seitenanzahl": 384, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,99", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "21.09.2023", "Leseende": "26.09.2023", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "92"}, {"Titel": "Friedhof der Kuscheltiere: Roman. Luxusausgabe: Der Horrorklassiker als limitierte Prachtausgabe im Schmuckschuber.", "Autor(en)": "Stephen King", "ISBN": "9783453274365", "ASIN": "", "Erscheinungsjahr": 2023, "Genre": "Autoren", "Seitenanzahl": 544, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "73,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "03.10.2023", "_id": "93"}, {"Titel": "Das Bild: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453436879", "ASIN": "", "Erscheinungsjahr": 2013, "Genre": "Autoren", "Seitenanzahl": 672, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "", "_id": "94"}, {"Titel": "Das Spiel (Gerald's Game): Roman", "Autor(en)": "Stephen King", "ISBN": "9783453441811", "ASIN": "", "Erscheinungsjahr": 2023, "Genre": "Parapsychologie", "Seitenanzahl": 480, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "13,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "29.09.2023", "_id": "95"}, {"Titel": "Duddits - Dreamcatcher: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453441880", "ASIN": "", "Erscheinungsjahr": 2023, "Genre": "Science Fiction", "Seitenanzahl": 896, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "15,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "12.09.2023", "_id": "96"}, {"Titel": "Holly: Roman", "Autor(en)": "Stephen King", "ISBN": "9783453274334", "ASIN": "", "Erscheinungsjahr": 2023, "Genre": "Autoren", "Seitenanzahl": 640, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "29,50", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "22.09.2023", "_id": "97"}, {"Titel": "'Salem's Lot", "Autor(en)": "Stephen King", "ISBN": "8601400269381", "ASIN": "", "Erscheinungsjahr": 2013, "Genre": "Englische Bücher", "Seitenanzahl": 672, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,72", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.01.2023", "_id": "98"}, {"Titel": "Carrie", "Autor(en)": "Stephen King", "ISBN": "9781984898104", "ASIN": "", "Erscheinungsjahr": 2018, "Genre": "Science Fiction", "Seitenanzahl": 320, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.01.2023", "_id": "99"}, {"Titel": "The Shining", "Autor(en)": "Stephen King", "ISBN": "9780345806789", "ASIN": "", "Erscheinungsjahr": 2013, "Genre": "Englische Bücher", "Seitenanzahl": 688, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "14,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "07.01.2023", "_id": "100"}, {"Titel": "Janez: Von den meisten gehasst - von wenigen geliebt", "Autor(en)": "Janez Ekart", "ISBN": "9783753478678", "ASIN": "3753478679", "Erscheinungsjahr": 2021, "Genre": "Taschenbücher", "Seitenanzahl": 350, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "22,95", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "18.06.2024", "Leseende": "22.06.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "15.06.2024", "_id": "101"}, {"Titel": "Suzukis Rache: Thriller | vom Autor des Bestsellers und Filmhits »Bullet Train«!", "Autor(en)": "Kotaro Isaka", "ISBN": "9783455017526", "ASIN": "3455017525", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 304, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "15,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "23.06.2024", "Leseende": "28.06.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "22.06.2024", "_id": "102"}, {"Titel": "Hunting Adeline", "Autor(en)": "H. D. Carlton", "ISBN": "9783987182273", "ASIN": "", "Erscheinungsjahr": 2024, "Genre": "Fiction", "Seitenanzahl": 715, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "10.08.2024", "Leseende": "25.08.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "Ich dachte nie das ich dark romance lesen werde aber jetzt bin ich fan ??? Normalerweise würde ich eine 100 Sterne bewertung geben??", "Erhalten am": "22.06.2024", "_id": "103"}, {"Titel": "Tokyo Vice", "Autor(en)": "Jake Adelstein", "ISBN": "9783745318586", "ASIN": "", "Erscheinungsjahr": 2021, "Genre": "True Crime", "Seitenanzahl": 379, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "22,95", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "30.06.2024", "Leseende": "07.07.2024", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "25.06.2024", "_id": "104"}, {"Titel": "Haunting Adeline: DARK ROMANCE | Der TikTok-Erfolg auf Deutsch! Mit limitiertem Farbschnitt! (Das Katz-und-Maus-Duett)", "Autor(en)": "H. D. Carlton", "ISBN": "9783987182242", "ASIN": "3987182245", "Erscheinungsjahr": 2024, "Genre": "Custom Stores", "Seitenanzahl": 623, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "05.08.2024", "Leseende": "09.08.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "Ich dachte nie das ich dark romance lesen werde aber jetzt bin ich fan ??? Normalerweise würde ich eine 100 Sterne bewertung geben??", "Erhalten am": "27.06.2024", "_id": "105"}, {"Titel": "Der Blutkünstler: Thriller | Ein harter und packender Serienmörder-Thriller (Tom-Bachmann-Serie, Band 1)", "Autor(en)": "Chris Meyer", "ISBN": "9783548063768", "ASIN": "3548063764", "Erscheinungsjahr": 2021, "Genre": "Custom Stores", "Seitenanzahl": 364, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "4,99", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "21.07.2024", "Leseende": "27.07.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "28.06.2024", "_id": "106"}, {"Titel": "Ingenium: Das erste Rätsel | Erste Auflage mit exklusivem Farbschnitt", "Autor(en)": "Danielle Trussoni", "ISBN": "9783455015669", "ASIN": "3455015662", "Erscheinungsjahr": 2023, "Genre": "Custom Stores", "Seitenanzahl": 432, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "07.07.2024", "Leseende": "18.07.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "28.06.2024", "_id": "107"}, {"Titel": "Suzanna - Rebirth: Eine atemberaubende Dark Romantasy Story", "Autor(en)": "Liz Prime", "ISBN": "9783759715227", "ASIN": "3759715222", "Erscheinungsjahr": 2024, "Genre": "Taschenbücher", "Seitenanzahl": 340, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "19.07.2024", "Leseende": "21.07.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "28.06.2024", "_id": "108"}, {"Titel": "American Sniper: Die Geschichte des Scharfschützen Chris Kyle", "Autor(en)": "Scott McEwen Jim DeFelice Chris Kyle", "ISBN": "9783868839029", "ASIN": "386883902X", "Erscheinungsjahr": 2016, "Genre": "Taschenbücher", "Seitenanzahl": 416, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,90", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "27.07.2024", "Leseende": "04.08.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "18.07.2024", "_id": "109"}, {"Titel": "Bullet Train: Thriller | verfilmt mit Brad Pitt und Sandra Bullock!", "Autor(en)": "Kotaro Isaka", "ISBN": "9783455015454", "ASIN": "345501545X", "Erscheinungsjahr": 2023, "Genre": "Belletristik", "Seitenanzahl": 384, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "15,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "02.08.2024", "_id": "110"}, {"Titel": "Dark Prince: Gefährliches Spiel, Exklusiver Farbschnitt ? nur solange der Vorrat reicht!", "Autor(en)": "J. S. Wonda", "ISBN": "9783985959723", "ASIN": "3985959722", "Erscheinungsjahr": 2024, "Genre": "Custom Stores", "Seitenanzahl": 469, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "26.08.2024", "Leseende": "04.09.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "23.08.2024", "_id": "111"}, {"Titel": "Dark Desire: Verbotenes Verlangen (Royal Reihe)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426191", "ASIN": "3989426192", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 365, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "05.09.2024", "Leseende": "11.09.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "23.08.2024", "_id": "112"}, {"Titel": "Hooked (Never After 1): Roman | Die Dark-Romance Booktok-Sensation endlich auf Deutsch!", "Autor(en)": "Emily McIntire", "ISBN": "9783492507592", "ASIN": "349250759X", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 328, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "02.10.2024", "Leseende": "07.10.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "23.08.2024", "_id": "113"}, {"Titel": "Scarred (Never After 2): Roman | Hooked 2: Der Dark-Romance Booktok-Hits endlich auf Deutsch!", "Autor(en)": "Emily McIntire", "ISBN": "9783492507608", "ASIN": "3492507603", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 368, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "24.08.2024", "_id": "114"}, {"Titel": "Boys of Tommen 1: Binding 13: Die BookTok Sensation endlich auf Deutsch - farbiger Buchschnitt in limitierter Auflage (1)", "Autor(en)": "Chloe Walsh", "ISBN": "9783985852031", "ASIN": "3985852030", "Erscheinungsjahr": 2024, "Genre": "Taschenbücher", "Seitenanzahl": 788, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "24.08.2024", "_id": "115"}, {"Titel": "Boys of Tommen 2: Keeping 13: Band 2 der BookTok Sensation endlich auf Deutsch - farbiger Buchschnitt in limitierter Auflage (2)", "Autor(en)": "Chloe Walsh", "ISBN": "9783985852048", "ASIN": "3985852049", "Erscheinungsjahr": 2024, "Genre": "Taschenbücher", "Seitenanzahl": 872, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "24.08.2024", "_id": "116"}, {"Titel": "Dark Royalty: Königliches Begehren (Royal Reihe)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426436", "ASIN": "3989426435", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 400, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "14.09.2024", "Leseende": "16.09.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "03.09.2024", "_id": "117"}, {"Titel": "Catching Beauty: Du gehörst mir", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426405", "ASIN": "3989426400", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 345, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "15,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "19.09.2024", "_id": "118"}, {"Titel": "Catching Beauty: Du entkommst mir nicht", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426412", "ASIN": "3989426419", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 311, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "19.09.2024", "_id": "119"}, {"Titel": "Catching Beauty: Du bedeutest meinen Tod", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426429", "ASIN": "3989426427", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 348, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "19.09.2024", "_id": "120"}, {"Titel": "Hunting Angel: Ich werde dich jagen", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426122", "ASIN": "3989426125", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 258, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "19.09.2024", "_id": "121"}, {"Titel": "Hunting Angel: Du wirst mir verfallen", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426139", "ASIN": "3989426133", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 331, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "19.09.2024", "_id": "122"}, {"Titel": "Hunting Angel: Fürchte dich vor mir", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426146", "ASIN": "3989426141", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 327, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "19.09.2024", "_id": "123"}, {"Titel": "Invictum: Das zweite Rätsel. Thriller | Das schwerste Rätsel der Welt ist eine tödliche Falle", "Autor(en)": "Danielle Trussoni", "ISBN": "9783455016994", "ASIN": "3455016995", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 384, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "20.09.2024", "Leseende": "25.09.2024", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "12.09.2024", "_id": "124"}, {"Titel": "Darkside: Du bist meine Obsession | Mit wunderschönem Farbschnitt (Hunted Hearts Chronicles): Du bist meine Obsession | Mit wunderschönem Farbschnitt solange der Vorrat reicht", "Autor(en)": "Katelyn Erikson", "ISBN": "9783989426283", "ASIN": "3989426281", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 455, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 5, "Kategorie": "", "Notizen": "", "Erhalten am": "27.09.2024", "_id": "125"}, {"Titel": "Wretched (Never After 3): Roman | Band 3 der Dark-Romance Booktok-Erfolgsserie endlich auf Deutsch!", "Autor(en)": "Emily McIntire", "ISBN": "9783492507615", "ASIN": "3492507611", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 320, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "05.10.2024", "_id": "126"}, {"Titel": "Beautiful Sinners: Mit wunderschönem Farbschnitt: Mit wunderschönem Farbschnitt solange der Vorrat reicht", "Autor(en)": "Katy Crown", "ISBN": "9783989426276", "ASIN": "3989426273", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 346, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.10.2024", "_id": "127"}, {"Titel": "Secrets and Seduction: Du wirst immer mein sein (Preston Academy, Band 1) | Mit wunderschönem Farbschnitt", "Autor(en)": "Bianca Mov", "ISBN": "9783989426252", "ASIN": "3989426257", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 349, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "08.09.2024", "_id": "128"}, {"Titel": "Dark Duty: Tödliche Sehnsucht (Royal Reihe)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426443", "ASIN": "3989426443", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 375, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "08.09.2024", "_id": "129"}, {"Titel": "Entführt: Wie alles begann: Band 1 (Dark Reverse Harem) (florales Cover mit Farbschnitt) (Entführt-Reihe)", "Autor(en)": "Jasmin Baur", "ISBN": "9783989423251", "ASIN": "3989423258", "Erscheinungsjahr": 2023, "Genre": "Taschenbücher", "Seitenanzahl": 290, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "20,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "Signiert von Jasmin Baur (Autorin) auf meinen Namen !!??", "Erhalten am": "30.08.2024", "_id": "130"}, {"Titel": "Entführt und verkauft: Band 2 (Dark Reverse Harem) (florales Cover mit Farbschitt) (Entführt-Reihe)", "Autor(en)": "Jasmin Baur", "ISBN": "9783989423275", "ASIN": "3989423274", "Erscheinungsjahr": 2023, "Genre": "Taschenbücher", "Seitenanzahl": 332, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "20,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "Signiert von Jasmin Baur (Autorin) auf meinen Namen !!??", "Erhalten am": "30.08.2024", "_id": "131"}, {"Titel": "Entführt: Du gehörst mir: Band 3 (florales Cover mit Farbschnitt) (Entführt-Reihe)", "Autor(en)": "Jasmin Baur", "ISBN": "9783989423299", "ASIN": "3989423290", "Erscheinungsjahr": 2023, "Genre": "Taschenbücher", "Seitenanzahl": 300, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "20,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "Signiert von Jasmin Baur (Autorin) auf meinen Namen !!??", "Erhalten am": "30.08.2024", "_id": "132"}, {"Titel": "Entführt: Dunkle Sehnsucht: Band 4 (florales Cover mit Farbschnitt) (Entführt-Reihe): (Dark Reverse Harem, florales Cover mit exklusivem Farbschnitt)", "Autor(en)": "Jasmin Baur", "ISBN": "9783989423763", "ASIN": "3989423762", "Erscheinungsjahr": 2024, "Genre": "Taschenbücher", "Seitenanzahl": 298, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "20,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "Signiert von Jasmin Baur (Autorin) auf meinen Namen !!??", "Erhalten am": "30.08.2024", "_id": "133"}, {"Titel": "Dark Princess: Dunkles Geheimnis | Mit wunderschönem Farbschnitt (Royal Reihe)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989427488", "ASIN": "3989427482", "Erscheinungsjahr": 2024, "Genre": "New Adult", "Seitenanzahl": 331, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "08.09.2024", "_id": "134"}, {"Titel": "Darkside: Du bist meine Passion | Mit wunderschönem Farbschnitt (Hunted Hearts Chronicles): Du bist mein: Du bist meine Passion | Mit wunderschönem Farbschnitt solange der Vorrat reicht", "Autor(en)": "Katelyn Erikson", "ISBN": "9783989426511", "ASIN": "3989426516", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 457, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.10.2024", "_id": "135"}, {"Titel": "Haunting Adeline: DARK ROMANCE | Der TikTok-Erfolg auf Deutsch! (Das Katz-und-Maus-Duett)", "Autor(en)": "H. D. Carlton", "ISBN": "9783987183416", "ASIN": "3987183411", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 623, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "38,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 5, "Kategorie": "", "Notizen": "Band 1", "Erhalten am": "01.10.2024", "_id": "136"}, {"Titel": "Hunting Adeline: DARK ROMANCE | Der TikTok-Erfolg auf Deutsch! (Das Katz-und-Maus-Duett)", "Autor(en)": "H. D. Carlton", "ISBN": "9783987183423", "ASIN": "398718342X", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 654, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "38,00", "Erhalten als": "Kauf", "Lesestatus": "Gelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 5, "Kategorie": "", "Notizen": "Band 2", "Erhalten am": "01.10.2024", "_id": "137"}, {"Titel": "Taken Princess 1: Du bist mein | Mit wunderschönem Farbschnitt", "Autor(en)": "J. S. Wonda", "ISBN": "9783989427525", "ASIN": "3989427520", "Erscheinungsjahr": 2024, "Genre": "Taschenbücher", "Seitenanzahl": 270, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.11.2024", "_id": "138"}, {"Titel": "Taken Princess 2: Mein Herz ist dein | Mit wunderschönem Farbschnitt", "Autor(en)": "J. S. Wonda", "ISBN": "9783989427532", "ASIN": "3989427539", "Erscheinungsjahr": 2024, "Genre": "Taschenbücher", "Seitenanzahl": 270, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "14,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.11.2024", "_id": "139"}, {"Titel": "Taken Princess 3: Das Ende ist unser | Mit wunderschönem Farbschnitt", "Autor(en)": "J. S. Wonda", "ISBN": "9783989427549", "ASIN": "3989427547", "Erscheinungsjahr": 2024, "Genre": "New Adult", "Seitenanzahl": 270, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "14,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.11.2024", "_id": "140"}, {"Titel": "Escaping from Houdini (Die grausamen Fälle der Audrey Rose 3): Mord auf dem Atlantik | Mit limitiertem Farbschnitt | Historischer Thriller um den größten Entfesselungskünstler aller Zeiten", "Autor(en)": "Kerri Maniscalco", "ISBN": "9783492707831", "ASIN": "3492707831", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 544, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "18.02.2025", "_id": "141"}, {"Titel": "Stalking Jack the Ripper (Die grausamen Fälle der Audrey Rose 1): Die Spur in den Schatten | Endlich auf Deutsch ? historischer Thriller mit Slow Burn Romance", "Autor(en)": "Kerri Maniscalco", "ISBN": "9783492707817", "ASIN": "3492707815", "Erscheinungsjahr": 2023, "Genre": "Belletristik", "Seitenanzahl": 416, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.02.2025", "_id": "142"}, {"Titel": "Hunting Prince Dracula (Die grausamen Fälle der Audrey Rose 2): Die gefährliche Jagd | Ein historischer Thriller um den berühmtesten Vampir der Geschichte: Graf Dracula", "Autor(en)": "Kerri Maniscalco", "ISBN": "9783492707824", "ASIN": "3492707823", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 528, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.02.2025", "_id": "143"}, {"Titel": "Capturing the Devil (Die grausamen Fälle der Audrey Rose 4): Der Teufel von Chicago | Mit limitiertem Farbschnitt | Historischer Thriller: Auf der Spur des berüchtigten Serienkillers H. H. Holmes", "Autor(en)": "Kerri Maniscalco", "ISBN": "9783492707848", "ASIN": "349270784X", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 560, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.02.2025", "_id": "144"}, {"Titel": "Dark Kingdom: Blutiges Schicksal | Mit wunderschönem Farbschnitt (Royal Reihe)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989427495", "ASIN": "3989427490", "Erscheinungsjahr": 2024, "Genre": "Taschenbücher", "Seitenanzahl": 400, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.02.2025", "_id": "145"}, {"Titel": "Heart & Shadow: Eine Welt im Chaos ? und eine Liebe, die dem Schicksal trotzt. Roman (Die Chaos Chroniken, Band 1)", "Autor(en)": "Marie Graßhoff", "ISBN": "9783404194254", "ASIN": "340419425X", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 624, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.03.2025", "_id": "146"}, {"Titel": "Once You're Mine: Roman - Fesselnd, düster, verführerisch: Der Dark-Romance-Hype endlich auf Deutsch ? mit Farbschnitt in limitierter Auflage! (Possessing Her, Band 1)", "Autor(en)": "Morgan Bridges", "ISBN": "9783734114540", "ASIN": "3734114543", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 320, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.03.2025", "_id": "147"}, {"Titel": "Memories and Madness | Mit wunderschönem Farbschnitt (Preston Academy)", "Autor(en)": "Bianca Mov", "ISBN": "9783989427044", "ASIN": "3989427040", "Erscheinungsjahr": 2025, "Genre": "Romantische Thriller", "Seitenanzahl": 440, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "28.02.2025", "_id": "148"}, {"Titel": "Regret: Ertrinke zwischen uns (Southside Academy) | Mit wunderschönem Farbschnitt: Ertrinke zwischen uns | Mit wunderschönem Farbschnitt solange der Vorrat reicht", "Autor(en)": "Lara Späth", "ISBN": "9783989426542", "ASIN": "3989426540", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 368, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.03.2025", "_id": "149"}, {"Titel": "Escape: Brenne zwischen uns (Southside Academy) | Mit wunderschönem Farbschnitt", "Autor(en)": "Lara Späth", "ISBN": "9783989426290", "ASIN": "398942629X", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 456, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.03.2025", "_id": "150"}, {"Titel": "Her Soul to Take: DARK ROMANCE | Mit limitiertem Farbschnitt! (Souls Trilogy)", "Autor(en)": "Harley Laroux", "ISBN": "9783987181252", "ASIN": "3987181257", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 500, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "02.03.2025", "_id": "151"}, {"Titel": "Now You're Mine: Roman - Fesselnd, düster, verführerisch: Der Dark-Romance-Hype endlich auf Deutsch ? mit Farbschnitt in limitierter Auflage! (Possessing Her, Band 2)", "Autor(en)": "Morgan Bridges", "ISBN": "9783734114533", "ASIN": "3734114535", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 256, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "08.03.2025", "_id": "152"}, {"Titel": "Love Me, Badly: | Mit wunderschönem Farbschnitt (Last-Respects-Reihe)", "Autor(en)": "Lea R. Eden", "ISBN": "9783989426993", "ASIN": "3989426990", "Erscheinungsjahr": 2025, "Genre": "Romantische Thriller", "Seitenanzahl": 432, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "08.03.2025", "_id": "153"}, {"Titel": "Ruin and Redemption (Preston Academy, Band 2) | Mit wunderschönem Farbschnitt: Mit wunderschönem Farbschnitt solange der Vorrat reicht", "Autor(en)": "Bianca Mov", "ISBN": "9783989426528", "ASIN": "3989426524", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 368, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.10.2024", "_id": "154"}, {"Titel": "Beautiful Psychos: Mit wunderschönem Farbschnitt (Beautiful Sinners): Mit wunderschönem Farbschnitt solange der Vorrat reicht", "Autor(en)": "Katy Crown", "ISBN": "9783989426535", "ASIN": "3989426532", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 368, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.03.2025", "_id": "155"}, {"Titel": "Beautiful Monsters | Mit wunderschönem Farbschnitt (Beautiful Sinners)", "Autor(en)": "Katy Crown", "ISBN": "9783989427020", "ASIN": "3989427024", "Erscheinungsjahr": 2025, "Genre": "Romantische Thriller", "Seitenanzahl": 400, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,90", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.03.2025", "_id": "156"}, {"Titel": "Haunted Beauty - Mit wunderschönem Farbschnitt", "Autor(en)": "Tanja Nickel", "ISBN": "9783989425590", "ASIN": "3989425595", "Erscheinungsjahr": 2024, "Genre": "Taschenbücher", "Seitenanzahl": 400, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.03.2025", "_id": "157"}, {"Titel": "Twisted Love: the must-read brother's best friend romance", "Autor(en)": "Ana Huang", "ISBN": "9780349434278", "ASIN": "0349434271", "Erscheinungsjahr": 2022, "Genre": "Taschenbücher", "Seitenanzahl": 368, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "8,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.03.2025", "_id": "158"}, {"Titel": "Twisted Games: the must-read bodyguard romance", "Autor(en)": "Ana Huang", "ISBN": "9780349434315", "ASIN": "034943431X", "Erscheinungsjahr": 2022, "Genre": "Taschenbücher", "Seitenanzahl": 464, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "8,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.03.2025", "_id": "159"}, {"Titel": "Twisted Hate: the must-read enemies to lovers", "Autor(en)": "Ana Huang", "ISBN": "9780349434339", "ASIN": "0349434336", "Erscheinungsjahr": 2022, "Genre": "Taschenbücher", "Seitenanzahl": 528, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "8,99", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.03.2025", "_id": "160"}, {"Titel": "Twisted Lies: the must-read fake dating romance", "Autor(en)": "Ana Huang", "ISBN": "9780349434285", "ASIN": "034943428X", "Erscheinungsjahr": 2022, "Genre": "Taschenbücher", "Seitenanzahl": 576, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,97", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.03.2025", "_id": "161"}, {"Titel": "Where's Molly: DARK ROMANCE | Ein Spin-Off des Katz-und-Maus-Duetts", "Autor(en)": "H. D. Carlton", "ISBN": "9783987183102", "ASIN": "3987183101", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 300, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "24.03.2025", "_id": "162"}, {"Titel": "Brutal Prince: A Dark Mafia Romance (Brutal Birthright)", "Autor(en)": "Sophie Lark", "ISBN": "9781728295350", "ASIN": "1728295351", "Erscheinungsjahr": 2023, "Genre": "Taschenbücher", "Seitenanzahl": 336, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "8,89", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "31.03.2025", "_id": "163"}, {"Titel": "Stolen Heir: A Dark Mafia Romance (Brutal Birthright)", "Autor(en)": "Sophie Lark", "ISBN": "9781728295367", "ASIN": "172829536X", "Erscheinungsjahr": 2023, "Genre": "Taschenbücher", "Seitenanzahl": 352, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "10,37", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "31.03.2025", "_id": "164"}, {"Titel": "Dark King: Königliche Liebe | Mit wunderschönem Farbschnitt (Royal Reihe)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989427518", "ASIN": "3989427512", "Erscheinungsjahr": 2025, "Genre": "Taschenbücher", "Seitenanzahl": 522, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "28.03.2025", "_id": "165"}, {"Titel": "Bloody Heart: A Dark Mafia Romance (Brutal Birthright)", "Autor(en)": "Sophie Lark", "ISBN": "9781728295381", "ASIN": "1728295386", "Erscheinungsjahr": 2023, "Genre": "Taschenbücher", "Seitenanzahl": 400, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,26", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "03.04.2025", "_id": "166"}, {"Titel": "Savage Lover: A Dark Mafia Romance (Brutal Birthright)", "Autor(en)": "Sophie Lark", "ISBN": "9781728295374", "ASIN": "1728295378", "Erscheinungsjahr": 2023, "Genre": "Taschenbücher", "Seitenanzahl": 336, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "9,26", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "03.04.2025", "_id": "167"}, {"Titel": "Twisted (Never After 4): Roman | Die Dark-Romance Booktok-Sensation endlich auf Deutsch!", "Autor(en)": "Emily McIntire", "ISBN": "9783492508308", "ASIN": "3492508308", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 384, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "15,50", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "03.04.2025", "_id": "168"}, {"Titel": "Source Code: Meine Anfänge | Die Autobiographie der Tech-Ikone", "Autor(en)": "Bill Gates", "ISBN": "9783492073110", "ASIN": "3492073115", "Erscheinungsjahr": 2025, "Genre": "Microsoft", "Seitenanzahl": 384, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Hardcover", "Preis": "24,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "20.04.2025", "_id": "169"}, {"Titel": "Entführt: Rette mich: Band 5: Rette mich: Band 5 (Dark Reverse Harem, florales Cover mit exklusivem Farbschnitt) (Entführt-Reihe)", "Autor(en)": "Jasmin Baur", "ISBN": "9783989424401", "ASIN": "3989424408", "Erscheinungsjahr": 2024, "Genre": "Taschenbücher", "Seitenanzahl": 300, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "20,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "Signiert von Jasmin Baur (Autorin) auf meinen Namen !!??", "Erhalten am": "31.08.2024", "_id": "170"}, {"Titel": "Regents: Blute für uns (W&R Academy) | Mit wunderschönem Farbschnitt und weißer Schrift auf schwarzen Seiten: Blute für uns | Mit wunderschönem ... schwarzen Seiten - solange der Vorrat reicht", "Autor(en)": "Isabelle North", "ISBN": "9783989426269", "ASIN": "3989426265", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 424, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "29.08.2024", "_id": "171"}, {"Titel": "Crossed (Never After 5): Roman | Die Dark-Romance Booktok-Sensation endlich auf Deutsch!", "Autor(en)": "Emily McIntire", "ISBN": "9783492508315", "ASIN": "3492508316", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 408, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "02.05.2025", "_id": "172"}, {"Titel": "Very Bad Liars: Kingston University, Spring Break (Dark Bully Reverse Harem) | Mit wunderschönem Farbschnitt (Very Bad Kings)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426177", "ASIN": "3989426176", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 334, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "173"}, {"Titel": "Very Bad Choice: Kingston University, Die Entscheidung (Bully Reverse Harem) | Mit wunderschönem Farbschnitt (Very Bad Kings)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426184", "ASIN": "3989426184", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 336, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "174"}, {"Titel": "Very Bad Truth: Kingston University, Graduation Gala (Reverse Harem) | Mit wunderschönem Farbschnitt (Very Bad Kings)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426108", "ASIN": "3989426109", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 338, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "175"}, {"Titel": "Very Bad Bastards: Kingston University, 3. Semester (Bully Reverse Harem) | Mit wunderschönem Farbschnitt (Very Bad Kings)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426115", "ASIN": "3989426117", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 291, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "176"}, {"Titel": "Very Bad Devils: Kingston University, 3. Semester: Der Widerstand | Mit wunderschönem Farbschnitt (Very Bad Kings)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426375", "ASIN": "3989426370", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 426, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "177"}, {"Titel": "Very Bad Revenge: Kingston University, Viertes Semester | Mit wunderschönem Farbschnitt (Very Bad Kings)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426399", "ASIN": "3989426397", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 430, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "178"}, {"Titel": "Very Bad Sinners: Kingston University, Winter Break (Band 8) | Mit wunderschönem Farbschnitt (Very Bad Kings)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426382", "ASIN": "3989426389", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 378, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "179"}, {"Titel": "DIE KATAKOMBEN: Horrorthriller (Die beängstigendsten Orte der Welt 2)", "Autor(en)": "Jeremy Bates", "ISBN": "9783958353862", "ASIN": "B07KW42QV5", "Erscheinungsjahr": 2019, "Genre": "Horror", "Seitenanzahl": 369, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "16,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "180"}, {"Titel": "SUICIDE FOREST (Die beängstigendsten Orte der Welt): Horrorthriller", "Autor(en)": "Jeremy Bates", "ISBN": "9783958351813", "ASIN": "3958351816", "Erscheinungsjahr": 2022, "Genre": "Taschenbücher", "Seitenanzahl": 518, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "181"}, {"Titel": "Very Bad Elite: Kingston University, 2. Semester (Reverse Harem) | Mit wunderschönem Farbschnitt (Very Bad Kings)", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426160", "ASIN": "3989426168", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 352, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "182"}, {"Titel": "Very Bad Kings: Kingston University, 1. Semester (Dark Romance) | Mit wunderschönem Farbschnitt", "Autor(en)": "J. S. Wonda", "ISBN": "9783989426153", "ASIN": "398942615X", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 456, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "30.04.2025", "_id": "183"}, {"Titel": "Beautiful Killers | Mit wunderschönem Farbschnitt (Beautiful Sinners)", "Autor(en)": "Katy Crown", "ISBN": "9783989427143", "ASIN": "3989427148", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 400, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.05.2025", "_id": "184"}, {"Titel": "Praeda: Leide für uns | Mit wunderschönem Farbschnitt und weißer Schrift auf schwarzen Seiten (W&R Academy)", "Autor(en)": "Isabelle North", "ISBN": "9783989427099", "ASIN": "3989427091", "Erscheinungsjahr": 2025, "Genre": "Romantische Thriller", "Seitenanzahl": 480, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "05.06.2025", "_id": "185"}, {"Titel": "Hurt Me, Deeply | Mit wunderschönem Farbschnitt (Last-Respects-Reihe)", "Autor(en)": "Lea R. Eden", "ISBN": "9783989427167", "ASIN": "3989427164", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 440, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "05.06.2025", "_id": "186"}, {"Titel": "Bad Prince 1: Royales Spiel | Mit wunderschönem Farbschnitt (Bad Prince Reihe)", "Autor(en)": "J. S. Wonda", "ISBN": "9783690282932", "ASIN": "3690282934", "Erscheinungsjahr": 2025, "Genre": "Dark romance ", "Seitenanzahl": 364, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "17,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "26.07.2025", "_id": "187"}, {"Titel": "Satan's Affair: DARK ROMANCE | Die Vorgeschichte des Katz-und-Maus-Duetts", "Autor(en)": "H. D. Carlton", "ISBN": "9783987183607", "ASIN": "3987183608", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 253, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "19,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "26.06.2025", "_id": "188"}, {"Titel": "Scythe & Sparrow - Die große Liebe erscheint manchmal im finstersten Moment: Roman - Mit farbig gestaltetem Buchschnitt - nur in limitierter ... und TikTok-Sensation! (Ruinous Love, Band 3)", "Autor(en)": "Brynne Weaver", "ISBN": "9783453442238", "ASIN": "3453442237", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 398, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "01.07.2025", "_id": "189"}, {"Titel": "Butcher & Blackbird - Selbst die dunkelsten Seelen sehnen sich nach Liebe: Roman - Mit farbig gestaltetem Buchschnitt - nur in limitierter Erstauflage ... und TikTok-Sensation! (Ruinous Love, Band 1)", "Autor(en)": "Brynne Weaver", "ISBN": "9783453429963", "ASIN": "3453429966", "Erscheinungsjahr": 2024, "Genre": "Belletristik", "Seitenanzahl": 347, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "26.06.2025", "_id": "190"}, {"Titel": "Leather & Lark - Hass und Liebe liegen nah beieinander: Roman - Mit farbig gestaltetem Buchschnitt - nur in limitierter Erstauflage der gedruckten ... und TikTok-Sensation! (Ruinous Love, Band 2)", "Autor(en)": "Brynne Weaver", "ISBN": "9783453429970", "ASIN": "3453429974", "Erscheinungsjahr": 2025, "Genre": "Belletristik", "Seitenanzahl": 399, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "26.06.2025", "_id": "191"}, {"Titel": "Powerless - Die Flucht: Roman - Die Fortsetzung der epischen Enemies-to-Lovers-Romantasy von BookTok-Sensation Lauren Roberts! Mit Farbschnitt in limitierter Auflage! (Die Powerless-Trilogie, Band 2)", "Autor(en)": "Lauren Roberts", "ISBN": "9783764533243", "ASIN": "3764533242", "Erscheinungsjahr": 2024, "Genre": "Taschenbücher", "Seitenanzahl": 462, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "Signiert von Lauren Roberts (Autorin)", "Erhalten am": "31.07.2025", "_id": "192"}, {"Titel": "Powerless - Das Spiel: Roman - Der Auftakt der epischen Enemies-to-Lovers-Romantasy von BookTok-Sensation Lauren Roberts! Mit Farbschnitt in limitierter Auflage! (Die Powerless-Trilogie, Band 1)", "Autor(en)": "Lauren Roberts", "ISBN": "9783764533182", "ASIN": "3764533188", "Erscheinungsjahr": 2024, "Genre": "7c9a6c79-19ea-4dea-90da-d7d47042d341_1001", "Seitenanzahl": 655, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "Signiert von Lauren Roberts (Autorin)", "Erhalten am": "31.07.2025", "_id": "193"}, {"Titel": "Bad Prince 2: Royale Flucht | Mit wunderschönem Farbschnitt (Bad Prince Reihe)", "Autor(en)": "J. S. Wonda", "ISBN": "9783690282949", "ASIN": "3690282942", "Erscheinungsjahr": 2025, "Genre": "7c9a6c79-19ea-4dea-90da-d7d47042d341_1001", "Seitenanzahl": 356, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "18,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "02.03.2026", "_id": "194"}, {"Titel": "Fear us | Aufwendig gestaltete Ausgabe mit Farbschnitt (Your Sanctuary)", "Autor(en)": "Emily West", "ISBN": "9783690282581", "ASIN": "3690282586", "Erscheinungsjahr": 2026, "Genre": "Schwul", "Seitenanzahl": 388, "Dauer (Stunden)": 0, "Dauer (Minuten)": 0, "Buchart": "Taschenbuch", "Preis": "20,00", "Erhalten als": "Kauf", "Lesestatus": "Ungelesen", "Lesebeginn": "", "Leseende": "", "Bewertung": 0, "Kategorie": "", "Notizen": "", "Erhalten am": "18.03.2026", "_id": "195"}];
+const STORE='lesezeit_bookstats_v1';
+let state=JSON.parse(localStorage.getItem(STORE)||'{}');
+state.progress=state.progress||{}; state.status=state.status||{}; state.sessions=state.sessions||[]; state.personal=state.personal||{}; state.coverCache=state.coverCache||{}; state.coverMissing=state.coverMissing||{}; state.design=state.design||{accent:'#6d5dfc',bg:'#f4f4f7',card:'#fff',theme:'light'};
+let filter='Alle', viewMode=localStorage.getItem('lesezeit_view')||'grid';
+let selected=null,timerId=null,seconds=0,running=false;
+
+function save(){localStorage.setItem(STORE,JSON.stringify(state))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function status(b){return state.status[b._id]||b.Lesestatus||'Ungelesen'}
+function progress(b){return Math.max(0,Math.min(b.Seitenanzahl||0,Number(state.progress[b._id]||0)))}
+function pct(b){return b.Seitenanzahl?Math.round(progress(b)/b.Seitenanzahl*100):0}
+
+function setView(v){
+ viewMode=v; localStorage.setItem('lesezeit_view',v);
+ document.querySelectorAll('.viewbtn').forEach(x=>x.classList.toggle('active',x.dataset.view===v));
+ renderBooks();
+}
+function setFilter(f,el){
+ filter=f; document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); el.classList.add('active'); renderBooks();
+}
+
+function isbnClean(v){return String(v||'').replace(/[^0-9Xx]/g,'')}
+function personalData(b){return (state.personal&&state.personal[b._id])||{}}
+function cachedCover(b){
+ const p=personalData(b);
+ if(p.cover)return p.cover;
+ if(state.coverCache&&state.coverCache[b._id])return state.coverCache[b._id];
+ return '';
+}
+function coverHtml(b){
+ const cached=cachedCover(b);
+ if(cached)return `<div class="cover"><img src="${esc(cached)}" alt=""></div>`;
+ return `<div class="cover fallback" data-cover-id="${esc(b._id)}"><span>${esc(b.Titel)}</span></div>`;
+}
+async function findCover(b){
+ const id=b._id;
+ if(cachedCover(b)||state.coverMissing?.[id])return;
+ const isbn=isbnClean(b.ISBN);
+ if(!isbn)return;
+ try{
+   const g=await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${encodeURIComponent(isbn)}&maxResults=1`);
+   if(g.ok){
+     const data=await g.json();
+     const info=data.items?.[0]?.volumeInfo;
+     const img=info?.imageLinks?.thumbnail||info?.imageLinks?.smallThumbnail;
+     if(img){
+       const url=img.replace(/^http:/,'https:').replace('&edge=curl','');
+       state.coverCache=state.coverCache||{};
+       state.coverCache[id]=url;
+       save(); updateBookCoverNode(id,url); return;
+     }
+   }
+ }catch(e){}
+ // Open Library fallback
+ try{
+   const url=`https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg?default=false`;
+   const test=new Image();
+   test.onload=()=>{
+     state.coverCache=state.coverCache||{};
+     state.coverCache[id]=url;
+     save(); updateBookCoverNode(id,url);
+   };
+   test.onerror=()=>{
+     state.coverMissing=state.coverMissing||{};
+     state.coverMissing[id]=true; save();
+   };
+   test.src=url;
+ }catch(e){}
+}
+function updateBookCoverNode(id,url){
+ document.querySelectorAll(`[data-cover-id="${CSS.escape(String(id))}"]`).forEach(node=>{
+   node.outerHTML=`<div class="cover"><img src="${esc(url)}" alt=""></div>`;
+ });
+}
+function loadVisibleCovers(){
+ const nodes=[...document.querySelectorAll('[data-cover-id]')];
+ nodes.slice(0,10).forEach(node=>{
+   const b=books.find(x=>x._id===node.dataset.coverId);
+   if(b)findCover(b);
+ });
+}
+
+function coverFallback(img,id){
+ const box=img.parentElement;
+ img.remove(); box.classList.remove('loading'); box.classList.add('fallback');
+ const b=books.find(x=>x._id===String(id));
+ box.innerHTML=`<span>${esc(b?.Titel||'Buch')}</span>`;
+}
+
+function renderBooks(){
+ const q=document.getElementById('search').value.toLowerCase().trim();
+ const sort=document.getElementById('sort').value;
+ let list=books.filter(b=>{
+  const hay=[b.Titel,b['Autor(en)'],b.ISBN,b.Genre].join(' ').toLowerCase();
+  return (!q||hay.includes(q))&&(filter==='Alle'||status(b)===filter);
+ });
+ list.sort((a,b)=>{
+  if(sort==='author')return String(a['Autor(en)']).localeCompare(String(b['Autor(en)']));
+  if(sort==='pages')return (b.Seitenanzahl||0)-(a.Seitenanzahl||0);
+  if(sort==='rating')return (b.Bewertung||0)-(a.Bewertung||0);
+  if(sort==='year')return (b.Erscheinungsjahr||0)-(a.Erscheinungsjahr||0);
+  return String(a.Titel).localeCompare(String(b.Titel));
+ });
+ document.getElementById('resultCount').textContent=list.length+' von '+books.length+' Büchern';
+ const el=document.getElementById('books'); el.className='books '+viewMode;
+ el.innerHTML=list.map(b=>`<article class="card bookcard" onclick="openDetail('${b._id}')">
+  ${coverHtml(b,"M")}
+  <div><h3>${esc(b.Titel)}</h3><div class="meta">${esc(b['Autor(en)']||'Unbekannt')}</div>
+  <div class="tag">${esc(status(b))} · ${pct(b)}%</div></div>
+ </article>`).join('')||'<div class="empty">Keine Bücher gefunden.</div>';
+ setTimeout(loadVisibleCovers,80);
+}
+function openDetail(id){
+ selected=books.find(b=>b._id===String(id)); if(!selected)return;
+ const p=progress(selected), pc=pct(selected);
+ const personal=state.personal[selected._id]||{};
+ const rating=personal.rating ?? Number(selected.Bewertung||0);
+ const startDate=personal.startDate||selected['Startdatum']||'';
+ const endDate=personal.endDate||selected['Enddatum']||'';
+ const notes=personal.notes||selected.Notizen||'';
+ document.getElementById('detail').innerHTML=`
+ <div class="muted">${esc(selected.Genre||'Buch')}</div>
+ <h2 class="detail-title">${esc(selected.Titel)}</h2>
+ <div class="detail-cover">
+   ${personal.cover||selected.Cover?`<img class="book-cover-image" src="${esc(personal.cover||selected.Cover)}" alt="">`:`<span>${esc(selected.Titel)}</span>`}
+ </div>
+ <div class="meta" style="margin-bottom:14px">${esc(selected['Autor(en)']||'Unbekannt')}</div>
+
+ <div class="detailgrid">
+  <div class="info"><b>Seiten</b>${selected.Seitenanzahl||0}</div>
+  <div class="info"><b>ISBN</b>${esc(selected.ISBN||'—')}</div>
+  <div class="info"><b>Erscheinungsjahr</b>${selected.Erscheinungsjahr||'—'}</div>
+  <div class="info"><b>Buchart</b>${esc(selected.Buchart||'—')}</div>
+  <div class="info"><b>Preis</b>${esc(selected.Preis||'—')}</div>
+  <div class="info"><b>Genre</b>${esc(selected.Genre||'—')}</div>
+ </div>
+
+ <h3>Meine Bewertung</h3>
+ <div class="rating-edit">
+  ${[1,2,3,4,5].map(n=>`<button class="starbtn ${rating>=n?'active':''}" onclick="setRating(${n})">★</button>`).join('')}
+ </div>
+
+ <h3>Lesefortschritt</h3>
+ <input class="range" type="range" min="0" max="${selected.Seitenanzahl||0}" value="${p}" oninput="updateProgress(this.value)">
+ <div class="row"><span id="progressLabel">${p} / ${selected.Seitenanzahl||0} Seiten · ${pc}%</span><button class="btn dark" onclick="startReading()">▶ Lesen</button></div>
+
+ <h3>Status</h3>
+ <div class="filters">
+  <button class="tab ${status(selected)==='Ungelesen'?'active':''}" onclick="changeStatus('Ungelesen')">Ungelesen</button>
+  <button class="tab ${status(selected)==='Lese ich gerade'?'active':''}" onclick="changeStatus('Lese ich gerade')">Lese ich gerade</button>
+  <button class="tab ${status(selected)==='Gelesen'?'active':''}" onclick="changeStatus('Gelesen')">Gelesen</button>
+ </div>
+
+ <h3>Lesedaten</h3>
+ <div class="formrow">
+  <div><div class="muted">Begonnen</div><input class="formfield" type="date" value="${esc(startDate)}" onchange="setDate('startDate',this.value)"></div>
+  <div><div class="muted">Beendet</div><input class="formfield" type="date" value="${esc(endDate)}" onchange="setDate('endDate',this.value)"></div>
+ </div>
+
+ 
+ <h3>Mein Cover</h3>
+ <div class="muted">Du kannst ein eigenes Cover vom PC auswählen. Es wird direkt bei diesem Buch gespeichert und bleibt auch nach dem Neustart erhalten.</div>
+ <div class="cover-input" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+  <input type="file" id="coverFile" accept="image/*" style="display:none" onchange="setCoverFile(this.files[0])">
+  <button class="btn" type="button" onclick="document.getElementById('coverFile').click()">${personal.cover?'Cover ändern':'Cover hinzufügen'}</button>
+  ${personal.cover?`<button class="btn" type="button" onclick="removeCover()">Eigenes Cover entfernen</button>`:''}
+ </div>
+
+<h3>Meine Notizen</h3>
+ <textarea class="notes" placeholder="Was möchtest du dir zu diesem Buch merken?" onchange="setNotes(this.value)">${esc(notes)}</textarea>
+ <div class="muted" style="margin-top:10px">Deine persönlichen Angaben werden lokal in dieser V1 gespeichert.</div>
+ `;
+ document.getElementById('detailModal').classList.add('open');
+}
+function setRating(value){
+ if(!selected)return;
+ state.personal=state.personal||{};
+ state.personal[selected._id]=state.personal[selected._id]||{};
+ state.personal[selected._id].rating=value;
+ save(); openDetail(selected._id);
+}
+function setDate(field,value){
+ if(!selected)return;
+ state.personal=state.personal||{};
+ state.personal[selected._id]=state.personal[selected._id]||{};
+ state.personal[selected._id][field]=value;
+ save();
+}
+function setCover(value){
+ if(!selected)return;
+ state.personal=state.personal||{};
+ state.personal[selected._id]=state.personal[selected._id]||{};
+ state.personal[selected._id].cover=value;
+ save(); openDetail(selected._id); renderBooks();
+}
+function setCoverFile(file){
+ if(!selected||!file)return;
+ if(!file.type.startsWith('image/')){alert('Bitte ein Bild auswählen.');return;}
+ const reader=new FileReader();
+ reader.onload=function(e){
+   const img=new Image();
+   img.onload=function(){
+     const max=1000;
+     const scale=Math.min(1,max/Math.max(img.width,img.height));
+     const w=Math.max(1,Math.round(img.width*scale));
+     const h=Math.max(1,Math.round(img.height*scale));
+     const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
+     const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0,w,h);
+     setCover(canvas.toDataURL('image/jpeg',0.82));
+   };
+   img.src=e.target.result;
+ };
+ reader.readAsDataURL(file);
+}
+function removeCover(){
+ if(!selected)return;
+ state.personal=state.personal||{};
+ state.personal[selected._id]=state.personal[selected._id]||{};
+ delete state.personal[selected._id].cover;
+ save(); openDetail(selected._id); renderBooks();
+}
+function setNotes(value){
+ if(!selected)return;
+ state.personal=state.personal||{};
+ state.personal[selected._id]=state.personal[selected._id]||{};
+ state.personal[selected._id].notes=value;
+ save();
+}
+
+function updateProgress(v){
+ if(!selected)return; state.progress[selected._id]=Number(v);
+ if(Number(v)>0&&status(selected)==='Ungelesen')state.status[selected._id]='Lese ich gerade';
+ if(Number(v)>=selected.Seitenanzahl&&selected.Seitenanzahl)state.status[selected._id]='Gelesen';
+ save(); const p=progress(selected); document.getElementById('progressLabel').textContent=`${p} / ${selected.Seitenanzahl||0} Seiten · ${pct(selected)}%`;
+ refresh(); renderBooks();
+}
+function changeStatus(s){if(!selected)return;state.status[selected._id]=s;save();openDetail(selected._id);refresh();renderBooks()}
+function closeDetail(){document.getElementById('detailModal').classList.remove('open')}
+function openCurrent(){const b=books.find(x=>status(x)==='Lese ich gerade')||books[0];openDetail(b._id)}
+function startReading(){closeDetail();openTimer()}
+function openTimer(){
+ if(!selected)selected=books.find(x=>status(x)==='Lese ich gerade')||books[0];
+ document.getElementById('timerBook').textContent=selected.Titel;
+ document.getElementById('timerModal').classList.add('open'); renderSessions();
+}
+function closeTimer(){if(running)stopTimer();document.getElementById('timerModal').classList.remove('open')}
+function toggleTimer(){running?stopTimer():startTimer()}
+function startTimer(){
+ state.status[selected._id]='Lese ich gerade';save();refresh();renderBooks();
+ running=true;seconds=0;document.getElementById('timerButton').textContent='■ Stoppen';
+ timerId=setInterval(()=>{seconds++;document.getElementById('timer').textContent=new Date(seconds*1000).toISOString().slice(11,19)},1000);
+}
+function stopTimer(){
+ clearInterval(timerId);running=false;
+ if(seconds>0){
+  state.sessions.unshift({bookId:selected._id,title:selected.Titel,duration:seconds,date:new Date().toISOString()});
+ }
+ save();seconds=0;document.getElementById('timer').textContent='00:00:00';document.getElementById('timerButton').textContent='▶ Starten';
+ refresh();renderSessions();
+}
+function renderSessions(){
+ const a=state.sessions.slice(0,8);
+ document.getElementById('sessionList').innerHTML=a.length?a.map(s=>`<div class="session"><span>${esc(s.title)}</span><b>${fmt(s.duration)}</b></div>`).join(''):'<div class="muted">Noch keine gespeicherten Sessions.</div>';
+}
+function fmt(n){n=Math.round(n);return [Math.floor(n/3600),Math.floor(n%3600/60),n%60].map(x=>String(x).padStart(2,'0')).join(':')}
+
+function applyDesign(){
+ const d=state.design||{};
+ document.documentElement.style.setProperty('--accent',d.accent||'#6d5dfc');
+ document.documentElement.style.setProperty('--bg',d.bg||'#f4f4f7');
+ document.documentElement.style.setProperty('--card',d.card||'#fff');
+ if(d.background){
+  document.body.style.backgroundImage=`url("${d.background}")`;
+  document.body.style.backgroundSize='cover';
+  document.body.style.backgroundAttachment='fixed';
+ }else{
+  document.body.style.backgroundImage='';
+  document.body.style.backgroundSize='';
+  document.body.style.backgroundAttachment='';
+ }
+}
+function setAccent(color){
+ state.design=state.design||{};
+ state.design.accent=color; save(); applyDesign(); renderDesign();
+}
+function setTheme(theme){
+ state.design=state.design||{};
+ state.design.theme=theme;
+ if(theme==='dark'){state.design.bg='#111216';state.design.card='#1d1e23'}
+ else if(theme==='soft'){state.design.bg='#f8f1ed';state.design.card='#fffaf7'}
+ else {state.design.bg='#f4f4f7';state.design.card='#fff'}
+ save(); applyDesign(); renderDesign();
+}
+function setBackground(file){
+ if(!file)return;
+ const reader=new FileReader();
+ reader.onload=e=>{
+  state.design=state.design||{};
+  state.design.background=e.target.result;
+  save(); applyDesign(); renderDesign();
+ };
+ reader.readAsDataURL(file);
+}
+function clearBackground(){
+ state.design=state.design||{};
+ delete state.design.background; save(); applyDesign(); renderDesign();
+}
+function resetDesign(){
+ state.design={accent:'#6d5dfc',bg:'#f4f4f7',card:'#fff',theme:'light'};
+ save(); applyDesign(); renderDesign();
+}
+function renderDesign(){
+ const d=state.design||{};
+ document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s.getAttribute('onclick')?.includes(d.accent||'#6d5dfc')));
+ const preview=document.getElementById('bgPreview');
+ if(preview){
+  preview.style.backgroundImage=d.background?`url("${d.background}")`:'';
+  preview.textContent=d.background?'Dein eigener Hintergrund':'Dein Hintergrund';
+ }
+ document.querySelectorAll('.theme-option').forEach(x=>x.classList.remove('active'));
+ const idx=d.theme==='dark'?1:d.theme==='soft'?2:0;
+ const opts=document.querySelectorAll('.theme-option'); if(opts[idx])opts[idx].classList.add('active');
+}
+
+
+function showPage(page){
+ document.getElementById('libraryPage').classList.toggle('active',page==='library');
+ document.getElementById('statsPage').classList.toggle('active',page==='stats');
+ document.getElementById('designPage').classList.toggle('active',page==='design');
+ document.getElementById('navLibrary').classList.toggle('active',page==='library');
+ document.getElementById('navStats').classList.toggle('active',page==='stats');
+ document.getElementById('navDesign').classList.toggle('active',page==='design');
+ if(page==='stats')renderStats();
+ if(page==='design')renderDesign();
+}
+function renderStats(){
+ const read=books.filter(b=>status(b)==='Gelesen');
+ const pages=read.reduce((n,b)=>n+(Number(b.Seitenanzahl)||0),0);
+ const secs=state.sessions.reduce((n,s)=>n+(Number(s.duration)||0),0);
+ document.getElementById('statBooks').textContent=read.length;
+ document.getElementById('statPages').textContent=pages.toLocaleString('de-DE');
+ document.getElementById('statHours').textContent=(secs/3600).toFixed(1).replace('.',',');
+ const counts={Gelesen:0,'Lese ich gerade':0,Ungelesen:0};
+ books.forEach(b=>counts[status(b)]++);
+ const max=Math.max(...Object.values(counts),1);
+ document.getElementById('statusChart').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="barrow"><span>${k}</span><div class="bar"><i style="width:${v/max*100}%"></i></div><b>${v}</b></div>`).join('');
+ const genres={};
+ books.forEach(b=>{const g=b.Genre||'Ohne Genre';genres[g]=(genres[g]||0)+1});
+ const top=Object.entries(genres).sort((a,b)=>b[1]-a[1]).slice(0,7);
+ const gm=Math.max(...top.map(x=>x[1]),1);
+ document.getElementById('genreChart').innerHTML=top.map(([k,v])=>`<div class="barrow"><span>${esc(k)}</span><div class="bar"><i style="width:${v/gm*100}%"></i></div><b>${v}</b></div>`).join('');
+ const ratings=[1,2,3,4,5].map(n=>[n,books.filter(b=>(state.personal[b._id]?.rating??Number(b.Bewertung||0))===n).length]);
+ const rm=Math.max(...ratings.map(x=>x[1]),1);
+ document.getElementById('ratingChart').innerHTML=ratings.map(([k,v])=>`<div class="barrow"><span>${'★'.repeat(k)}</span><div class="bar"><i style="width:${v/rm*100}%"></i></div><b>${v}</b></div>`).join('');
+}
+
+function refresh(){
+ document.getElementById('bookCount').textContent=books.length;
+ document.getElementById('readCount').textContent=books.filter(b=>status(b)==='Gelesen').length;
+ const totalPages=books.reduce((n,b)=>n+(Number(b.Seitenanzahl)||0),0);
+ const readPages=books.reduce((n,b)=>n+(status(b)==='Gelesen'?(Number(b.Seitenanzahl)||0):progress(b)),0);
+ const readPct=totalPages?Math.min(100,Math.round(readPages/totalPages*100)):0;
+ document.getElementById('pageCount').textContent=totalPages.toLocaleString('de-DE');
+ document.getElementById('readPages').textContent=readPages.toLocaleString('de-DE');
+ document.getElementById('readPagesTotal').textContent=`von ${totalPages.toLocaleString('de-DE')} Seiten`;
+ document.getElementById('readPagesBar').style.width=readPct+'%';
+ document.getElementById('readPagesPct').textContent=readPct+' % deiner Bibliothek';
+ document.getElementById('sessionCount').textContent=state.sessions.length;
+ const c=books.find(b=>status(b)==='Lese ich gerade')||selected;
+ if(c){document.getElementById('currentBook').textContent=c.Titel;document.getElementById('currentProgressText').textContent=`${progress(c)} / ${c.Seitenanzahl||0} Seiten`;document.getElementById('currentProgress').style.width=pct(c)+'%'}
+}
+refresh();setView(viewMode);
+</script>
+
+<div id="v12CloudPanel">
+  <div id="v12CloudCard">
+    <div style="font-size:42px;margin-bottom:8px">📚</div>
+    <h2 id="v17Title">Willkommen bei Lesezeit</h2>
+    <p id="v17Subtitle">Deine Bibliothek, Statistiken und Lesefortschritte – sicher in der Cloud.</p>
+    <div id="v17Setup" style="display:none">
+      <div style="font-size:12px;font-weight:800;opacity:.6;text-align:left;margin-bottom:8px">EINMALIGE CLOUD-EINRICHTUNG</div>
+      <input id="v12ProjectUrl" class="v12field" placeholder="Supabase Project URL (https://....supabase.co)">
+      <input id="v12AnonKey" class="v12field" placeholder="Supabase Publishable / anon Key" type="password">
+      <button id="v17SaveSetup" class="v12cloudbtn v17primary">Cloud einrichten</button>
+      <div class="v17hint">URL und Key werden lokal gespeichert. Dein Passwort wird nicht gespeichert.</div>
+    </div>
+    <div id="v17Auth" style="display:none">
+      <div class="v17tabs"><button id="v17LoginTab" class="v17tab active">Anmelden</button><button id="v17RegisterTab" class="v17tab">Konto erstellen</button></div>
+      <div id="v17LoginForm">
+        <input id="v12Email" class="v12field" placeholder="E-Mail-Adresse" type="email" autocomplete="username">
+        <input id="v12Password" class="v12field" placeholder="Passwort" type="password" autocomplete="current-password">
+        <button id="v12Connect" class="v12cloudbtn v17primary">Anmelden</button>
+        <button id="v17Forgot" class="v17link">Passwort vergessen?</button>
+      </div>
+      <div id="v17RegisterForm" style="display:none">
+        <input id="v17Name" class="v12field" placeholder="Anzeigename" autocomplete="name">
+        <input id="v17RegEmail" class="v12field" placeholder="E-Mail-Adresse" type="email" autocomplete="email">
+        <input id="v17RegPassword" class="v12field" placeholder="Passwort (mind. 6 Zeichen)" type="password" autocomplete="new-password">
+        <input id="v17RegPassword2" class="v12field" placeholder="Passwort wiederholen" type="password" autocomplete="new-password">
+        <button id="v17Register" class="v12cloudbtn v17primary">Konto erstellen</button>
+      </div>
+      <button id="v17ChangeSetup" class="v17small">Cloud-Verbindung ändern</button>
+    </div>
+    <div id="v12CloudStatus"></div>
+  </div>
+</div>
+<style>
+.v17tabs{display:flex;background:rgba(127,127,127,.12);padding:4px;border-radius:13px;margin:0 0 14px}.v17tab{flex:1;border:0;background:transparent;color:inherit;border-radius:10px;padding:10px;font-weight:700}.v17tab.active{background:var(--card,#fff);box-shadow:0 2px 8px rgba(0,0,0,.12)}.v17primary{width:100%;background:var(--accent,#6d5dfc);color:#fff}.v17link,.v17small{border:0;background:none;color:var(--accent,#6d5dfc);font-weight:600;margin-top:12px}.v17small{font-size:12px;opacity:.7}.v17hint{font-size:12px;line-height:1.4;opacity:.58;margin-top:10px}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  const BUILTIN_CONFIG={
+    url:'https://srpqtimktfnyawosebqm.supabase.co',
+    key:'sb_publishable_qqVi0MTq7bZt3U7EAIJb_w_Cbma0Fsk'
+  };
+  const CFG='lesezeit_supabase_config_v20';
+  const getCfg=()=>{
+    try{
+      const saved=JSON.parse(localStorage.getItem(CFG)||'{}');
+      return {url:BUILTIN_CONFIG.url,key:BUILTIN_CONFIG.key,...saved};
+    }catch(e){
+      return BUILTIN_CONFIG;
+    }
+  };
+  const saveCfg=c=>localStorage.setItem(CFG,JSON.stringify({
+    url:BUILTIN_CONFIG.url,
+    key:BUILTIN_CONFIG.key
+  }));
+
+  window.LesezeitCloud = {
+    client:null,
+    config:getCfg(),
+    async init(url,key){
+      if(!window.supabase) throw new Error('Supabase-Bibliothek konnte nicht geladen werden.');
+      const clean=(url||'').trim().replace(/\/$/,'');
+      if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(clean))
+        throw new Error('Die Supabase Project URL ist nicht korrekt.');
+      if(!key || key.length<20) throw new Error('Bitte den Publishable/anon Key prüfen.');
+      this.client=window.supabase.createClient(clean,key,{
+        auth:{
+          persistSession:true,
+          autoRefreshToken:true,
+          detectSessionInUrl:true,
+          storage:window.localStorage
+        }
+      });
+      this.config={url:clean,key:key};
+      saveCfg({url:clean,key:key});
+    },
+    async login(email,password){
+      const {data,error}=await this.client.auth.signInWithPassword({email,password});
+      if(error) throw error;
+      return data;
+    },
+    async library(){
+      const {data,error}=await this.client
+        .from('user_books')
+        .select('*, books(*)')
+        .order('created_at',{ascending:false});
+      if(error) throw error;
+      return data||[];
+    }
+  };
+
+  function mapCloud(rows){
+    return rows.map((r,i)=>{
+      const b=r.books||{};
+      return {
+        Titel:b.title||'Unbekannt',
+        "Autor(en)":b.author||'',
+        ISBN:b.isbn||'',
+        ASIN:'',
+        Erscheinungsjahr:b.publication_year||'',
+        Genre:b.genre||'',
+        Seitenanzahl:b.pages||0,
+        "Dauer (Stunden)":r.reading_duration_hours||0,
+        "Dauer (Minuten)":r.reading_duration_minutes||0,
+        Buchart:r.book_type||'',
+        Preis:r.price==null?'':String(r.price),
+        "Erhalten als":r.received_as||r.acquisition_source||'',
+        Lesestatus:r.status==='read'?'Gelesen':r.status==='reading'?'Lese ich gerade':r.status==='dropped'?'Abgebrochen':'Zu lesen',
+        Lesebeginn:r.start_date||'',
+        Leseende:r.end_date||'',
+        Bewertung:r.rating||0,
+        Kategorie:r.category||'',
+        Notizen:r.notes||'',
+        "Erhalten am":r.received_date||'',
+        _id:String(r.id),
+        _cloud:true,
+        _customCover:r.custom_cover_url||''
+      };
+    });
+  }
+
+  async function syncCloud(){
+    const rows=await window.LesezeitCloud.library();
+    if(!rows.length) throw new Error('Für dieses Konto wurden noch keine Bücher gefunden.');
+    const cloudBooks=mapCloud(rows);
+    books.splice(0,books.length,...cloudBooks);
+    try{
+      state.cloudMode=true;
+      state.cloudRows=rows;
+      save();
+    }catch(e){}
+    if(typeof renderBooks==='function') renderBooks();
+    if(typeof updateHomeStats==='function') updateHomeStats();
+    window.dispatchEvent(new CustomEvent('lesezeit-cloud-ready',{detail:{count:cloudBooks.length}}));
+    return cloudBooks.length;
+  }
+
+  async function boot(){
+    const panel=document.getElementById('v12CloudPanel');
+    const cfg=getCfg();
+
+    // No saved project configuration: show the setup form.
+    if(!cfg.url || !cfg.key){
+      if(panel) panel.style.display='flex';
+      const setup=document.getElementById('v17Setup');
+      const auth=document.getElementById('v17Auth');
+      if(setup) setup.style.display='block';
+      if(auth) auth.style.display='none';
+      return;
+    }
+
+    try{
+      await window.LesezeitCloud.init(cfg.url,cfg.key);
+      const {data:{session}} = await window.LesezeitCloud.client.auth.getSession();
+
+      if(session && session.user){
+        const count=await syncCloud();
+        if(panel) panel.style.display='none';
+        console.log('Lesezeit: bestehende Session wiederhergestellt – '+count+' Bücher geladen.');
+      }else{
+        if(panel) panel.style.display='flex';
+        const setup=document.getElementById('v17Setup');
+        const auth=document.getElementById('v17Auth');
+        if(setup) setup.style.display='none';
+        if(auth) auth.style.display='block';
+        const url=document.getElementById('v12ProjectUrl');
+        if(url) url.value=cfg.url||'';
+      }
+    }catch(e){
+      console.warn('Lesezeit Session konnte nicht wiederhergestellt werden:',e);
+      if(panel) panel.style.display='flex';
+      const setup=document.getElementById('v17Setup');
+      const auth=document.getElementById('v17Auth');
+      if(setup) setup.style.display='none';
+      if(auth) auth.style.display='block';
+      const url=document.getElementById('v12ProjectUrl');
+      if(url) url.value=cfg.url||'';
+      const status=document.getElementById('v12CloudStatus');
+      if(status) status.textContent='Cloud-Verbindung konnte nicht wiederhergestellt werden. Bitte anmelden.';
+    }
+  }
+
+  // Keep the cloud library in sync if Supabase refreshes/restores the session.
+  window.addEventListener('lesezeit-cloud-ready', function(){});
+
+  document.addEventListener('DOMContentLoaded',boot);
+  window.LesezeitLogout = async function(){
+    try{
+      if(window.LesezeitCloud && window.LesezeitCloud.client){
+        await window.LesezeitCloud.client.auth.signOut();
+      }
+    }catch(e){}
+    location.reload();
+  };
+
+  function v17Status(msg,err=false){ const e=document.getElementById('v12CloudStatus'); if(e){e.textContent=msg||'';e.style.color=err?'#d93025':'';} }
+  function v17Tabs(login){
+    document.getElementById('v17LoginTab').classList.toggle('active',login);
+    document.getElementById('v17RegisterTab').classList.toggle('active',!login);
+    document.getElementById('v17LoginForm').style.display=login?'block':'none';
+    document.getElementById('v17RegisterForm').style.display=login?'none':'block';
+    document.getElementById('v17Title').textContent=login?'Willkommen zurück':'Dein Lesezeit-Konto';
+  }
+  document.getElementById('v17SaveSetup').addEventListener('click',async()=>{
+    v17Status('Cloud wird eingerichtet …');
+    try{await window.LesezeitCloud.init(document.getElementById('v12ProjectUrl').value,document.getElementById('v12AnonKey').value);
+      document.getElementById('v17Setup').style.display='none';document.getElementById('v17Auth').style.display='block';v17Status('Cloud verbunden.');
+    }catch(e){v17Status(e.message||String(e),true);}
+  });
+  document.getElementById('v12Connect').addEventListener('click',async()=>{
+    const email=document.getElementById('v12Email').value.trim();
+    const password=document.getElementById('v12Password').value;
+    if(!email||!password){v17Status('Bitte E-Mail und Passwort eingeben.',true);return;}
+    if(!window.LesezeitCloud.client){v17Status('Die Cloud-Verbindung ist noch nicht bereit. Bitte kurz warten oder die Cloud-Verbindung öffnen.',true);return;}
+    v17Status('Anmeldung läuft …');
+    try{
+      await window.LesezeitCloud.login(email,password);
+      v17Status('Anmeldung erfolgreich – Bibliothek wird geladen …');
+      const n=await syncCloud();
+      document.getElementById('v12CloudPanel').style.display='none';
+      console.log('Lesezeit: '+n+' Bücher geladen.');
+    }catch(e){
+      v17Status('Anmeldung fehlgeschlagen: '+(e.message||String(e)),true);
+    }
+  });
+  document.getElementById('v17LoginTab').addEventListener('click',()=>v17Tabs(true));
+  document.getElementById('v17RegisterTab').addEventListener('click',()=>v17Tabs(false));
+  document.getElementById('v17ChangeSetup').addEventListener('click',()=>{
+    const c=getCfg();document.getElementById('v12ProjectUrl').value=c.url||'';document.getElementById('v12AnonKey').value=c.key||'';
+    document.getElementById('v17Auth').style.display='none';document.getElementById('v17Setup').style.display='block';v17Status('');
+  });
+  document.getElementById('v17Forgot').addEventListener('click',async()=>{
+    const email=document.getElementById('v12Email').value.trim();if(!email){v17Status('Bitte zuerst deine E-Mail-Adresse eingeben.',true);return;}
+    try{const {error}=await window.LesezeitCloud.client.auth.resetPasswordForEmail(email);if(error)throw error;v17Status('Link zum Zurücksetzen wurde gesendet.');}catch(e){v17Status(e.message||String(e),true);}
+  });
+  document.getElementById('v17Register').addEventListener('click',async()=>{
+    const name=document.getElementById('v17Name').value.trim(),email=document.getElementById('v17RegEmail').value.trim(),p=document.getElementById('v17RegPassword').value,p2=document.getElementById('v17RegPassword2').value;
+    if(!name||!email||!p){v17Status('Bitte alle Felder ausfüllen.',true);return;} if(p.length<6){v17Status('Das Passwort muss mindestens 6 Zeichen haben.',true);return;} if(p!==p2){v17Status('Die Passwörter stimmen nicht überein.',true);return;}
+    try{
+      const {data,error}=await window.LesezeitCloud.client.auth.signUp({email,password:p});if(error)throw error;
+      localStorage.setItem('lesezeit_pending_display_name',name);
+      if(data.session){v17Status('Konto erstellt – Bibliothek wird geladen …');const n=await syncCloud();document.getElementById('v12CloudPanel').style.display='none';console.log('Lesezeit: '+n+' Bücher geladen.');}
+      else{v17Status('Konto erstellt! Bitte bestätige deine E-Mail und melde dich danach an.');document.getElementById('v12Email').value=email;v17Tabs(true);}
+    }catch(e){v17Status(e.message||String(e),true);}
+  });
+  document.addEventListener('DOMContentLoaded',()=>{
+    const c=getCfg();
+    if(c.url&&c.key){document.getElementById('v12ProjectUrl').value=c.url;document.getElementById('v12AnonKey').value=c.key;document.getElementById('v17Setup').style.display='none';document.getElementById('v17Auth').style.display='block';}
+  });
+
+})();
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  try{ if(typeof applyDesign==='function') applyDesign(); }catch(e){}
+});
+</script>
+
+<script id="v22-auth-controller">
+(function(){
+  const PROJECT_URL="https://srpqtimktfnyawosebqm.supabase.co";
+  const PUBLISHABLE_KEY="sb_publishable_qqVi0MTq7bZt3U7EAIJb_w_Cbma0Fsk";
+  let client=null;
+
+  const $=id=>document.getElementById(id);
+  const show=(id,on)=>{const e=$(id);if(e)e.style.display=on?'flex':'none';};
+  const msg=(s,err=false)=>{const e=$("v22Status");if(e){e.textContent=s;e.style.color=err?"#d93025":"";}};
+
+  async function init(){
+    if(!window.supabase){msg("Supabase konnte nicht geladen werden.",true);return;}
+    client=window.supabase.createClient(PROJECT_URL,PUBLISHABLE_KEY,{
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage}
+    });
+
+    const {data:{session}}=await client.auth.getSession();
+    if(session?.user){
+      await loadCloud(session.user);
+    }else{
+      show("v22AuthScreen",true);
+    }
+  }
+
+  async function loadCloud(user){
+    show("v22Loading",true);
+    try{
+      const {data,error}=await client.from("user_books").select("*, books(*)").order("created_at",{ascending:false});
+      if(error)throw error;
+      const rows=data||[];
+      // If the old app exposes a books array, replace it with the user's cloud library.
+      if(Array.isArray(window.books) && rows.length){
+        const mapped=rows.map(r=>{
+          const b=r.books||{};
+          return {
+            Titel:b.title||"Unbekannt",
+            "Autor(en)":b.author||"",
+            ISBN:b.isbn||"",
+            Erscheinungsjahr:b.publication_year||"",
+            Genre:b.genre||"",
+            Seitenanzahl:b.pages||0,
+            "Dauer (Stunden)":r.reading_duration_hours||0,
+            "Dauer (Minuten)":r.reading_duration_minutes||0,
+            Buchart:r.book_type||"",
+            Preis:r.price==null?"":String(r.price),
+            "Erhalten als":r.received_as||r.acquisition_source||"",
+            Lesestatus:r.status==="read"?"Gelesen":r.status==="reading"?"Lese ich gerade":r.status==="dropped"?"Abgebrochen":"Zu lesen",
+            Lesebeginn:r.start_date||"",
+            Leseende:r.end_date||"",
+            Bewertung:r.rating||0,
+            Kategorie:r.category||"",
+            Notizen:r.notes||"",
+            "Erhalten am":r.received_date||"",
+            _id:String(r.id),_cloud:true,_customCover:r.custom_cover_url||""
+          };
+        });
+        window.books.splice(0,window.books.length,...mapped);
+        try{ if(typeof window.save==="function")window.save(); }catch(e){}
+        try{ if(typeof window.renderBooks==="function")window.renderBooks(); }catch(e){}
+        try{ if(typeof window.updateHomeStats==="function")window.updateHomeStats(); }catch(e){}
+      }
+      show("v22Loading",false);
+      show("v22AuthScreen",false);
+      window.LesezeitCurrentUser=user;
+      window.LesezeitSupabase=client;
+      window.dispatchEvent(new CustomEvent("lesezeit-auth-ready",{detail:{user,rows}}));
+    }catch(e){
+      show("v22Loading",false);
+      msg("Bibliothek konnte nicht geladen werden: "+(e.message||e),true);
+      show("v22AuthScreen",true);
+    }
+  }
+
+  $("v22LoginTab").addEventListener("click",()=>{
+    $("v22LoginTab").classList.add("active");$("v22RegisterTab").classList.remove("active");
+    $("v22LoginForm").style.display="block";$("v22RegisterForm").style.display="none";msg("");
+  });
+  $("v22RegisterTab").addEventListener("click",()=>{
+    $("v22RegisterTab").classList.add("active");$("v22LoginTab").classList.remove("active");
+    $("v22LoginForm").style.display="none";$("v22RegisterForm").style.display="block";msg("");
+  });
+
+  $("v22LoginBtn").addEventListener("click",async()=>{
+    const email=$("v22LoginEmail").value.trim(), password=$("v22LoginPassword").value;
+    if(!email||!password){msg("Bitte E-Mail und Passwort eingeben.",true);return;}
+    msg("Anmeldung läuft …");
+    try{
+      const {data,error}=await client.auth.signInWithPassword({email,password});
+      if(error)throw error;
+      await loadCloud(data.user);
+    }catch(e){msg("Anmeldung fehlgeschlagen: "+(e.message||e),true);}
+  });
+
+  $("v22RegisterBtn").addEventListener("click",async()=>{
+    const name=$("v22Name").value.trim(),email=$("v22RegEmail").value.trim();
+    const p1=$("v22RegPassword").value,p2=$("v22RegPassword2").value;
+    if(!name||!email||!p1){msg("Bitte alle Felder ausfüllen.",true);return;}
+    if(p1.length<6){msg("Das Passwort muss mindestens 6 Zeichen haben.",true);return;}
+    if(p1!==p2){msg("Die Passwörter stimmen nicht überein.",true);return;}
+    msg("Konto wird erstellt …");
+    try{
+      const {data,error}=await client.auth.signUp({email,password:p1});
+      if(error)throw error;
+      localStorage.setItem("lesezeit_pending_display_name",name);
+      if(data.session) await loadCloud(data.user);
+      else{
+        msg("Konto erstellt! Bitte bestätige deine E-Mail-Adresse und melde dich danach an.");
+        $("v22LoginTab").click(); $("v22LoginEmail").value=email;
+      }
+    }catch(e){msg("Registrierung fehlgeschlagen: "+(e.message||e),true);}
+  });
+
+  $("v22ForgotBtn").addEventListener("click",async()=>{
+    const email=$("v22LoginEmail").value.trim();
+    if(!email){msg("Bitte zuerst deine E-Mail-Adresse eingeben.",true);return;}
+    msg("Sende Link …");
+    try{
+      const {error}=await client.auth.resetPasswordForEmail(email);
+      if(error)throw error;
+      msg("Der Link wurde an deine E-Mail-Adresse gesendet.");
+    }catch(e){msg("Fehler: "+(e.message||e),true);}
+  });
+
+  // Expose logout for later profile/menu work.
+  window.LesezeitLogout=async()=>{try{await client.auth.signOut();}finally{location.reload();}};
+
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
+  else init();
+})();
+</script>
+
+</body>
+</html>
