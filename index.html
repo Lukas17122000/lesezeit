@@ -3,14 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V34.3 – Lesezeitewelt</title>
+<title>Lesezeit · V35.5 – Lesezeitewelt</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;500;600;700;800;900&family=Julius+Sans+One&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Yellowtail&display=swap');
+
 :root{
  --bg:#f4f4f7;--card:#fff;--text:#18181b;--muted:#74747d;--line:#e6e6eb;
- --accent:#6d5dfc;--soft:#efedff;--dark:#171717
+ --accent:#6d5dfc;--soft:#efedff;--dark:#171717;--font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif)}
+/* V35.12: full-page image backdrop with user-selected edge color and soft gradient */
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:var(--page-solid-color,var(--bg));pointer-events:none}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:var(--page-bg-image,none),linear-gradient(90deg,var(--page-bg-color,var(--bg)) 0%,transparent 18%,transparent 82%,var(--page-bg-color,var(--bg)) 100%),linear-gradient(180deg,transparent 0%,transparent 62%,var(--page-bg-color,var(--bg)) 100%);background-repeat:no-repeat;background-position:center top,center,center;background-size:contain,100% 100%,100% 100%;background-attachment:fixed,fixed,fixed}
+
 button,input{font:inherit}
 button{cursor:pointer}
 .app{max-width:1180px;margin:auto;padding:22px 20px 80px}
@@ -87,11 +93,30 @@ button{cursor:pointer}
 @media(max-width:850px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}.books{grid-template-columns:repeat(2,1fr)}.books.covers{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:520px){.app{padding:15px 12px 60px}.hero h1{font-size:31px}.books{grid-template-columns:1fr 1fr}.books.covers{grid-template-columns:repeat(3,1fr)}.books.list .bookcard{grid-template-columns:48px 1fr}.books.list .tag{grid-column:2}.detailgrid{grid-template-columns:1fr}}
 
+/* V35.2 Design customization */
+.color-control-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.color-control{display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:750}
+.color-control>span{display:flex;align-items:center;gap:8px}
+.color-control input[type=color]{width:48px;height:38px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--card);cursor:pointer}
+.color-control code{font-size:11px;color:var(--muted);background:rgba(127,127,127,.10);padding:6px 8px;border-radius:8px}
+.design-select{width:100%;margin-top:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--text);outline:none}
+/* Make the main cards/surfaces follow the user's chosen colors */
+.card,.designcard,.bigstat,.chart,.dialog,.book-search-dialog,.statsgrid .bigstat{background:var(--card)}
+.search,.tab,.viewbtn,.sortbtn,.navbtn,.theme-option,.formfield,.notes,.info,.tag,.starbtn,.ghost,.secondary-btn,.design-select{background:var(--surface2,#f0f0f3);color:var(--text)}
+.card,.designcard,.bigstat,.chart,.theme-option,.tab,.viewbtn,.sortbtn,.navbtn,.search{color:var(--text)}
+.bookcard h3,.detail-title,.designcard h3,.sectionhead h2,.chart h3,.bigstat b,.stat b,.row,.info,.formrow,.dialog,.book-search-dialog{color:var(--text)}
+body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif)}
+@media(max-width:700px){.color-control-grid{grid-template-columns:1fr}}
 .design{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
-.designcard{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px}
-.designcard h3{margin-top:0}.swatches{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
-.swatch{width:38px;height:38px;border-radius:50%;border:3px solid transparent;cursor:pointer}
-.swatch.active{border-color:#171717;box-shadow:0 0 0 2px #fff inset}
+.designcard{background:var(--card,#fff);border:1px solid var(--line);border-radius:20px;padding:20px}
+.designcard h3{margin-top:0}.swatches{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.palette-group{margin-top:14px}.palette-title{font-size:12px;font-weight:800;color:var(--muted);margin-bottom:8px}
+.swatch{width:42px;height:42px;border-radius:50%;border:3px solid transparent;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.12);transition:transform .15s ease,box-shadow .15s ease}
+.swatch:hover{transform:scale(1.08)}
+.swatch.active{border-color:var(--text);box-shadow:0 0 0 2px var(--card) inset,0 1px 5px rgba(0,0,0,.18)}
+.custom-accent{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.custom-accent input[type=color]{width:48px;height:42px;padding:3px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer}
+.custom-accent code{font-size:11px;color:var(--muted);background:rgba(127,127,127,.10);padding:7px 9px;border-radius:8px}
 .theme-options{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:10px}
 .theme-option{border:1px solid var(--line);background:#f7f7f8;border-radius:14px;padding:13px;text-align:left;cursor:pointer}
 .theme-option strong{display:block;margin-bottom:4px}.theme-option.active{border:2px solid var(--accent)}
@@ -103,6 +128,23 @@ button{cursor:pointer}
 .navbtn.active{background:var(--dark);color:#fff}
 
 
+
+<style id="v38-friends-css">.friends-shell{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}.friends-shell>.friends-search-card{grid-column:1/-1}.friends-search-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}.friends-status{min-height:20px;margin-top:8px}.friends-results,.friends-list{display:grid;gap:9px;margin-top:13px}.friend-item{display:flex;align-items:center;gap:12px;padding:11px;border:1px solid var(--line);border-radius:15px;background:rgba(127,127,127,.05)}.friend-avatar{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#ddd;flex:0 0 46px;border:2px solid rgba(127,127,127,.12)}.friend-avatar-fallback{display:flex;align-items:center;justify-content:center;font-weight:850;font-size:17px;color:var(--text);background:var(--surface2,#f0f0f3)}.friend-info{min-width:0;flex:1}.friend-info strong{display:block;overflow-wrap:anywhere}.friend-info small{display:block;color:var(--muted);margin-top:2px}.friend-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.friend-actions button{white-space:nowrap}.friend-empty{padding:20px 10px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}@media(max-width:750px){.friends-shell{grid-template-columns:1fr}.friends-shell>.friends-search-card{grid-column:auto}.friends-search-row{grid-template-columns:1fr}.friend-item{align-items:flex-start}.friend-actions{justify-content:flex-start}}</style>
+<style id="v37-profile-enhance-css">
+.profile-level-extra{margin-top:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.profile-mini-stat{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)}
+.profile-mini-stat b{display:block;font-size:17px}.profile-mini-stat span{font-size:11px;opacity:.72}
+.profile-next{font-size:12px;opacity:.75;margin-top:7px}.achievement-grid.v37{grid-template-columns:repeat(3,minmax(0,1fr))}
+.achievement.v37{position:relative;min-height:150px}.achievement.v37 .xp-pill{display:inline-flex;margin-top:8px;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800;background:rgba(127,127,127,.12)}
+@media(max-width:800px){.profile-level-extra{grid-template-columns:1fr 1fr}.achievement-grid.v37{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.profile-level-extra{grid-template-columns:1fr}.achievement-grid.v37{grid-template-columns:1fr}}
+</style>
+
+<style id="v37-1-achievements-css">
+.achievement-cat{font-size:10px;opacity:.55;margin-top:5px}.achievement-grid.v37{grid-template-columns:repeat(4,minmax(0,1fr))}.achievement.v37{min-height:170px}
+@media(max-width:900px){.achievement-grid.v37{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.achievement-grid.v37{grid-template-columns:1fr 1fr}}
+</style>
 <style id="v27-profile-css">
 .profile-shell{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr);gap:18px;margin-top:16px}
 .profile-hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#171717,#41395f);color:#fff;border:0;padding:28px}
@@ -186,6 +228,10 @@ button{cursor:pointer}
 .v34-session-history{margin-top:14px}
 .v34-session-row{padding:10px 12px;border-radius:12px;background:rgba(127,127,127,.08);margin-top:7px;font-size:13px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}.v34-session-delete{border:0;background:transparent;cursor:pointer;font-size:14px;opacity:.65;padding:4px 7px;border-radius:8px}.v34-session-delete:hover{background:rgba(220,50,50,.12);opacity:1}
 
+
+.stats-filter-card{padding:16px;margin-bottom:14px}.stats-filter-title{font-weight:800;margin-bottom:10px}.stats-filter-buttons{display:flex;gap:8px;flex-wrap:wrap}.stats-filter{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:8px 14px;cursor:pointer}.stats-filter.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.statsgrid-v36{grid-template-columns:repeat(4,1fr)}.stats-v36-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.stats-panel{min-height:180px}.stats-trend{display:flex;align-items:flex-end;gap:10px;height:180px;padding:20px 4px 4px}.trend-col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:6px}.trend-bar-wrap{height:125px;width:100%;display:flex;align-items:flex-end;justify-content:center}.trend-bar{width:min(42px,70%);min-height:3px;border-radius:9px 9px 3px 3px;background:var(--accent)}.trend-label{font-size:11px;color:var(--muted);white-space:nowrap}.trend-value{font-size:11px;font-weight:800}.stats-highlights{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.highlight-box{padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--card2,var(--card))}.highlight-box b{display:block;font-size:18px;margin-top:5px}.highlight-box span{font-size:12px;color:var(--muted)}
+@media(max-width:800px){.statsgrid-v36{grid-template-columns:1fr 1fr}.stats-v36-grid{grid-template-columns:1fr}.stats-highlights{grid-template-columns:1fr 1fr}}@media(max-width:520px){.statsgrid-v36{grid-template-columns:1fr 1fr}.stats-filter-buttons{gap:6px}.stats-filter{padding:7px 10px;font-size:12px}}
 </style>
 
 
@@ -203,7 +249,8 @@ button{cursor:pointer}
 <style>
 #v12CloudCard .v12field{display:block!important;width:100%!important;min-height:44px!important;margin:10px 0!important;box-sizing:border-box!important;background:#f7f7f8!important;color:#111!important;border:1px solid #d5d5da!important}
 #v12CloudCard .v12field::placeholder{color:#777!important}
-</style></head>
+</style><meta name="lesezeit-version" content="V37.2">
+</head>
 <body>
 <style id="v22-auth-css">
 #v22AuthScreen{
@@ -265,7 +312,7 @@ button{cursor:pointer}
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V34.9 ✨</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V35.4.1 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -285,7 +332,7 @@ button{cursor:pointer}
 
 <div class="nav">
  <button class="navbtn active" id="navLibrary" onclick="showPage('library')">📚 Bibliothek</button>
- <button class="navbtn" id="navStats" onclick="showPage('stats')">📊 Statistiken</button><button class="navbtn" id="navDesign" onclick="showPage('design')">🎨 Design</button><button class="navbtn" id="navProfile" onclick="showPage('profile')">👤 Profil</button>
+ <button class="navbtn" id="navStats" onclick="showPage('stats')">📊 Statistiken</button><button class="navbtn" id="navDesign" onclick="showPage('design')">🎨 Design</button><button class="navbtn" id="navProfile" onclick="showPage('profile')">👤 Profil</button><button class="navbtn" id="navFriends" onclick="showPage('friends')">👥 Freunde</button>
 </div>
 
 <div id="libraryPage" class="page active">
@@ -347,15 +394,84 @@ button{cursor:pointer}
   <div class="designcard">
    <h3>Akzentfarbe</h3>
    <div class="muted">Buttons, Fortschrittsbalken und Hervorhebungen.</div>
-   <div class="swatches">
+   <div class="palette-group"><div class="palette-title">🌸 Pastell</div><div class="swatches">
+    <button class="swatch" aria-label="Lavendel" title="Lavendel" style="background:#a78bfa" onclick="setAccent('#a78bfa')"></button>
+    <button class="swatch" aria-label="Rosa" title="Rosa" style="background:#f3a6c8" onclick="setAccent('#f3a6c8')"></button>
+    <button class="swatch" aria-label="Pfirsich" title="Pfirsich" style="background:#f7b38b" onclick="setAccent('#f7b38b')"></button>
+    <button class="swatch" aria-label="Vanille" title="Vanille" style="background:#e9cf7b" onclick="setAccent('#e9cf7b')"></button>
+    <button class="swatch" aria-label="Salbei" title="Salbei" style="background:#91b8a1" onclick="setAccent('#91b8a1')"></button>
+    <button class="swatch" aria-label="Babyblau" title="Babyblau" style="background:#8fb9e8" onclick="setAccent('#8fb9e8')"></button>
+   </div></div>
+   <div class="palette-group"><div class="palette-title">🌈 Kräftig</div><div class="swatches">
     <button class="swatch" style="background:#6d5dfc" onclick="setAccent('#6d5dfc')"></button>
     <button class="swatch" style="background:#e85d75" onclick="setAccent('#e85d75')"></button>
     <button class="swatch" style="background:#e08a22" onclick="setAccent('#e08a22')"></button>
     <button class="swatch" style="background:#2e9b70" onclick="setAccent('#2e9b70')"></button>
     <button class="swatch" style="background:#2684d9" onclick="setAccent('#2684d9')"></button>
     <button class="swatch" style="background:#a04fbd" onclick="setAccent('#a04fbd')"></button>
-    <button class="swatch" style="background:#222" onclick="setAccent('#222222')"></button>
+    <button class="swatch" style="background:#ef4444" onclick="setAccent('#ef4444')"></button>
+    <button class="swatch" style="background:#06b6d4" onclick="setAccent('#06b6d4')"></button>
+    <button class="swatch" style="background:#f59e0b" onclick="setAccent('#f59e0b')"></button>
+   </div></div>
+   <div class="palette-group"><div class="palette-title">🌑 Dunkel</div><div class="swatches">
+    <button class="swatch" style="background:#1e1b4b" onclick="setAccent('#1e1b4b')"></button>
+    <button class="swatch" style="background:#312e81" onclick="setAccent('#312e81')"></button>
+    <button class="swatch" style="background:#164e63" onclick="setAccent('#164e63')"></button>
+    <button class="swatch" style="background:#14532d" onclick="setAccent('#14532d')"></button>
+    <button class="swatch" style="background:#7f1d1d" onclick="setAccent('#7f1d1d')"></button>
+    <button class="swatch" style="background:#222222" onclick="setAccent('#222222')"></button>
+   </div></div>
+   <div class="custom-accent">
+    <span style="font-weight:800;font-size:12px">🎨 Eigene Farbe</span>
+    <input id="accentColorPicker" type="color" value="#6d5dfc" onchange="setAccent(this.value)">
+    <code id="accentColorValue">#6D5DFC</code>
    </div>
+  </div>
+
+  <div class="designcard">
+   <h3>🎨 Oberflächen- & Schriftfarben</h3>
+   <div class="muted">Passe die Kästen und die Schrift unabhängig vom Theme an.</div>
+   <div class="color-control-grid">
+    <label class="color-control">Kästen / Karten
+     <span><input id="cardColorPicker" type="color" value="#ffffff" onchange="setCardColor(this.value)"><code id="cardColorValue">#ffffff</code></span>
+    </label>
+    <label class="color-control">Schriftfarbe
+     <span><input id="textColorPicker" type="color" value="#18181b" onchange="setTextColor(this.value)"><code id="textColorValue">#18181b</code></span>
+    </label>
+   </div>
+  </div>
+
+  <div class="designcard">
+   <h3>🔤 Schriftart</h3>
+   <div class="muted">Wähle die Schrift für die gesamte App.</div>
+   <select id="fontPicker" class="design-select" onchange="setFontFamily(this.value)">
+    <option value="system">Apple / System</option>
+    <option value="arial">Arial</option>
+    <option value="verdana">Verdana</option>
+    <option value="trebuchet">Trebuchet</option>
+    <option value="rounded">Modern Rounded</option>
+    <option value="serif">Georgia / Serif</option>
+    <option value="palatino">Palatino</option>
+    <option value="book">Book Antiqua</option>
+    <option value="mono">Monospace</option>
+    <option value="courier">Courier</option>
+    <option value="julius">Julius Sans One</option>
+    <option value="spartan">League Spartan</option>
+    <option value="archivo">Archivo Black</option>
+    <option value="baskerville">Libre Baskerville</option>
+    <option value="bebas">Bebas Neue</option>
+    <option value="lora">Lora</option>
+    <option value="robotoCondensed">Roboto Condensed</option>
+    <option value="playfair">Playfair Display</option>
+    <option value="norwester">Norwester</option>
+    <option value="yellowtail">Yellowtail</option>
+    <option value="cinzel">Cinzel</option>
+    <option value="cooperHewitt">Cooper Hewitt Thin</option>
+    <option value="oswald">Oswald</option>
+    <option value="base">Base</option>
+    <option value="balloon">Balloon</option>
+    <option value="bickham">Bickham Script</option>
+   </select>
   </div>
 
   <div class="designcard">
@@ -372,6 +488,21 @@ button{cursor:pointer}
    <h3>App-Hintergrund</h3>
    <div class="muted">Später kannst du hier z. B. ein Bild deiner Lieblingsbuchszene verwenden.</div>
    <div id="bgPreview" class="bg-preview">Dein Hintergrund</div>
+   <div class="color-control" style="margin-top:14px">
+    <div><strong>Hintergrundfarbe</strong><div class="muted">Farbe für den Rand und den Verlauf rund um dein Bild.</div></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+      <input id="backgroundColorPicker" type="color" value="#111216" onchange="setBackgroundColor(this.value)" style="width:54px;height:40px;padding:2px;border:1px solid var(--line);border-radius:10px;background:var(--card)">
+      <span id="backgroundColorValue" class="muted">#111216</span>
+    </div>
+   </div>
+   <div class="color-control" style="margin-top:14px">
+    <div><strong>Einfarbiger Seitenhintergrund</strong><div class="muted">Wenn du kein Bild möchtest, kannst du die ganze Seite in einer Farbe gestalten.</div></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
+      <input id="pageColorPicker" type="color" value="#f4f4f7" onchange="setPageBackgroundColor(this.value)" style="width:54px;height:40px;padding:2px;border:1px solid var(--line);border-radius:10px;background:var(--card)">
+      <span id="pageColorValue" class="muted">#F4F4F7</span>
+      <button class="btn ghost" type="button" onclick="useSolidBackground()">Nur diese Farbe verwenden</button>
+    </div>
+   </div>
    <label class="filelabel">🖼️ Eigenes Bild auswählen
     <input id="bgFile" type="file" accept="image/*" hidden onchange="setBackground(this.files[0])">
    </label>
@@ -380,13 +511,26 @@ button{cursor:pointer}
 
   <div class="designcard">
    <h3>Deine Einstellungen</h3>
-   <div class="muted">Die Design-Einstellungen werden in dieser V1 lokal gespeichert. Bei der späteren echten App werden sie mit deinem Konto synchronisiert.</div>
-   <button class="btn dark" style="margin-top:15px" onclick="resetDesign()">Design zurücksetzen</button>
+   <div class="muted">Wähle deine Farben und dein Theme aus und speichere sie anschließend. So können sie später auf allen deinen Geräten geladen werden.</div>
+   <div id="designSaveStatus" class="muted" style="margin-top:10px"></div>
+   <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:15px">
+    <button class="btn dark" onclick="saveDesignToCloud()">💾 Farben & Design speichern</button>
+    <button class="btn ghost" onclick="saveDesignToCloud()">🖼️ Hintergrund & Design speichern</button>
+    <button class="btn ghost" onclick="resetDesign()">Design zurücksetzen</button>
+   </div>
   </div>
  </div>
 </div>
 
 
+<div id="friendsPage" class="page">
+ <div class="sectionhead"><div><h2>Freunde</h2><div class="muted">Füge andere Lesezeit-Nutzer hinzu und behalte deine Freundesliste im Blick.</div></div></div>
+ <div class="friends-shell">
+  <section class="card friends-search-card"><h3 style="margin-top:0">👥 Freund hinzufügen</h3><div class="muted">Suche nach dem Anzeigenamen. E-Mail-Adressen werden dabei nicht öffentlich angezeigt.</div><div class="friends-search-row"><input id="friendsSearchInput" class="search" style="margin-top:10px" maxlength="40" placeholder="Anzeigename suchen …" onkeydown="if(event.key==='Enter') searchFriends()"><button class="btn dark" style="margin-top:10px" onclick="searchFriends()">Suchen</button></div><div id="friendsSearchStatus" class="muted friends-status"></div><div id="friendsSearchResults" class="friends-results"></div></section>
+  <section class="card"><div class="sectionhead" style="margin-top:0"><div><h3 style="margin:0">Freundschaftsanfragen</h3><div class="muted">Offene Anfragen an dich</div></div><span id="friendsPendingCount" class="pill">0</span></div><div id="friendsRequests" class="friends-list"></div></section>
+  <section class="card"><div class="sectionhead" style="margin-top:0"><div><h3 style="margin:0">Meine Freunde</h3><div class="muted">Deine bestätigten Freundschaften</div></div><span id="friendsCount" class="pill">0</span></div><div id="friendsList" class="friends-list"></div></section>
+ </div>
+</div>
 <div id="profilePage" class="page">
  <div class="sectionhead">
   <div><h2>Mein Profil</h2><div class="muted">Dein persönlicher Bereich bei Lesezeit.</div></div>
@@ -408,6 +552,12 @@ button{cursor:pointer}
       <span id="profileXpText" class="level-xp">0 / 500 XP</span>
      </div>
      <div class="level-track"><i id="profileLevelBar"></i></div>
+     <div id="profileLevelExtra" class="profile-level-extra">
+      <div class="profile-mini-stat"><b id="profileXpTotal">0 XP</b><span>Gesamt-XP</span></div>
+      <div class="profile-mini-stat"><b id="profileXpNeed">500 XP</b><span>Bis zum nächsten Level</span></div>
+      <div class="profile-mini-stat"><b id="profileAchievementUnlocked">0</b><span>Erfolge freigeschaltet</span></div>
+     </div>
+     <div id="profileNextLevel" class="profile-next"></div>
     </div>
    </div>
    <div class="profile-actions">
@@ -436,37 +586,56 @@ button{cursor:pointer}
  </section>
 
  <section class="profile-achievements">
-  <div class="card">
-   <h3 style="margin:0">🏅 Deine Erfolge <span id="profileAchievementCount" class="muted" style="font-size:13px;font-weight:600"></span></h3>
-   <div class="muted">Sammle XP und schalte immer mehr Medaillen frei.</div>
-   <div class="achievement-grid" id="achievementGrid"></div>
+  <div class="card achievement-tile" onclick="openAchievements()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')openAchievements()">
+   <div class="achievement-tile-icon" id="achievementTileIcon">🏅</div>
+   <div class="achievement-tile-main">
+    <strong>🏅 Medaillen &amp; Erfolge</strong>
+    <small id="achievementTileText">Sammle Medaillen und schalte neue Erfolge frei.</small>
+   </div>
+   <div class="achievement-tile-arrow">›</div>
+  </div>
+ </section>
+ </section>
+ <section class="card" style="margin-top:18px">
+  <h3 style="margin:0 0 5px">⭐ So sammelst du XP</h3>
+  <div class="muted">Dein Level wächst automatisch mit deinem Lese-Fortschritt.</div>
+  <div class="profile-stats-grid" style="margin-top:14px">
+   <div class="card stat-card"><span>📚</span><strong>100 XP</strong><small>pro gelesenem Buch</small></div>
+   <div class="card stat-card"><span>📄</span><strong>1 XP</strong><small>pro gelesener Seite</small></div>
+   <div class="card stat-card"><span>⏱️</span><strong>25 XP</strong><small>pro Lesestunde</small></div>
   </div>
  </section>
 </div>
 
 <div id="statsPage" class="page">
  <div class="sectionhead">
-  <div><h2>Deine Statistiken</h2><div class="muted">Deine bisherige Leseleistung</div></div>
+  <div><h2>📊 Deine Statistiken</h2><div class="muted">Dein persönlicher Leseüberblick</div></div>
  </div>
- <div class="statsgrid">
-  <div class="bigstat"><span class="muted">Bücher gelesen</span><b id="statBooks">0</b></div>
-  <div class="bigstat"><span class="muted">Seiten gelesen</span><b id="statPages">0</b></div>
-  <div class="bigstat"><span class="muted">Lesestunden</span><b id="statHours">0</b></div>
+ <div class="stats-filter-card card">
+  <div class="stats-filter-title">Zeitraum</div>
+  <div class="stats-filter-buttons">
+   <button class="stats-filter active" data-range="all" onclick="setStatsRange('all')">Alles</button>
+   <button class="stats-filter" data-range="year" onclick="setStatsRange('year')">Dieses Jahr</button>
+   <button class="stats-filter" data-range="month" onclick="setStatsRange('month')">Dieser Monat</button>
+   <button class="stats-filter" data-range="7d" onclick="setStatsRange('7d')">Letzte 7 Tage</button>
+  </div>
  </div>
- <div class="chart">
-  <h3>Status deiner Bibliothek</h3>
-  <div id="statusChart"></div>
+ <div class="statsgrid statsgrid-v36">
+  <div class="bigstat"><span class="muted">📚 Gelesene Bücher</span><b id="statBooks">0</b></div>
+  <div class="bigstat"><span class="muted">📄 Gelesene Seiten</span><b id="statPages">0</b></div>
+  <div class="bigstat"><span class="muted">⏱️ Lesezeit</span><b id="statHours">0 h</b></div>
+  <div class="bigstat"><span class="muted">⚡ Ø Seiten/Stunde</span><b id="statSpeed">0</b></div>
  </div>
- <div class="chart">
-  <h3>Top Genres</h3>
-  <div id="genreChart"></div>
+ <div class="stats-v36-grid">
+  <div class="chart stats-panel"><h3>📈 Dein Leseverlauf</h3><div class="muted" id="statsTrendSubtitle">Gelesene Seiten pro Monat</div><div id="statsTrend" class="stats-trend"></div></div>
+  <div class="chart stats-panel"><h3>📚 Bibliothek</h3><div id="statusChart"></div></div>
  </div>
- <div class="chart">
-  <h3>Bewertungen</h3>
-  <div id="ratingChart"></div>
+ <div class="stats-v36-grid">
+  <div class="chart stats-panel"><h3>🎭 Genres</h3><div id="genreChart"></div></div>
+  <div class="chart stats-panel"><h3>⭐ Bewertungen</h3><div id="ratingChart"></div></div>
  </div>
+ <div class="chart stats-panel"><h3>🏆 Deine Lesehighlights</h3><div id="statsHighlights" class="stats-highlights"></div></div>
 </div>
-
 
 <div id="bookSearchModal" class="book-search-modal"><div class="book-search-dialog">
 <button class="close" onclick="closeBookSearch()">×</button>
@@ -479,6 +648,18 @@ button{cursor:pointer}
 
 <div id="detailModal" class="modal"><div class="dialog">
 <button class="close" onclick="closeDetail()">×</button><div id="detail"></div>
+</div></div>
+
+
+<div id="achievementModal" class="modal achievement-modal"><div class="dialog achievement-dialog">
+ <button class="close" onclick="closeAchievements()">×</button>
+ <div class="muted">PROFIL</div>
+ <div class="achievement-modal-head"><div><h2 style="margin:5px 0 0">🏅 Medaillen &amp; Erfolge</h2><div class="muted">Alle deine freischaltbaren Medaillen auf einen Blick.</div></div></div>
+ <div class="achievement-modal-summary"><div class="achievement-tile-icon" id="achievementModalIcon">🏅</div><div style="flex:1"><strong id="achievementModalCount">0 / 0 Medaillen</strong><div class="muted" id="achievementModalSubtitle">0 % freigeschaltet</div><div class="achievement-overall-track"><i id="achievementOverallBar"></i></div></div></div>
+ <div class="achievement-modal-filters" id="achievementModalFilters">
+  <button class="tab active" data-ach-filter="Alle" onclick="filterAchievements('Alle')">Alle</button><button class="tab" data-ach-filter="Bücher" onclick="filterAchievements('Bücher')">Bücher</button><button class="tab" data-ach-filter="Seiten" onclick="filterAchievements('Seiten')">Seiten</button><button class="tab" data-ach-filter="Besitz" onclick="filterAchievements('Besitz')">Besitz</button><button class="tab" data-ach-filter="Zeit" onclick="filterAchievements('Zeit')">Zeit</button><button class="tab" data-ach-filter="Bewertungen" onclick="filterAchievements('Bewertungen')">Bewertungen</button><button class="tab" data-ach-filter="Streaks" onclick="filterAchievements('Streaks')">Streaks</button><button class="tab" data-ach-filter="Ziele" onclick="filterAchievements('Ziele')">Ziele</button><button class="tab" data-ach-filter="Spezial" onclick="filterAchievements('Spezial')">Spezial</button>
+ </div>
+ <div class="achievement-detail-grid" id="achievementGrid"></div>
 </div></div>
 
 <div id="timerModal" class="modal"><div class="dialog">
@@ -1132,52 +1313,213 @@ function fmt(n){n=Math.round(Number(n)||0);return [Math.floor(n/3600),Math.floor
 
 function applyDesign(){
  const d=state.design||{};
- document.documentElement.style.setProperty('--accent',d.accent||'#6d5dfc');
- document.documentElement.style.setProperty('--bg',d.bg||'#f4f4f7');
- document.documentElement.style.setProperty('--card',d.card||'#fff');
+ const root=document.documentElement;
+ root.style.setProperty('--accent',d.accent||'#6d5dfc');
+ root.style.setProperty('--bg',d.bg||'#f4f4f7');
+ root.style.setProperty('--card',d.card||'#fff');
+ root.style.setProperty('--text',d.text||'#18181b');
+ root.style.setProperty('--muted',d.muted||'#74747d');
+ root.style.setProperty('--line',d.line||'#e6e6eb');
+ root.style.setProperty('--surface2',d.surface2||'var(--card)');
+ const fonts={
+   system:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+   arial:'Arial,"Helvetica Neue",sans-serif',
+   verdana:'Verdana,Geneva,sans-serif',
+   trebuchet:'"Trebuchet MS",Arial,sans-serif',
+   rounded:'ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",system-ui,sans-serif',
+   serif:'Georgia,"Times New Roman",serif',
+   palatino:'Palatino,"Book Antiqua",Georgia,serif',
+   book:'"Book Antiqua",Palatino,Georgia,serif',
+   mono:'ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace',
+   courier:'"Courier New",Courier,monospace',
+   julius:'"Julius Sans One",sans-serif',
+   spartan:'"League Spartan",sans-serif',
+   archivo:'"Archivo Black",sans-serif',
+   baskerville:'"Libre Baskerville",Georgia,serif',
+   bebas:'"Bebas Neue",Impact,sans-serif',
+   lora:'"Lora",Georgia,serif',
+   robotoCondensed:'"Roboto Condensed",Arial,sans-serif',
+   playfair:'"Playfair Display",Georgia,serif',
+   norwester:'"Norwester",Impact,sans-serif',
+   yellowtail:'"Yellowtail",cursive',
+   cinzel:'"Cinzel",Georgia,serif',
+   cooperHewitt:'"Cooper Hewitt",Arial,sans-serif',
+   base:'"Base",Arial,sans-serif',
+   balloon:'"Balloon","Arial Rounded MT Bold",cursive',
+   bickham:'"Bickham Script",cursive'
+ };
+ root.style.setProperty('--font-family',fonts[d.font]||fonts.system);
+ const bgColor=d.backgroundColor||'#111216';
+ const pageSolid=d.pageBackgroundColor||d.bg||'#f4f4f7';
+ root.style.setProperty('--page-bg-color',bgColor);
+ root.style.setProperty('--page-solid-color',pageSolid);
+ root.style.setProperty('--bg',pageSolid);
  if(d.background){
-  document.body.style.backgroundImage=`url("${d.background}")`;
-  document.body.style.backgroundSize='cover';
-  document.body.style.backgroundAttachment='fixed';
+  root.style.setProperty('--page-bg-image',`url("${d.background}")`);
  }else{
-  document.body.style.backgroundImage='';
-  document.body.style.backgroundSize='';
-  document.body.style.backgroundAttachment='';
+  root.style.setProperty('--page-bg-image','none');
  }
+ document.body.style.backgroundColor=pageSolid;
+ document.body.style.backgroundImage='';
+ document.body.style.backgroundSize='';
+ document.body.style.backgroundPosition='';
+ document.body.style.backgroundRepeat='';
+ document.body.style.backgroundAttachment='';
 }
+
+function designStatus(msg,err=false){
+ const el=document.getElementById('designSaveStatus');
+ if(el){el.textContent=msg||'';el.style.color=err?'#d93025':'';}
+}
+function markDesignDirty(){ designStatus('Änderungen noch nicht gespeichert.'); }
 function setAccent(color){
  state.design=state.design||{};
- state.design.accent=color; save(); applyDesign(); renderDesign();
+ state.design.accent=color; save(); applyDesign(); renderDesign(); markDesignDirty();
 }
 function setTheme(theme){
  state.design=state.design||{};
  state.design.theme=theme;
- if(theme==='dark'){state.design.bg='#111216';state.design.card='#1d1e23'}
- else if(theme==='soft'){state.design.bg='#f8f1ed';state.design.card='#fffaf7'}
- else {state.design.bg='#f4f4f7';state.design.card='#fff'}
- save(); applyDesign(); renderDesign();
+ if(theme==='dark'){state.design.bg='#111216';state.design.card='#1d1e23';state.design.text='#f5f5f7';state.design.surface2='#2a2b31';state.design.line='#3b3c43';state.design.muted='#b8bac3'}
+ else if(theme==='soft'){state.design.bg='#f8f1ed';state.design.card='#fffaf7';state.design.text='#2b2422';state.design.surface2='#f5ebe5';state.design.line='#eadbd3';state.design.muted='#786b65'}
+ else {state.design.bg='#f4f4f7';state.design.card='#fff';state.design.text='#18181b';state.design.surface2='#f0f0f3';state.design.line='#e6e6eb';state.design.muted='#74747d'}
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function setCardColor(color){
+ state.design=state.design||{};
+ state.design.card=color;
+ state.design.surface2=shadeForSurface(color);
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function setTextColor(color){
+ state.design=state.design||{};
+ state.design.text=color;
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function setFontFamily(font){
+ state.design=state.design||{};
+ state.design.font=font;
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function shadeForSurface(hex){
+ try{
+  let h=hex.replace('#','');
+  if(h.length===3)h=h.split('').map(x=>x+x).join('');
+  const n=parseInt(h,16);
+  const r=n>>16,g=(n>>8)&255,b=n&255;
+  const mix=(c,t)=>Math.round(c+(t-c)*0.92);
+  return '#'+[mix(r,255),mix(g,255),mix(b,255)].map(x=>x.toString(16).padStart(2,'0')).join('');
+ }catch(e){return '#f0f0f3'}
+}
+async function saveDesignToCloud(){
+ const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+ if(!sb||!u){designStatus('Bitte zuerst anmelden.',true);return;}
+ designStatus('Design wird gespeichert …');
+ try{
+   const payload={id:u.id,design_settings:{accent:state.design?.accent||'#6d5dfc',theme:state.design?.theme||'light',bg:state.design?.bg||'#f4f4f7',card:state.design?.card||'#fff',text:state.design?.text||'#18181b',surface2:state.design?.surface2||'#f0f0f3',line:state.design?.line||'#e6e6eb',muted:state.design?.muted||'#74747d',font:state.design?.font||'system',background:state.design?.background||null,backgroundColor:state.design?.backgroundColor||'#111216',pageBackgroundColor:state.design?.pageBackgroundColor||state.design?.bg||'#f4f4f7'}};
+   const {error}=await sb.from('profiles').upsert(payload,{onConflict:'id'});
+   if(error)throw error;
+   localStorage.setItem('lesezeit_design_cloud_saved','1');
+   designStatus('✓ Design gespeichert und mit deinem Konto synchronisiert.');
+ }catch(e){
+   console.error('Design speichern:',e);
+   designStatus('Design konnte nicht gespeichert werden: '+(e.message||e),true);
+ }
+}
+async function loadDesignFromCloud(){
+ const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+ if(!sb||!u)return;
+ try{
+   const {data,error}=await sb.from('profiles').select('design_settings').eq('id',u.id).maybeSingle();
+   if(error)throw error;
+   const d=data?.design_settings;
+   if(d && typeof d==='object'){
+     state.design={...state.design,...d};
+     save(); applyDesign(); renderDesign();
+     designStatus('✓ Gespeichertes Design geladen.');
+   }else{
+     designStatus('Noch kein gespeichertes Design.');
+   }
+ }catch(e){
+   console.warn('Design konnte nicht aus der Cloud geladen werden:',e);
+   designStatus('Cloud-Synchronisierung ist noch nicht eingerichtet.');
+ }
 }
 function setBackground(file){
  if(!file)return;
+ if(!file.type || !file.type.startsWith('image/')){designStatus('Bitte ein Bild auswählen.',true);return;}
+ designStatus('Bild wird vorbereitet …');
  const reader=new FileReader();
  reader.onload=e=>{
-  state.design=state.design||{};
-  state.design.background=e.target.result;
-  save(); applyDesign(); renderDesign();
+   const img=new Image();
+   img.onload=()=>{
+     try{
+       const max=1600;
+       const scale=Math.min(1,max/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
+       const w=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));
+       const h=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
+       const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
+       const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0,w,h);
+       const data=canvas.toDataURL('image/jpeg',0.82);
+       state.design=state.design||{}; state.design.background=data;
+       save(); applyDesign(); renderDesign();
+       designStatus('✓ Hintergrund ausgewählt. Klicke auf „Hintergrund & Design speichern“, um ihn mit deinem Konto zu synchronisieren.');
+     }catch(err){ console.error(err); designStatus('Hintergrund konnte nicht verarbeitet werden.',true); }
+   };
+   img.onerror=()=>designStatus('Das Bild konnte nicht geladen werden.',true);
+   img.src=e.target.result;
  };
+ reader.onerror=()=>designStatus('Das Bild konnte nicht gelesen werden.',true);
  reader.readAsDataURL(file);
+}
+function setBackgroundColor(color){
+ state.design=state.design||{};
+ state.design.backgroundColor=color;
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function setPageBackgroundColor(color){
+ state.design=state.design||{};
+ state.design.pageBackgroundColor=color;
+ state.design.bg=color;
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function useSolidBackground(){
+ state.design=state.design||{};
+ delete state.design.background;
+ save(); applyDesign(); renderDesign(); designStatus('✓ Einfarbiger Hintergrund aktiviert. Klicke auf „Hintergrund & Design speichern“, um ihn zu synchronisieren.');
 }
 function clearBackground(){
  state.design=state.design||{};
- delete state.design.background; save(); applyDesign(); renderDesign();
+ delete state.design.background; save(); applyDesign(); renderDesign(); designStatus('Hintergrund zurückgesetzt.');
 }
 function resetDesign(){
- state.design={accent:'#6d5dfc',bg:'#f4f4f7',card:'#fff',theme:'light'};
+ state.design={accent:'#6d5dfc',bg:'#f4f4f7',card:'#fff',text:'#18181b',surface2:'#f0f0f3',line:'#e6e6eb',muted:'#74747d',font:'system',theme:'light',backgroundColor:'#111216',pageBackgroundColor:'#f4f4f7'};
  save(); applyDesign(); renderDesign();
 }
 function renderDesign(){
  const d=state.design||{};
  document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s.getAttribute('onclick')?.includes(d.accent||'#6d5dfc')));
+ const accentPicker=document.getElementById('accentColorPicker');
+ const accentValue=document.getElementById('accentColorValue');
+ if(accentPicker)accentPicker.value=d.accent||'#6d5dfc';
+ if(accentValue)accentValue.textContent=(d.accent||'#6d5dfc').toUpperCase();
+ const cardPicker=document.getElementById('cardColorPicker');
+ const cardValue=document.getElementById('cardColorValue');
+ if(cardPicker)cardPicker.value=d.card||'#ffffff';
+ if(cardValue)cardValue.textContent=(d.card||'#ffffff').toUpperCase();
+ const textPicker=document.getElementById('textColorPicker');
+ const textValue=document.getElementById('textColorValue');
+ if(textPicker)textPicker.value=d.text||'#18181b';
+ if(textValue)textValue.textContent=(d.text||'#18181b').toUpperCase();
+ const fontPicker=document.getElementById('fontPicker');
+ if(fontPicker)fontPicker.value=d.font||'system';
+ const bgColorPicker=document.getElementById('backgroundColorPicker');
+ const bgColorValue=document.getElementById('backgroundColorValue');
+ if(bgColorPicker) bgColorPicker.value=d.backgroundColor||d.bg||'#111216';
+ if(bgColorValue) bgColorValue.textContent=(d.backgroundColor||'#111216').toUpperCase();
+ const pageColorPicker=document.getElementById('pageColorPicker');
+ const pageColorValue=document.getElementById('pageColorValue');
+ if(pageColorPicker) pageColorPicker.value=d.pageBackgroundColor||d.bg||'#f4f4f7';
+ if(pageColorValue) pageColorValue.textContent=(d.pageBackgroundColor||d.bg||'#f4f4f7').toUpperCase();
  const preview=document.getElementById('bgPreview');
  if(preview){
   preview.style.backgroundImage=d.background?`url("${d.background}")`:'';
@@ -1189,8 +1531,10 @@ function renderDesign(){
 }
 
 
+window.addEventListener('lesezeit-auth-ready',()=>{ setTimeout(()=>{ if(typeof loadDesignFromCloud==='function') loadDesignFromCloud(); },0); });
+
 function showPage(page){
- const pages=['library','stats','design','profile'];
+ const pages=['library','stats','design','profile','friends'];
  pages.forEach(p=>{
    const el=document.getElementById(p+'Page');
    if(el) el.classList.toggle('active',page===p);
@@ -1199,30 +1543,38 @@ function showPage(page){
  document.getElementById('navStats')?.classList.toggle('active',page==='stats');
  document.getElementById('navDesign')?.classList.toggle('active',page==='design');
  document.getElementById('navProfile')?.classList.toggle('active',page==='profile');
+ document.getElementById('navFriends')?.classList.toggle('active',page==='friends');
  if(page==='stats' && typeof renderStats==='function') renderStats();
  if(page==='design' && typeof renderDesign==='function') renderDesign();
  if(page==='profile' && typeof window.renderProfile==='function') window.renderProfile();
+ if(page==='friends' && typeof window.loadFriends==='function') window.loadFriends();
  window.scrollTo({top:0,behavior:'smooth'});
 }
+window.statsRange='all';
+window.setStatsRange=function(r){window.statsRange=r;document.querySelectorAll('.stats-filter').forEach(b=>b.classList.toggle('active',b.dataset.range===r));renderStats();};
 window.renderStats=function renderStats(){
+ const allSessions=Array.isArray(state.sessions)?state.sessions:[];
+ const now=new Date();
+ const inRange=(s)=>{if(window.statsRange==='all')return true;const d=new Date(s.ended_at||s.started_at);if(isNaN(d))return false;if(window.statsRange==='year')return d.getFullYear()===now.getFullYear();if(window.statsRange==='month')return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();if(window.statsRange==='7d')return d>=new Date(Date.now()-7*86400000);return true;};
+ const sessions=allSessions.filter(inRange);
+ const pagesFromSessions=sessions.reduce((n,s)=>n+Math.max(0,Number(s.pages_read)||Math.max(0,(Number(s.end_page)||0)-(Number(s.start_page)||0))),0);
+ const minutes=sessions.reduce((n,s)=>n+Number(s.duration_minutes||((Number(s.duration_seconds)||0)/60)||0),0);
  const read=books.filter(b=>status(b)==='Gelesen');
- const pages=read.reduce((n,b)=>n+(Number(b.Seitenanzahl)||0),0);
- const secs=state.sessions.reduce((n,s)=>n+(Number(s.duration)||0),0);
- document.getElementById('statBooks').textContent=read.length;
- document.getElementById('statPages').textContent=pages.toLocaleString('de-DE');
- document.getElementById('statHours').textContent=(secs/3600).toFixed(1).replace('.',',');
- const counts={Gelesen:0,'Lese ich gerade':0,Ungelesen:0};
- books.forEach(b=>counts[status(b)]++);
- const max=Math.max(...Object.values(counts),1);
- document.getElementById('statusChart').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="barrow"><span>${k}</span><div class="bar"><i style="width:${v/max*100}%"></i></div><b>${v}</b></div>`).join('');
- const genres={};
- books.forEach(b=>{const g=b.Genre||'Ohne Genre';genres[g]=(genres[g]||0)+1});
- const top=Object.entries(genres).sort((a,b)=>b[1]-a[1]).slice(0,7);
- const gm=Math.max(...top.map(x=>x[1]),1);
- document.getElementById('genreChart').innerHTML=top.map(([k,v])=>`<div class="barrow"><span>${esc(k)}</span><div class="bar"><i style="width:${v/gm*100}%"></i></div><b>${v}</b></div>`).join('');
- const ratings=[1,2,3,4,5].map(n=>[n,books.filter(b=>(state.personal[b._id]?.rating??Number(b.Bewertung||0))===n).length]);
- const rm=Math.max(...ratings.map(x=>x[1]),1);
- document.getElementById('ratingChart').innerHTML=ratings.map(([k,v])=>`<div class="barrow"><span>${'★'.repeat(k)}</span><div class="bar"><i style="width:${v/rm*100}%"></i></div><b>${v}</b></div>`).join('');
+ const readInRange=read.filter(b=>{if(window.statsRange==='all')return true;const d=new Date(state.personal[b._id]?.end_date||b.Enddatum||'');if(isNaN(d))return false;if(window.statsRange==='year')return d.getFullYear()===now.getFullYear();if(window.statsRange==='month')return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();if(window.statsRange==='7d')return d>=new Date(Date.now()-7*86400000);return true;});
+ const totalPages=pagesFromSessions || readInRange.reduce((n,b)=>n+(Number(b.Seitenanzahl)||0),0);
+ const speed=minutes>0?Math.round(totalPages/(minutes/60)):0;
+ document.getElementById('statBooks').textContent=readInRange.length;
+ document.getElementById('statPages').textContent=totalPages.toLocaleString('de-DE');
+ document.getElementById('statHours').textContent=(minutes/60).toFixed(1).replace('.',',')+' h';
+ document.getElementById('statSpeed').textContent=speed.toLocaleString('de-DE');
+ document.getElementById('statsTrendSubtitle').textContent=window.statsRange==='all'?'Gelesene Seiten pro Monat':'Gelesene Seiten im gewählten Zeitraum';
+ const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({key:`${d.getFullYear()}-${d.getMonth()}`,label:d.toLocaleDateString('de-DE',{month:'short'}),value:0});}
+ sessions.forEach(s=>{const d=new Date(s.ended_at||s.started_at);if(isNaN(d))return;const m=months.find(x=>x.key===`${d.getFullYear()}-${d.getMonth()}`);if(m)m.value+=Math.max(0,Number(s.pages_read)||Math.max(0,(Number(s.end_page)||0)-(Number(s.start_page)||0)));});
+ const maxTrend=Math.max(...months.map(x=>x.value),1);document.getElementById('statsTrend').innerHTML=months.map(m=>`<div class="trend-col"><div class="trend-value">${m.value}</div><div class="trend-bar-wrap"><div class="trend-bar" style="height:${Math.max(3,m.value/maxTrend*100)}%"></div></div><div class="trend-label">${m.label}</div></div>`).join('');
+ const counts={Gelesen:0,'Lese ich gerade':0,Ungelesen:0};books.forEach(b=>counts[status(b)]++);const max=Math.max(...Object.values(counts),1);document.getElementById('statusChart').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="barrow"><span>${k}</span><div class="bar"><i style="width:${v/max*100}%"></i></div><b>${v}</b></div>`).join('');
+ const genres={};readInRange.forEach(b=>{const g=b.Genre||'Ohne Genre';genres[g]=(genres[g]||0)+1});const top=Object.entries(genres).sort((a,b)=>b[1]-a[1]).slice(0,7);const gm=Math.max(...top.map(x=>x[1]),1);document.getElementById('genreChart').innerHTML=top.length?top.map(([k,v])=>`<div class="barrow"><span>${esc(k)}</span><div class="bar"><i style="width:${v/gm*100}%"></i></div><b>${v}</b></div>`).join(''):'<div class="muted">Noch keine gelesenen Bücher im Zeitraum.</div>';
+ const ratings=[1,2,3,4,5].map(n=>[n,readInRange.filter(b=>(state.personal[b._id]?.rating??Number(b.Bewertung||0))===n).length]);const rm=Math.max(...ratings.map(x=>x[1]),1);document.getElementById('ratingChart').innerHTML=ratings.map(([k,v])=>`<div class="barrow"><span>${'★'.repeat(k)}</span><div class="bar"><i style="width:${v/rm*100}%"></i></div><b>${v}</b></div>`).join('');
+ const longest=readInRange.reduce((a,b)=>(Number(b.Seitenanzahl)||0)>(Number(a?.Seitenanzahl)||0)?b:a,null);const fastest=sessions.length?sessions.reduce((a,b)=>Number(b.pages_read||0)>(Number(a?.pages_read||0))?b:a,null):null;const sessionPages=fastest?Number(fastest.pages_read||0):0;document.getElementById('statsHighlights').innerHTML=`<div class="highlight-box"><span>Längstes gelesenes Buch</span><b>${longest?esc(longest.Titel):'–'}</b><span>${longest?(Number(longest.Seitenanzahl)||0)+' Seiten':''}</span></div><div class="highlight-box"><span>Meiste Seiten in einer Session</span><b>${sessionPages||0}</b><span>Seiten</span></div><div class="highlight-box"><span>Sessions</span><b>${sessions.length}</b><span>im Zeitraum</span></div><div class="highlight-box"><span>Ø Seiten/Session</span><b>${sessions.length?Math.round(totalPages/sessions.length):0}</b><span>Seiten</span></div>`;
 }
 
 window.refresh=function refresh(){
@@ -1727,6 +2079,7 @@ refresh();setView(viewMode);
 (function(){
  const $=id=>document.getElementById(id);
  let avatarData='';
+ let avatarRemoved=false;
  let profileLoaded=false;
 
  const fallback=n=>{
@@ -1753,7 +2106,7 @@ refresh();setView(viewMode);
   const read=getReadBooks();
   const pages=read.reduce((n,x)=>n+(Number(x.Seitenanzahl)||0),0);
   const bookHours=read.reduce((n,x)=>n+(Number(x['Dauer (Stunden)'])||0)+(Number(x['Dauer (Minuten)'])||0)/60,0);
-  const sessionSeconds=(window.state?.sessions||[]).reduce((n,x)=>n+(Number(x.duration)||0),0);
+  const sessionSeconds=(window.state?.sessions||[]).reduce((n,x)=>n+(Number(x.duration_seconds)||((Number(x.duration_minutes)||0)*60)),0);
   return {readCount:read.length,pages,hours:Math.max(bookHours,sessionSeconds/3600),fiveStars:read.filter(x=>Number(x.Bewertung??x.rating??0)>=5).length};
  };
  const calcStreak=()=>{
@@ -1785,31 +2138,65 @@ refresh();setView(viewMode);
   const read=rows.filter(r=>r.status==='read');
   const pages=read.reduce((n,r)=>n+(Number(r.books?.pages)||0),0);
   const hours=read.reduce((n,r)=>n+(Number(r.reading_duration_hours)||0)+(Number(r.reading_duration_minutes)||0)/60,0);
-  return {readCount:read.length,pages,hours,fiveStars:read.filter(r=>Number(r.rating||0)>=5).length};
+  const ownedCount=Array.isArray(window.books)?window.books.length:rows.length;
+  return {readCount:read.length,pages,hours,ownedCount,fiveStars:read.filter(r=>Number(r.rating||0)>=5).length};
  }
 
  const ACH=[
-  ['📖','Erstes Buch','Lies dein erstes Buch.',s=>s.readCount>=1],
-  ['📚','10 Bücher','Lies 10 Bücher.',s=>s.readCount>=10],
-  ['🎒','25 Bücher','Lies 25 Bücher.',s=>s.readCount>=25],
-  ['🏆','50 Bücher','Lies 50 Bücher.',s=>s.readCount>=50],
-  ['👑','100 Bücher','Lies 100 Bücher.',s=>s.readCount>=100],
-  ['📄','1.000 Seiten','Lies 1.000 Seiten.',s=>s.pages>=1000],
-  ['📚','5.000 Seiten','Lies 5.000 Seiten.',s=>s.pages>=5000],
-  ['🌊','10.000 Seiten','Lies 10.000 Seiten.',s=>s.pages>=10000],
-  ['⏱️','1 Stunde','Lies insgesamt 1 Stunde.',s=>s.hours>=1],
-  ['⌛','10 Stunden','Lies insgesamt 10 Stunden.',s=>s.hours>=10],
-  ['🔥','50 Stunden','Lies insgesamt 50 Stunden.',s=>s.hours>=50],
-  ['⭐','5 Sterne','Bewerte ein gelesenes Buch mit 5 Sternen.',s=>s.fiveStars>=1]
+  ['📖','Erstes Buch','Lies dein erstes Buch.',s=>s.readCount>=1,50,'Bücher'],
+  ['📚','5 Bücher','Lies 5 Bücher.',s=>s.readCount>=5,75,'Bücher'],
+  ['📄','100 Seiten','Lies 100 Seiten.',s=>s.pages>=100,25,'Seiten'],
+
+  ['⏱️','1 Stunde','Lies insgesamt 1 Stunde.',s=>s.hours>=1,50,'Zeit'],['⏱️','5 Stunden','Lies insgesamt 5 Stunden.',s=>s.hours>=5,100,'Zeit'],['⌛','10 Stunden','Lies insgesamt 10 Stunden.',s=>s.hours>=10,150,'Zeit'],['⌛','25 Stunden','Lies insgesamt 25 Stunden.',s=>s.hours>=25,250,'Zeit'],['🔥','50 Stunden','Lies insgesamt 50 Stunden.',s=>s.hours>=50,400,'Zeit'],['🔥','100 Stunden','Lies insgesamt 100 Stunden.',s=>s.hours>=100,750,'Zeit'],['🏆','250 Stunden','Lies insgesamt 250 Stunden.',s=>s.hours>=250,1500,'Zeit'],
+  ['⭐','5 Sterne','Bewerte ein gelesenes Buch mit 5 Sternen.',s=>s.fiveStars>=1,75,'Bewertungen'],['🌟','5× 5 Sterne','Bewerte 5 gelesene Bücher mit 5 Sternen.',s=>s.fiveStars>=5,150,'Bewertungen'],['💫','10× 5 Sterne','Bewerte 10 gelesene Bücher mit 5 Sternen.',s=>s.fiveStars>=10,300,'Bewertungen'],
+  ['🔥','3 Tage Streak','Lies an 3 Tagen hintereinander.',s=>calcStreak()>=3,50,'Streaks'],['🔥','7 Tage Streak','Lies an 7 Tagen hintereinander.',s=>calcStreak()>=7,100,'Streaks'],['🔥','14 Tage Streak','Lies an 14 Tagen hintereinander.',s=>calcStreak()>=14,200,'Streaks'],['🔥','30 Tage Streak','Lies an 30 Tagen hintereinander.',s=>calcStreak()>=30,400,'Streaks'],['🔥','60 Tage Streak','Lies an 60 Tagen hintereinander.',s=>calcStreak()>=60,750,'Streaks'],['🔥','100 Tage Streak','Lies an 100 Tagen hintereinander.',s=>calcStreak()>=100,1200,'Streaks'],
+  ['🎯','Jahresziel','Erreiche dein persönliches Jahresziel.',s=>false,250,'Ziele'],['📅','Monatsziel','Erreiche dein persönliches Monatsziel.',s=>false,100,'Ziele'],
+  ['📖','Dicker Schmöker','Lies ein Buch mit mindestens 500 Seiten.',s=>(Array.isArray(window.books)?window.books:[]).some(b=>String(b.Lesestatus||b.status||'').toLowerCase().includes('gelesen') && Number(b.Seitenanzahl||b.pages||0)>=500),100,'Spezial'],['📖','Großer Schmöker','Lies ein Buch mit mindestens 750 Seiten.',s=>(Array.isArray(window.books)?window.books:[]).some(b=>String(b.Lesestatus||b.status||'').toLowerCase().includes('gelesen') && Number(b.Seitenanzahl||b.pages||0)>=750),200,'Spezial'],['📖','Bücherwurm','Lies 3 Bücher innerhalb eines Monats.',s=>false,150,'Spezial'],['🌈','Genre-Reise','Lies Bücher aus 5 verschiedenen Genres.',s=>false,150,'Spezial'],['🗓️','Jahresleser','Lies in 12 verschiedenen Monaten.',s=>false,500,'Spezial'],['🚀','Lesemarathon','Lies 1.000 Seiten insgesamt.',s=>s.pages>=1000,150,'Spezial']
  ];
- const renderAchievements=st=>{
+ // Viele kleine Meilensteine: gelesene Bücher in 5er-Schritten, Seiten in 50er-Schritten, Besitz in 5er-Schritten.
+ for(let n=10;n<=500;n+=5){
+   const icon=n%50===0?'🏆':(n%25===0?'🎒':'📚');
+   const xp=Math.min(500,50+Math.floor(n/5)*10);
+   ACH.push([icon,`${n} Bücher`,`Lies ${n} Bücher.`,s=>s.readCount>=n,xp,'Bücher']);
+ }
+ for(let n=150;n<=50000;n+=50){
+   const icon=n%1000===0?'🌍':(n%500===0?'🏔️':'📄');
+   const xp=Math.min(500,25+Math.floor(n/50)*5);
+   ACH.push([icon,`${n.toLocaleString('de-DE')} Seiten`,`Lies ${n.toLocaleString('de-DE')} Seiten.`,s=>s.pages>=n,xp,'Seiten']);
+ }
+ for(let n=5;n<=500;n+=5){
+   const icon=n%50===0?'🏰':(n%25===0?'👑':'📚');
+   const xp=Math.min(500,50+Math.floor(n/5)*5);
+   ACH.push([icon,`Besitz: ${n} Bücher`,`Besitze mindestens ${n} Bücher in deiner Bibliothek.`,s=>s.ownedCount>=n,xp,'Besitz']);
+ }
+ const renderAchievements=(st,forcedFilter)=>{
   const grid=$('achievementGrid'); if(!grid)return;
-  let unlocked=0;
-  grid.innerHTML=ACH.map(a=>{const ok=!!a[3](st);if(ok)unlocked++;return '<div class="achievement '+(ok?'unlocked':'locked')+'"><div class="icon">'+a[0]+'</div><strong>'+a[1]+'</strong><small>'+a[2]+'</small><div class="medal-state">'+(ok?'✓ Freigeschaltet':'🔒 Gesperrt')+'</div></div>';}).join('');
-  const c=$('profileAchievementCount');if(c)c.textContent=' · '+unlocked+' / '+ACH.length;
+  const filter=forcedFilter||window.__achievementFilter||'Alle';
+  const visible=ACH.filter(a=>filter==='Alle'||a[5]===filter);
+  const unlockedAll=ACH.filter(a=>a[3](st)).length;
+  grid.innerHTML=visible.map(a=>{const ok=!!a[3](st);return '<div class="achievement v37 '+(ok?'unlocked':'locked')+'"><div class="icon">'+a[0]+'</div><strong>'+a[1]+'</strong><small>'+a[2]+'</small><div class="achievement-cat">'+a[5]+'</div><div class="xp-pill">+'+a[4]+' XP</div><div class="medal-state">'+(ok?'✓ Freigeschaltet':'🔒 Gesperrt')+'</div></div>';}).join('');
+  const pct=ACH.length?Math.round(unlockedAll/ACH.length*100):0;
+  const c=$('achievementModalCount');if(c)c.textContent=unlockedAll+' / '+ACH.length+' Medaillen';
+  const sub=$('achievementModalSubtitle');if(sub)sub.textContent=pct+' % freigeschaltet';
+  const bar=$('achievementOverallBar');if(bar)bar.style.width=pct+'%';
+  const tile=$('achievementTileText');if(tile)tile.textContent=unlockedAll+' von '+ACH.length+' Medaillen freigeschaltet';
+  const icon=$('achievementTileIcon');if(icon){const first=ACH.find(a=>a[3](st));icon.textContent=first?first[0]:'🏅';}
+  const modalIcon=$('achievementModalIcon');if(modalIcon){const first=ACH.find(a=>a[3](st));modalIcon.textContent=first?first[0]:'🏅';}
+ };
+ window.openAchievements=()=>{
+  window.__achievementFilter='Alle';
+  document.getElementById('achievementModal')?.classList.add('open');
+  renderAchievements(window.__profileStats||calcStats(),'Alle');
+ };
+ window.closeAchievements=()=>document.getElementById('achievementModal')?.classList.remove('open');
+ window.filterAchievements=(filter)=>{
+  window.__achievementFilter=filter||'Alle';
+  document.querySelectorAll('#achievementModalFilters [data-ach-filter]').forEach(x=>x.classList.toggle('active',x.dataset.achFilter===window.__achievementFilter));
+  renderAchievements(window.__profileStats||calcStats(),window.__achievementFilter);
  };
  const updateStats=(override)=>{
   const st=override||calcStats();
+  window.__profileStats=st;
   const xp=st.readCount*100+st.pages+Math.round(st.hours*25);
   const level=Math.max(1,Math.floor(xp/500)+1);
   const base=(level-1)*500,next=level*500;
@@ -1822,12 +2209,11 @@ refresh();setView(viewMode);
    profileStreak:String(calcStreak()),
    profileLevelBadge:'🏆 Level '+level,
    profileXpText:xp.toLocaleString('de-DE')+' / '+next.toLocaleString('de-DE')+' XP',
-   achievementBooks:(st.readCount>=1?'✓ ':'')+st.readCount+' / 1',
-   achievement10:st.readCount+' / 10',
-   achievement1000:st.pages.toLocaleString('de-DE')+' / 1.000',
-   achievementHour:st.hours.toFixed(1).replace('.',',')+' / 1 h'
+   profileXpTotal:xp.toLocaleString('de-DE')+' XP',
+   profileXpNeed:Math.max(0,next-xp).toLocaleString('de-DE')+' XP'
   };
   Object.entries(vals).forEach(([id,v])=>{const el=$(id);if(el)el.textContent=v;});
+  const nextEl=$('profileNextLevel');if(nextEl)nextEl.textContent='Noch '+Math.max(0,next-xp).toLocaleString('de-DE')+' XP bis Level '+(level+1);
   renderAchievements(st);
   const bar=$('profileLevelBar');if(bar)bar.style.width=pct+'%';
  };
@@ -1860,6 +2246,7 @@ refresh();setView(viewMode);
    if(nameEl)nameEl.value=n;
    if(nameDisplay)nameDisplay.textContent=n;
    avatarData=data?.avatar_url||'';
+   avatarRemoved=false;
    if(avatarEl)avatarEl.src=avatarData||fallback(n);
    profileLoaded=true;
    try{const cloudStats=await loadAuthoritativeStats(); if(cloudStats) updateStats(cloudStats);}catch(e){}
@@ -1897,10 +2284,11 @@ refresh();setView(viewMode);
   const f=e.target.files?.[0];if(!f)return;
   if(f.size>5*1024*1024){setStatus('Das Bild darf maximal 5 MB groß sein.',true);e.target.value='';return;}
   setStatus('Bild wird vorbereitet …');
-  resizeImage(f,data=>{avatarData=data;$('profileAvatar').src=data;setStatus('Bild ausgewählt – jetzt „Profil speichern“ drücken.');});
+  resizeImage(f,data=>{avatarData=data;avatarRemoved=false;$('profileAvatar').src=data;setStatus('Bild ausgewählt – jetzt „Profil speichern“ drücken.');});
  });
  $('profileAvatarRemove')?.addEventListener('click',()=>{
   avatarData='';
+  avatarRemoved=true;
   const n=$('profileDisplayName').value.trim()||'L';
   $('profileAvatar').src=fallback(n);
   setStatus('Profilbild entfernt – jetzt „Profil speichern“ drücken.');
@@ -1911,14 +2299,24 @@ refresh();setView(viewMode);
   if(!n){setStatus('Bitte einen Anzeigenamen eingeben.',true);return;}
   setStatus('Speichere …');
   try{
+   // Keep an existing cloud avatar unless the user explicitly removed it or selected a new one.
+   let avatarToSave = avatarRemoved ? null : (avatarData || null);
+   if(!avatarRemoved && !avatarToSave){
+    const {data:currentProfile,error:profileError}=await sb.from('profiles').select('avatar_url').eq('id',u.id).maybeSingle();
+    if(profileError)throw profileError;
+    avatarToSave=currentProfile?.avatar_url||null;
+    avatarData=avatarToSave||'';
+   }
    const {error}=await sb.from('profiles').upsert(
-    {id:u.id,display_name:n,avatar_url:avatarData||null,updated_at:new Date().toISOString()},
+    {id:u.id,display_name:n,avatar_url:avatarToSave,updated_at:new Date().toISOString()},
     {onConflict:'id'}
    );
    if(error)throw error;
    localStorage.removeItem('lesezeit_pending_display_name');
    $('profileNameDisplay').textContent=n;
-   $('profileAvatar').src=avatarData||fallback(n);
+   $('profileAvatar').src=avatarToSave||fallback(n);
+   avatarData=avatarToSave||'';
+   avatarRemoved=false;
    profileLoaded=true;
    setStatus('Profil gespeichert ✓');
   }catch(e){setStatus('Fehler beim Speichern: '+(e.message||e),true);}
@@ -2080,6 +2478,21 @@ refresh();setView(viewMode);
 
 /* V34.3: Fourth Wing wird sicher erst nach dem Cloud-Laden synchronisiert. */
 
+</script>
+<script id="v38-friends-js">
+(function(){const $=id=>document.getElementById(id),sb=()=>window.LesezeitSupabase,me=()=>window.LesezeitCurrentUser;
+const avatarHtml=p=>{const n=String(p?.display_name||'Lesezeit Nutzer').trim(),i=esc(n.charAt(0).toUpperCase()||'L');return p?.avatar_url?`<img class="friend-avatar" src="${esc(p.avatar_url)}" alt="">`:`<div class="friend-avatar friend-avatar-fallback">${i}</div>`};
+const setStatus=(m,e=false)=>{const x=$('friendsSearchStatus');if(x){x.textContent=m||'';x.style.color=e?'#c33':''}};
+async function getRelations(){const c=sb(),u=me();if(!c||!u)return[];const {data,error}=await c.from('friendships').select('id,requester_id,addressee_id,status,created_at').or(`requester_id.eq.${u.id},addressee_id.eq.${u.id}`).order('created_at',{ascending:false});if(error)throw error;return data||[]}
+async function profilesByIds(ids){const a=[...new Set(ids.filter(Boolean))];if(!a.length)return[];const {data,error}=await sb().from('profiles').select('id,display_name,avatar_url').in('id',a);if(error)throw error;return data||[]}
+const map=a=>Object.fromEntries(a.map(x=>[x.id,x]));
+function friendHtml(r,p){return `<div class="friend-item">${avatarHtml(p)}<div class="friend-info"><strong>${esc(p?.display_name||'Lesezeit Nutzer')}</strong><small>Freund</small></div><div class="friend-actions"><button class="btn ghost" onclick="removeFriend('${esc(r.id)}')">Entfernen</button></div></div>`}
+function requestHtml(r,p){return `<div class="friend-item">${avatarHtml(p)}<div class="friend-info"><strong>${esc(p?.display_name||'Lesezeit Nutzer')}</strong><small>Möchte dich als Freund hinzufügen.</small></div><div class="friend-actions"><button class="btn dark" onclick="acceptFriend('${esc(r.id)}')">Annehmen</button><button class="btn ghost" onclick="declineFriend('${esc(r.id)}')">Ablehnen</button></div></div>`}
+async function loadFriends(){const u=me();if(!u){$('friendsList').innerHTML='<div class="friend-empty">Bitte zuerst anmelden.</div>';return}try{const rel=await getRelations(),pm=map(await profilesByIds(rel.flatMap(r=>[r.requester_id,r.addressee_id]).filter(x=>x!==u.id))),inc=rel.filter(r=>r.status==='pending'&&r.addressee_id===u.id),acc=rel.filter(r=>r.status==='accepted');$('friendsPendingCount').textContent=inc.length;$('friendsCount').textContent=acc.length;$('friendsRequests').innerHTML=inc.length?inc.map(r=>requestHtml(r,pm[r.requester_id])).join(''):'<div class="friend-empty">Keine offenen Anfragen.</div>';$('friendsList').innerHTML=acc.length?acc.map(r=>friendHtml(r,pm[r.requester_id===u.id?r.addressee_id:r.requester_id])).join(''):'<div class="friend-empty">Noch keine Freunde. Suche oben nach einem Anzeigenamen.</div>'}catch(e){$('friendsRequests').innerHTML='<div class="friend-empty">Die Freundes-Datenbank ist noch nicht eingerichtet.</div>';$('friendsList').innerHTML='<div class="friend-empty">Freundesliste konnte nicht geladen werden.</div>'}}
+async function searchFriends(){const q=String($('friendsSearchInput')?.value||'').trim();if(q.length<2){setStatus('Bitte mindestens 2 Zeichen eingeben.');return}if(!me()||!sb()){setStatus('Bitte zuerst anmelden.',true);return}setStatus('Suche …');$('friendsSearchResults').innerHTML='';try{const u=me(),{data,error}=await sb().from('profiles').select('id,display_name,avatar_url').ilike('display_name','%'+q.replace(/[%_]/g,'')+'%').neq('id',u.id).limit(12);if(error)throw error;if(!data?.length){setStatus('Keine Nutzer gefunden.');return}const rel=await getRelations(),states={};rel.forEach(r=>{states[r.requester_id===u.id?r.addressee_id:r.requester_id]=r.status});setStatus(data.length+' Nutzer gefunden.');$('friendsSearchResults').innerHTML=data.map(p=>{const st=states[p.id],a=st==='accepted'?'<span class="pill">Freunde</span>':st==='pending'?'<span class="pill">Anfrage offen</span>':`<button class="btn dark" onclick="sendFriendRequest('${esc(p.id)}')">＋ Hinzufügen</button>`;return `<div class="friend-item">${avatarHtml(p)}<div class="friend-info"><strong>${esc(p.display_name||'Lesezeit Nutzer')}</strong><small>Lesezeit-Profil</small></div><div class="friend-actions">${a}</div></div>`}).join('')}catch(e){setStatus('Suche fehlgeschlagen: '+(e?.message||e),true)}}
+async function sendFriendRequest(id){try{const u=me();if(!u)throw Error('Nicht angemeldet');const {error}=await sb().from('friendships').insert({requester_id:u.id,addressee_id:id,status:'pending'});if(error)throw error;setStatus('Freundschaftsanfrage gesendet.');await searchFriends();await loadFriends()}catch(e){setStatus('Anfrage konnte nicht gesendet werden: '+(e?.message||e),true)}}
+async function updateFriend(id,status){try{const {error}=await sb().from('friendships').update({status}).eq('id',id);if(error)throw error;await loadFriends()}catch(e){alert('Fehler: '+(e?.message||e))}}
+window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;window.acceptFriend=id=>updateFriend(id,'accepted');window.declineFriend=id=>updateFriend(id,'declined');window.removeFriend=async id=>{if(!confirm('Freundschaft wirklich entfernen?'))return;try{const {error}=await sb().from('friendships').delete().eq('id',id);if(error)throw error;await loadFriends()}catch(e){alert('Fehler: '+(e?.message||e))}};window.loadFriends=loadFriends;window.addEventListener('lesezeit-auth-ready',()=>{if($('friendsPage')?.classList.contains('active'))loadFriends()});window.addEventListener('lesezeit-cloud-ready',()=>{if($('friendsPage')?.classList.contains('active'))loadFriends()})})();
 </script>
 </body>
 </html>
