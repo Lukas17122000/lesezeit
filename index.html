@@ -1700,6 +1700,35 @@ function updateV39Crop(){
  sel.style.left=x+'px';sel.style.top=y+'px';sel.style.width=w+'px';sel.style.height=h+'px';
  const size=document.getElementById('v39CropSize');if(size)size.textContent=Math.round(w)+' × '+Math.round(h)+' px';
 }
+function v39CropPointerStart(e){
+ const st=v39CropState,sel=document.getElementById('v39CropSelection');
+ if(!st?.ready||!sel)return;
+ const p=e.touches?.[0]||e;
+ const stage=st.img.parentElement.getBoundingClientRect();
+ const r=sel.getBoundingClientRect();
+ st.drag={x:p.clientX,y:p.clientY,left:r.left-stage.left,top:r.top-stage.top,w:r.width,h:r.height,stage,ir:st.img.getBoundingClientRect()};
+ e.preventDefault?.();
+}
+function v39CropPointerMove(e){
+ const st=v39CropState;if(!st?.drag)return;
+ const p=e.touches?.[0]||e,d=st.drag;
+ const dx=p.clientX-d.x,dy=p.clientY-d.y;
+ const minL=d.ir.left-d.stage.left,maxL=d.ir.right-d.stage.left-d.w;
+ const minT=d.ir.top-d.stage.top,maxT=d.ir.bottom-d.stage.top-d.h;
+ const l=Math.max(minL,Math.min(maxL,d.left+dx));
+ const t=Math.max(minT,Math.min(maxT,d.top+dy));
+ const left=((l-(d.ir.left-d.stage.left))/d.ir.width)*100;
+ const top=((t-(d.ir.top-d.stage.top))/d.ir.height)*100;
+ const wPct=(d.w/d.ir.width)*100,hPct=(d.h/d.ir.height)*100;
+ st.left=Math.max(0,Math.min(100-wPct,left));
+ st.top=Math.max(0,Math.min(100-hPct,top));
+ const sl=document.getElementById('v39CropLeft'),sr=document.getElementById('v39CropRight'),stp=document.getElementById('v39CropTop'),sb=document.getElementById('v39CropBottom');
+ if(sl)sl.value=String(Math.round(st.left)); if(sr)sr.value=String(Math.round(st.left+wPct));
+ if(stp)stp.value=String(Math.round(st.top)); if(sb)sb.value=String(Math.round(st.top+hPct));
+ updateV39Crop();
+ e.preventDefault?.();
+}
+function v39CropPointerEnd(){if(v39CropState)v39CropState.drag=null;}
 function setV39Slider(which,value){
  const st=v39CropState;if(!st?.ready)return;let v=Math.max(0,Math.min(100,Number(value)||0));
  if(which==='left')st.left=Math.min(v,st.right-2);
@@ -1722,6 +1751,13 @@ function saveV39Crop(){
  }catch(e){console.error(e);alert('Der Ausschnitt konnte nicht erstellt werden.');}
 }
 function cancelV39Crop(){const ov=document.getElementById('v39CropOverlay');if(ov){ov.classList.remove('show');ov.setAttribute('aria-hidden','true');}v39CropState=null;}
+
+window.addEventListener('pointerdown',e=>{if(e.target.closest('#v39CropSelection'))v39CropPointerStart(e)},{passive:false});
+window.addEventListener('pointermove',e=>{if(v39CropState?.drag)v39CropPointerMove(e)},{passive:false});
+window.addEventListener('pointerup',v39CropPointerEnd);
+window.addEventListener('touchstart',e=>{if(e.target.closest('#v39CropSelection'))v39CropPointerStart(e)},{passive:false});
+window.addEventListener('touchmove',e=>{if(v39CropState?.drag)v39CropPointerMove(e)},{passive:false});
+window.addEventListener('touchend',v39CropPointerEnd);
 </script>
 
 <div id="v12CloudPanel">
@@ -2722,6 +2758,6 @@ function closeFriendProfile(){$('friendProfileModal')?.classList.remove('open')}
 window.openFriendProfile=openFriendProfile;window.closeFriendProfile=closeFriendProfile;
 window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;window.acceptFriend=id=>updateFriend(id,'accepted');window.declineFriend=id=>updateFriend(id,'declined');window.removeFriend=async id=>{if(!confirm('Freundschaft wirklich entfernen?'))return;try{const {error}=await sb().from('friendships').delete().eq('id',id);if(error)throw error;await loadFriends()}catch(e){alert('Fehler: '+(e?.message||e))}};window.loadFriends=loadFriends;window.addEventListener('lesezeit-auth-ready',()=>{if($('friendsPage')?.classList.contains('active'))loadFriends()});window.addEventListener('lesezeit-cloud-ready',()=>{if($('friendsPage')?.classList.contains('active'))loadFriends()})})();
 </script>
-<div id="v39CropOverlay" class="v39-crop-overlay" aria-hidden="true"><div class="v39-crop-dialog" role="dialog" aria-modal="true" aria-label="Bildausschnitt wählen"><div class="v39-crop-head"><h3 id="v39CropTitle">Buchrücken zuschneiden</h3><button class="btn ghost" type="button" onclick="cancelV39Crop()">✕</button></div><div class="v39-crop-sub">Wähle genau den Bereich aus. Auf dem iPhone kannst du den Ausschnitt bequem mit den Schiebereglern an allen vier Seiten verändern.</div><div id="v39CropStage" class="v39-crop-stage"><img id="v39CropImg" class="v39-crop-img" alt="Zuschneiden"><div id="v39CropSelection" class="v39-crop-selection"></div></div><div class="v39-crop-tools"><span class="v39-crop-tip">💡 <span id="v39CropKind" class="v39-crop-kind">Buchrücken</span> – schiebe die Regler, bis nur der gewünschte Bereich im weißen Rahmen liegt.</span><span id="v39CropSize" class="v39-crop-size"></span><button class="btn" type="button" onclick="fitV39Crop()">↺ Zurücksetzen</button></div><div class="v39-mobile-crop-controls"><label>Links <input id="v39CropLeft" type="range" min="0" max="98" value="38" oninput="setV39Slider('left',this.value)"></label><label>Oben <input id="v39CropTop" type="range" min="0" max="98" value="0" oninput="setV39Slider('top',this.value)"></label><label>Rechts <input id="v39CropRight" type="range" min="2" max="100" value="62" oninput="setV39Slider('right',this.value)"></label><label>Unten <input id="v39CropBottom" type="range" min="2" max="100" value="100" oninput="setV39Slider('bottom',this.value)"></label></div><div class="v39-crop-actions"><button class="btn" type="button" onclick="cancelV39Crop()">Abbrechen</button><button class="btn dark" type="button" onclick="saveV39Crop()">✂️ Ausschnitt speichern</button></div></div></div>
+<div id="v39CropOverlay" class="v39-crop-overlay" aria-hidden="true"><div class="v39-crop-dialog" role="dialog" aria-modal="true" aria-label="Bildausschnitt wählen"><div class="v39-crop-head"><h3 id="v39CropTitle">Buchrücken zuschneiden</h3><button class="btn ghost" type="button" onclick="cancelV39Crop()">✕</button></div><div class="v39-crop-sub">Wähle genau den Bereich aus. Auf dem iPhone kannst du den Ausschnitt bequem mit den Schiebereglern an allen vier Seiten verändern.</div><div id="v39CropStage" class="v39-crop-stage"><img id="v39CropImg" class="v39-crop-img" alt="Zuschneiden"><div id="v39CropSelection" class="v39-crop-selection" aria-label="Ausschnitt verschieben"></div></div><div class="v39-crop-tools"><span class="v39-crop-tip">💡 <span id="v39CropKind" class="v39-crop-kind">Buchrücken</span> – schiebe die Regler, bis nur der gewünschte Bereich im weißen Rahmen liegt.</span><span id="v39CropSize" class="v39-crop-size"></span><button class="btn" type="button" onclick="fitV39Crop()">↺ Zurücksetzen</button></div><div class="v39-mobile-crop-controls"><label>Links <input id="v39CropLeft" type="range" min="0" max="98" value="38" oninput="setV39Slider('left',this.value)"></label><label>Oben <input id="v39CropTop" type="range" min="0" max="98" value="0" oninput="setV39Slider('top',this.value)"></label><label>Rechts <input id="v39CropRight" type="range" min="2" max="100" value="62" oninput="setV39Slider('right',this.value)"></label><label>Unten <input id="v39CropBottom" type="range" min="2" max="100" value="100" oninput="setV39Slider('bottom',this.value)"></label></div><div class="v39-crop-actions"><button class="btn" type="button" onclick="cancelV39Crop()">Abbrechen</button><button class="btn dark" type="button" onclick="saveV39Crop()">✂️ Ausschnitt speichern</button></div></div></div>
 </body>
 </html>
