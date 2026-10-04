@@ -3769,5 +3769,77 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
   };
 })();
 </script>
+
+<script>
+/* V39.45 – iPhone/Safari Timer-Buttons: direkte Touch-/Click-Anbindung.
+   Die PC-Funktion bleibt erhalten. Die dynamisch erzeugten Timer-Buttons werden
+   zusätzlich über Event-Delegation abgefangen, damit Safari sie zuverlässig ausführt. */
+(function(){
+  let lastTouchAction=0;
+
+  function runTimerAction(btn){
+    if(!btn) return false;
+
+    if(btn.id==='v34TimerStart'){
+      const st=window.v34TimerState||{};
+      if(st.running) window.v34StopTimer();
+      else window.v34StartTimer();
+      return true;
+    }
+
+    if(btn.id==='timerButton'){
+      const st=window.v34TimerState||{};
+      if(st.running) window.v34StopTimer();
+      else window.v34StartTimer();
+      return true;
+    }
+
+    const actions=btn.closest('.v34-timer-actions');
+    if(actions){
+      const buttons=Array.from(actions.querySelectorAll('button'));
+      const index=buttons.indexOf(btn);
+      if(index===1){ window.v34PauseTimer(); return true; }
+      if(index===2){ window.v34StopTimer(); return true; }
+    }
+    return false;
+  }
+
+  function findTimerButton(e){
+    const target=e.target;
+    if(!target || !target.closest) return null;
+    return target.closest('#v34TimerStart,#timerButton,.v34-timer-actions button');
+  }
+
+  document.addEventListener('touchend',function(e){
+    const btn=findTimerButton(e);
+    if(!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    lastTouchAction=Date.now();
+    runTimerAction(btn);
+  },{capture:true,passive:false});
+
+  document.addEventListener('click',function(e){
+    const btn=findTimerButton(e);
+    if(!btn) return;
+    /* Safari kann nach touchend noch einen synthetischen click schicken. */
+    if(Date.now()-lastTouchAction<700){
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    runTimerAction(btn);
+  },{capture:true});
+
+  /* Falls Safari den Button erst nach einem DOM-Neurendern erzeugt, wird nichts
+     neu gebunden benötigt – die beiden Delegations-Listener bleiben aktiv. */
+})();
+</script>
+
 </body>
 </html>
