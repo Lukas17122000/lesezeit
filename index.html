@@ -350,6 +350,19 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
     overscroll-behavior:contain !important;
   }
 }
+<style id="v39-42-fullscreen-detail">
+/* V39.42: Buchdetails öffnen auf dem gesamten Bildschirm. */
+#detailModal{padding:0 !important;align-items:stretch !important;justify-content:stretch !important;}
+#detailModal .dialog{
+  width:100% !important;max-width:none !important;height:100dvh !important;max-height:none !important;
+  margin:0 !important;border-radius:0 !important;padding:20px !important;
+  overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;
+}
+@media(max-width:700px){
+  #detailModal .dialog{padding:16px !important;}
+  #detailModal .close{position:sticky !important;top:0 !important;z-index:50 !important;}
+}
+</style>
 </style>
 </head>
 <body>
@@ -1566,17 +1579,26 @@ async function v3925CloudDelete(id,type){
   if(error)throw error;
 }
 function bookPhotoKey(id,type){return `photo:${type}:${String(id)}`;}
+function photoFallbackKey(id,type){return `lesezeit_photo_fallback:${type}:${String(id)}`;}
 async function putBookPhoto(id,type,data){
   if(!data)throw new Error('Kein Bild vorhanden.');
-  // V39.31: Das Foto wird IMMER zuerst lokal gespeichert. Ein Fehler beim
-  // optionalen Cloud-Upload darf das Speichern des Fotos nicht verhindern.
-  await coverPut(bookPhotoKey(id,type),data);
-  if(v3925CloudReady()){
-    try{
-      await v3925CloudPut(id,type,data);
-    }catch(e){
-      console.warn('V39.31 Cloud-Foto konnte nicht synchronisiert werden:',e);
+  const key=bookPhotoKey(id,type);
+  let localSaved=false;
+  try{
+    await coverPut(key,data);
+    localSaved=true;
+  }catch(e){
+    console.warn('Foto-IDB fehlgeschlagen – verwende lokalen Fallback:',e);
+    // Gerade auf iPhones kann IndexedDB in bestimmten Browser-Situationen
+    // fehlschlagen. Der zugeschnittene Ausschnitt ist klein genug für diesen Fallback.
+    try{localStorage.setItem(photoFallbackKey(id,type),data);localSaved=true;}catch(e2){
+      console.error('Foto-Fallback ebenfalls fehlgeschlagen:',e2);
     }
+  }
+  if(!localSaved)throw new Error('Der lokale Fotospeicher ist nicht verfügbar.');
+  if(v3925CloudReady()){
+    try{await v3925CloudPut(id,type,data);}
+    catch(e){console.warn('Cloud-Foto konnte nicht synchronisiert werden:',e);}
   }
 }
 async function getBookPhoto(id,type){
@@ -1584,14 +1606,22 @@ async function getBookPhoto(id,type){
   const local=await coverGet(key);
   if(local)return local;
   try{
+    const fallback=localStorage.getItem(photoFallbackKey(id,type));
+    if(fallback)return fallback;
+  }catch(e){}
+  try{
     const cloud=await v3925CloudGet(id,type);
-    if(cloud){await coverPut(key,cloud);return cloud;}
-  }catch(e){console.warn('V39.31 Cloud-Foto laden:',e);}
+    if(cloud){
+      try{await coverPut(key,cloud);}catch(e){try{localStorage.setItem(photoFallbackKey(id,type),cloud);}catch(_){}}
+      return cloud;
+    }
+  }catch(e){console.warn('Cloud-Foto laden:',e);}
   return '';
 }
 async function deleteBookPhoto(id,type){
   await coverDelete(bookPhotoKey(id,type));
-  try{await v3925CloudDelete(id,type);}catch(e){console.warn('V39.31 Cloud-Foto löschen:',e);}
+  try{localStorage.removeItem(photoFallbackKey(id,type));}catch(e){}
+  try{await v3925CloudDelete(id,type);}catch(e){console.warn('Cloud-Foto löschen:',e);}
 }
 async function v3925MigrateImagesToCloud(){
   if(!v3925CloudReady())return {migrated:0,failed:0};
@@ -1693,7 +1723,7 @@ function openV39Cropper(type,src){
  document.getElementById('v39CropTitle').textContent=type==='back'?'Buchrücken zuschneiden':'Farbschnitt zuschneiden';
  img.onload=()=>{v39CropState.ready=true;requestAnimationFrame(fitV39Crop);};
  img.src=src;overlay.classList.add('show');overlay.setAttribute('aria-hidden','false');
- // V39.41: Der Cropper liegt am Ende des HTML-Dokuments, daher war die
+ // V39.42: Der Cropper liegt am Ende des HTML-Dokuments, daher war die
  // frühere Bindung beim Laden zu früh und fand #v39CropSelection nicht.
  // Jetzt binden wir die Pointer-Ereignisse erst, nachdem das Element existiert.
  bindV39CropControls();
@@ -1771,10 +1801,13 @@ async function saveV39Crop(){
    ctx.drawImage(st.img,q.x,q.y,q.w,q.h,0,0,c.width,c.height);
    const data=c.toDataURL('image/jpeg',0.88);
    if(!data||data.length<100)throw new Error('Der zugeschnittene Bildausschnitt ist leer.');
-   // Der normale Foto-Speicherweg speichert lokal und synchronisiert danach optional in die Cloud.
-   await putBookPhoto(selected._id,st.type,data);
+   // V39.42: Erst lokal erfolgreich speichern, erst danach Cropper schließen.
+   const savedId=String(selected._id),savedType=st.type;
+   await putBookPhoto(savedId,savedType,data);
+   const verify=await getBookPhoto(savedId,savedType);
+   if(!verify)throw new Error('Speicherung wurde nicht bestätigt.');
    cancelV39Crop();
-   await openDetail(selected._id);
+   await openDetail(savedId);
  }catch(e){
    console.error('V39.33 Foto zuschneiden/speichern:',e);
    alert('Das Foto konnte nicht gespeichert werden. Bitte noch einmal versuchen.');
