@@ -72,8 +72,8 @@ button{cursor:pointer}
 .barrow{display:grid;grid-template-columns:90px 1fr 55px;gap:10px;align-items:center;margin:11px 0}
 .bar{height:12px;background:#ededf1;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
 .cover-input{display:flex;gap:8px;margin-top:8px}.cover-input input{flex:1}
-.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
-.modal.open{display:flex}.dialog{background:#fff;border-radius:25px;max-width:650px;width:100%;padding:24px;max-height:90vh;overflow:auto}
+.modal-scroll-lock{overflow:hidden!important;touch-action:none}.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
+.modal.open{display:flex}.dialog{background:#fff;border-radius:25px;max-width:650px;width:100%;padding:24px;max-height:90vh;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.modal{overscroll-behavior:contain}
 .close{float:right;border:0;background:#eee;border-radius:50%;width:34px;height:34px}
 
 .book-cover-image{width:100%;height:100%;object-fit:cover;border-radius:18px}
@@ -264,7 +264,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 <style>
 #v12CloudCard .v12field{display:block!important;width:100%!important;min-height:44px!important;margin:10px 0!important;box-sizing:border-box!important;background:#f7f7f8!important;color:#111!important;border:1px solid #d5d5da!important}
 #v12CloudCard .v12field::placeholder{color:#777!important}
-</style><style id="v38-7-disable-legacy-auth">#v12CloudPanel{display:none!important}</style><meta name="lesezeit-version" content="V39.25">
+</style><style id="v38-7-disable-legacy-auth">#v12CloudPanel{display:none!important}</style><meta name="lesezeit-version" content="V39.26">
 
 
 <style id="v39-21-book-showcase-css">
@@ -376,7 +376,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.25 ✨</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.26 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -1076,6 +1076,7 @@ async function ensureFourthWingData(){
 
 async function openDetail(id){
  selected=books.find(b=>b._id===String(id)); if(!selected)return;
+ document.body.classList.add('modal-scroll-lock');
  await ensureFourthWingData();
  const p=progress(selected), pc=pct(selected);
  const personal=state.personal[selected._id]||{};
@@ -1462,7 +1463,7 @@ function setDate(field,value){
  state.personal[selected._id][field]=normalized;
  save();
 }
-// V39.25: Eigene Cover, Buchrücken und Farbschnitt-Fotos werden zusätzlich
+// V39.26: Eigene Cover, Buchrücken und Farbschnitt-Fotos werden zusätzlich
 // dauerhaft in Supabase gespeichert. IndexedDB bleibt als lokaler Cache erhalten.
 const V3925_IMAGE_TABLE='user_book_images';
 function v3925CloudReady(){return !!(window.LesezeitSupabase&&window.LesezeitCurrentUser);}
@@ -1495,7 +1496,7 @@ async function v3925CloudDelete(id,type){
 function bookPhotoKey(id,type){return `photo:${type}:${String(id)}`;}
 async function putBookPhoto(id,type,data){
   await coverPut(bookPhotoKey(id,type),data);
-  try{await v3925CloudPut(id,type,data);}catch(e){console.warn('V39.25 Cloud-Foto:',e);}
+  try{await v3925CloudPut(id,type,data);}catch(e){console.warn('V39.26 Cloud-Foto:',e);}
 }
 async function getBookPhoto(id,type){
   const key=bookPhotoKey(id,type);
@@ -1504,12 +1505,12 @@ async function getBookPhoto(id,type){
   try{
     const cloud=await v3925CloudGet(id,type);
     if(cloud){await coverPut(key,cloud);return cloud;}
-  }catch(e){console.warn('V39.25 Cloud-Foto laden:',e);}
+  }catch(e){console.warn('V39.26 Cloud-Foto laden:',e);}
   return '';
 }
 async function deleteBookPhoto(id,type){
   await coverDelete(bookPhotoKey(id,type));
-  try{await v3925CloudDelete(id,type);}catch(e){console.warn('V39.25 Cloud-Foto löschen:',e);}
+  try{await v3925CloudDelete(id,type);}catch(e){console.warn('V39.26 Cloud-Foto löschen:',e);}
 }
 async function v3925MigrateImagesToCloud(){
   if(!v3925CloudReady())return;
@@ -1526,7 +1527,7 @@ async function v3925MigrateImagesToCloud(){
         const data=await coverGet(bookPhotoKey(id,type));
         if(data)await v3925CloudPut(id,type,data);
       }
-    }catch(e){console.warn('V39.25 Bild-Migration:',id,e);}
+    }catch(e){console.warn('V39.26 Bild-Migration:',id,e);}
   }
 }
 async function v3925RestoreCloudImages(){
@@ -1546,7 +1547,7 @@ async function v3925RestoreCloudImages(){
     }
     try{save();}catch(e){}
     if(typeof renderBooks==='function')renderBooks();
-  }catch(e){console.warn('V39.25 Cloud-Bilder wiederherstellen:',e);}
+  }catch(e){console.warn('V39.26 Cloud-Bilder wiederherstellen:',e);}
 }
 window.addEventListener('lesezeit-cloud-ready',async()=>{
   await v3925RestoreCloudImages();
@@ -1596,7 +1597,7 @@ async function setCover(value){
    if(typeof value==='string' && value.startsWith('data:image/')){
      await coverPut(id,value);
      state.personal[id].cover='idb:'+id;
-     try{await v3925CloudPut(id,'cover',value);}catch(e){console.warn('V39.25 Cloud-Cover:',e);}
+     try{await v3925CloudPut(id,'cover',value);}catch(e){console.warn('V39.26 Cloud-Cover:',e);}
    }else{
      state.personal[id].cover=value;
      if(typeof value==='string' && !value.startsWith('idb:')){try{await v3925CloudPut(id,'cover',value);}catch(e){}}
@@ -1689,7 +1690,7 @@ async function changeStatus(s){
  }catch(e){console.warn('Status speichern:',e)}
  openDetail(selected._id);refresh();renderBooks();if(typeof renderStats==='function')renderStats();
 }
-function closeDetail(){document.getElementById('detailModal').classList.remove('open')}
+function closeDetail(){document.getElementById('detailModal').classList.remove('open');document.body.classList.remove('modal-scroll-lock')}
 function openCurrent(){const b=books.find(x=>status(x)==='Lese ich gerade')||books[0];openDetail(b._id)}
 function startReading(){closeDetail();openTimer()}
 function openTimer(){
