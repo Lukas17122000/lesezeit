@@ -393,6 +393,46 @@ html.v40-detail-lock, body.v40-detail-lock{overflow:hidden !important;}
   }
 }
 </style>
+
+<style id="v40-2-mobile-detail-page">
+/* V40.2: Auf iPhone kein Modal-Scrolling mehr. Die Buchdetails werden als eigene
+   Vollbild-Seite dargestellt; dadurch scrollt Safari ganz normal den Body. */
+@media(max-width:700px){
+  html,body{min-height:100%;}
+  body.v40-detail-page-mode{overflow:auto !important;position:static !important;width:auto !important;height:auto !important;touch-action:auto !important;}
+  body.v40-detail-page-mode .app > *:not(#detailModal){display:none !important;}
+  body.v40-detail-page-mode #detailModal{
+    display:block !important;position:static !important;inset:auto !important;
+    width:100% !important;min-height:100dvh !important;height:auto !important;
+    max-height:none !important;padding:0 !important;margin:0 !important;
+    overflow:visible !important;background:var(--bg,#f4f4f7) !important;
+    touch-action:auto !important;
+  }
+  body.v40-detail-page-mode #detailModal .v40-detail-dialog,
+  body.v40-detail-page-mode #detailModal .dialog{
+    position:static !important;width:100% !important;max-width:none !important;
+    min-height:100dvh !important;height:auto !important;max-height:none !important;
+    margin:0 !important;border-radius:0 !important;padding:16px !important;
+    display:block !important;overflow:visible !important;
+    touch-action:auto !important;overscroll-behavior:auto !important;
+    box-sizing:border-box !important;
+  }
+  body.v40-detail-page-mode #detailModal .close{
+    position:sticky !important;top:8px !important;z-index:100 !important;
+    display:block !important;margin-left:auto !important;float:none !important;
+  }
+  body.v40-detail-page-mode #detailModal #detailScroll{
+    height:auto !important;min-height:0 !important;max-height:none !important;
+    overflow:visible !important;-webkit-overflow-scrolling:auto !important;
+    touch-action:auto !important;overscroll-behavior:auto !important;
+  }
+  body.v40-detail-page-mode #detailModal #detail{
+    height:auto !important;min-height:0 !important;overflow:visible !important;
+    touch-action:auto !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <style id="v22-auth-css">
@@ -455,7 +495,7 @@ html.v40-detail-lock, body.v40-detail-lock{overflow:hidden !important;}
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V40.1 ✨</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V40.2 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -1158,9 +1198,18 @@ function v3933SetupDetailTouchScroll(){ return; }
 
 async function openDetail(id){
  selected=books.find(b=>b._id===String(id)); if(!selected)return;
- // V39.32: Beim geöffneten Buch-Detail auf iPhone nur das Dialogfenster scrollen lassen.
- // Die Klasse aktiviert den vorhandenen Mobile-Scroll-Lock und verhindert das Scrollen der Hauptseite.
- document.documentElement.classList.add('v40-detail-lock'); document.body.classList.add('v40-detail-lock'); document.getElementById('detailModal').classList.add('v40-detail-modal');
+ const v40MobileDetail=window.matchMedia && window.matchMedia('(max-width:700px)').matches;
+ if(v40MobileDetail){
+   // V40.2: Auf iPhone wird das Detailfenster als normale Vollbild-Seite geöffnet.
+   // Kein fixed body, kein Modal-Scrollcontainer, kein touchmove-Hack. Safari scrollt den Body.
+   document.documentElement.classList.remove('v40-detail-lock');
+   document.body.classList.remove('v40-detail-lock');
+   document.body.classList.add('v40-detail-page-mode');
+ }else{
+   document.documentElement.classList.add('v40-detail-lock');
+   document.body.classList.add('v40-detail-lock');
+ }
+ document.getElementById('detailModal').classList.add('v40-detail-modal');
  await ensureFourthWingData();
  const p=progress(selected), pc=pct(selected);
  const personal=state.personal[selected._id]||{};
@@ -1814,7 +1863,7 @@ async function changeStatus(s){
  }catch(e){console.warn('Status speichern:',e)}
  openDetail(selected._id);refresh();renderBooks();if(typeof renderStats==='function')renderStats();
 }
-function closeDetail(){document.documentElement.classList.remove("v40-detail-lock");document.body.classList.remove("v40-detail-lock");document.getElementById('detailModal').classList.remove('open');document.getElementById('detailModal').classList.remove('v40-detail-modal')}
+function closeDetail(){document.documentElement.classList.remove("v40-detail-lock");document.body.classList.remove("v40-detail-lock");document.body.classList.remove("v40-detail-page-mode");document.getElementById('detailModal').classList.remove('open');document.getElementById('detailModal').classList.remove('v40-detail-modal')}
 function openCurrent(){const b=books.find(x=>status(x)==='Lese ich gerade')||books[0];openDetail(b._id)}
 function startReading(){closeDetail();openTimer()}
 function openTimer(){
