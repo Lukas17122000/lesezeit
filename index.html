@@ -264,7 +264,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 <style>
 #v12CloudCard .v12field{display:block!important;width:100%!important;min-height:44px!important;margin:10px 0!important;box-sizing:border-box!important;background:#f7f7f8!important;color:#111!important;border:1px solid #d5d5da!important}
 #v12CloudCard .v12field::placeholder{color:#777!important}
-</style><style id="v38-7-disable-legacy-auth">#v12CloudPanel{display:none!important}</style><meta name="lesezeit-version" content="V39.28">
+</style><style id="v38-7-disable-legacy-auth">#v12CloudPanel{display:none!important}</style><meta name="lesezeit-version" content="V39.36">
 
 
 <style id="v39-21-book-showcase-css">
@@ -381,6 +381,18 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
   #detailModal #detail{height:auto !important;max-height:none !important;}
 }
 </style>
+<style id="v39-36-ios-detail-scroll">
+/* V39.36: Der Detaildialog ist fest; #detail ist der einzige Scrollbereich. */
+@media (max-width:700px){
+  html, body{overscroll-behavior:none;}
+  body.v39-detail-open{overflow:hidden !important;position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;}
+  #detailModal{position:fixed !important;inset:0 !important;height:100dvh !important;width:100% !important;padding:10px !important;box-sizing:border-box !important;display:none;overflow:hidden !important;touch-action:none !important;}
+  #detailModal.open{display:flex !important;align-items:flex-start !important;justify-content:center !important;}
+  #detailModal .dialog{position:absolute !important;left:10px !important;right:10px !important;top:10px !important;bottom:10px !important;width:auto !important;height:auto !important;max-width:none !important;max-height:none !important;min-height:0 !important;padding:18px !important;box-sizing:border-box !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;touch-action:none !important;}
+  #detailModal .close{flex:0 0 auto !important;position:relative !important;z-index:50 !important;}
+  #detailModal #detail{flex:1 1 0 !important;width:100% !important;min-height:0 !important;height:0 !important;max-height:none !important;overflow-y:scroll !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;touch-action:none !important;overscroll-behavior:none !important;}
+}
+</style>
 </head>
 <body>
 <style id="v22-auth-css">
@@ -443,7 +455,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.28 ✨</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.36 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -1141,35 +1153,35 @@ async function ensureFourthWingData(){
   }catch(e){console.warn('Fourth Wing Daten:',e);}
 }
 
-/* V39.35: iOS – Touch-Scroll direkt auf den eigentlichen Buchinhalt (#detail). */
+/* V39.36: iOS-Fallback – Wischen im Buchdialog bewegt ausschließlich #detail. */
 function v3934SetupDetailTouchScroll(){
  const modal=document.getElementById('detailModal');
  const scroller=document.getElementById('detail');
- if(!modal||!scroller||scroller.dataset.v3935Touch==='1')return;
- scroller.dataset.v3935Touch='1';
- let lastY=0,dragging=false;
- const start=e=>{
+ if(!modal||!scroller||modal.dataset.v3936Touch==='1')return;
+ modal.dataset.v3936Touch='1';
+ let lastY=0,startY=0,dragging=false;
+ modal.addEventListener('touchstart',e=>{
    if(e.touches.length!==1)return;
-   lastY=e.touches[0].clientY; dragging=true;
- };
- const move=e=>{
+   if(!scroller.contains(e.target))return;
+   startY=lastY=e.touches[0].clientY;
+   dragging=true;
+ },{passive:false,capture:true});
+ modal.addEventListener('touchmove',e=>{
    if(!dragging||e.touches.length!==1)return;
+   if(!scroller.contains(e.target))return;
    const y=e.touches[0].clientY;
-   const dy=lastY-y; lastY=y;
-   if(Math.abs(dy)<0.01)return;
+   const dy=lastY-y;
+   lastY=y;
+   if(Math.abs(y-startY)<2 && Math.abs(dy)<2)return;
    const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
    scroller.scrollTop=Math.max(0,Math.min(max,scroller.scrollTop+dy));
    e.preventDefault();
- };
- const end=()=>{dragging=false};
- scroller.addEventListener('touchstart',start,{passive:false,capture:true});
- scroller.addEventListener('touchmove',move,{passive:false,capture:true});
- scroller.addEventListener('touchend',end,{passive:true,capture:true});
- scroller.addEventListener('touchcancel',end,{passive:true,capture:true});
- modal.addEventListener('touchmove',e=>{
-   if(!scroller.contains(e.target))e.preventDefault();
  },{passive:false,capture:true});
+ const end=()=>{dragging=false};
+ modal.addEventListener('touchend',end,{passive:false,capture:true});
+ modal.addEventListener('touchcancel',end,{passive:false,capture:true});
 }
+
 
 async function openDetail(id){
  selected=books.find(b=>b._id===String(id)); if(!selected)return;
