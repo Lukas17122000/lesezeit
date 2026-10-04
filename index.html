@@ -1113,7 +1113,9 @@ async function ensureFourthWingData(){
 
 async function openDetail(id){
  selected=books.find(b=>b._id===String(id)); if(!selected)return;
- document.body.classList.add('modal-scroll-lock');
+ // V39.32: Beim geöffneten Buch-Detail auf iPhone nur das Dialogfenster scrollen lassen.
+ // Die Klasse aktiviert den vorhandenen Mobile-Scroll-Lock und verhindert das Scrollen der Hauptseite.
+ document.body.classList.add('modal-scroll-lock','v39-detail-open');
  await ensureFourthWingData();
  const p=progress(selected), pc=pct(selected);
  const personal=state.personal[selected._id]||{};
