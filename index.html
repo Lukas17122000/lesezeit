@@ -312,7 +312,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 .v39-book-images{margin-top:18px;padding:18px;border:1px solid var(--line);border-radius:18px;background:var(--surface2,#f7f7fa)}
 .v39-book-images h3{margin:0 0 5px}.v39-book-images-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}.v39-book-image-card{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:10px;min-width:0}.v39-book-image-preview{height:170px;border-radius:12px;background:linear-gradient(135deg,#eee,#ddd);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--muted);font-size:12px;text-align:center}.v39-book-image-preview img{width:100%;height:100%;object-fit:cover;display:block}.v39-book-image-title{font-weight:800;font-size:12px;margin-top:9px}.v39-book-image-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.v39-book-image-actions .btn{font-size:11px;padding:8px 10px}.v39-showcase-image-switch{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:12px}.v39-showcase-image-switch button{border:1px solid rgba(0,0,0,.12);background:rgba(255,255,255,.78);border-radius:999px;padding:7px 11px;font-size:11px;font-weight:800;cursor:pointer}.v39-showcase-image-switch button.active{background:#211c1b;color:#fff}@media(max-width:760px){.v39-book-images-grid{grid-template-columns:1fr}.v39-book-image-preview{height:210px}}</style>
 <style id="v39-23-crop-css">
-.v39-crop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:99999;display:none;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}.v39-crop-overlay.show{display:flex}.v39-crop-dialog{width:min(920px,96vw);max-height:94vh;background:#fff;border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden;color:#17171a}.v39-crop-head{padding:18px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}.v39-crop-head h3{margin:0;font-size:20px}.v39-crop-sub{padding:0 20px 12px;color:#707078;font-size:13px}.v39-crop-stage{margin:0 18px;background:#111;border-radius:18px;display:flex;align-items:center;justify-content:center;min-height:300px;max-height:62vh;overflow:hidden;position:relative;touch-action:none}.v39-crop-img{display:block;max-width:100%;max-height:62vh;user-select:none;-webkit-user-drag:none}.v39-crop-selection{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.46),0 0 0 1px rgba(0,0,0,.35);cursor:move;box-sizing:border-box;touch-action:none}.v39-crop-selection:after{content:'';position:absolute;inset:33.33%;border:1px solid rgba(255,255,255,.38);pointer-events:none}.v39-crop-handle{position:absolute;width:18px;height:18px;background:#fff;border:2px solid #5b2335;border-radius:50%;box-sizing:border-box;z-index:2}.v39-crop-handle.nw{left:-10px;top:-10px;cursor:nwse-resize}.v39-crop-handle.ne{right:-10px;top:-10px;cursor:nesw-resize}.v39-crop-handle.sw{left:-10px;bottom:-10px;cursor:nesw-resize}.v39-crop-handle.se{right:-10px;bottom:-10px;cursor:nwse-resize}.v39-crop-tools{padding:14px 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.v39-crop-tools .muted{margin-right:auto}.v39-crop-actions{padding:14px 20px 20px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #eee}.v39-crop-tip{font-size:12px;color:#707078}.v39-crop-kind{font-weight:800}@media(max-width:650px){.v39-crop-stage{min-height:240px;max-height:56vh}.v39-crop-dialog{border-radius:18px}.v39-crop-actions{flex-wrap:wrap}.v39-crop-actions button{flex:1}}
+.v39-crop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.84);z-index:99999;display:none;align-items:center;justify-content:center;padding:14px;box-sizing:border-box}.v39-crop-overlay.show{display:flex}.v39-crop-dialog{width:min(920px,96vw);height:min(94vh,900px);background:#fff;border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden;color:#17171a}.v39-crop-head{padding:16px 18px 8px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex:0 0 auto}.v39-crop-head h3{margin:0;font-size:20px}.v39-crop-sub{padding:0 18px 10px;color:#707078;font-size:13px;flex:0 0 auto}.v39-crop-presets{padding:0 18px 10px;display:flex;gap:7px;flex-wrap:wrap;flex:0 0 auto}.v39-crop-preset{border:1px solid #ddd;background:#f7f7f8;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:750}.v39-crop-preset.active{background:#241f1d;color:#fff;border-color:#241f1d}.v39-crop-stage{margin:0 14px;background:#111;border-radius:18px;display:flex;align-items:center;justify-content:center;min-height:0;flex:1;overflow:hidden;position:relative;touch-action:none}.v39-crop-img{display:block;max-width:100%;max-height:100%;user-select:none;-webkit-user-drag:none;pointer-events:none}.v39-crop-selection{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.52),0 0 0 1px rgba(0,0,0,.35);cursor:move;box-sizing:border-box;touch-action:none}.v39-crop-selection:after{content:'';position:absolute;inset:33.33%;border:1px solid rgba(255,255,255,.38);pointer-events:none}.v39-crop-handle{position:absolute;width:22px;height:22px;background:#fff;border:2px solid #5b2335;border-radius:50%;box-sizing:border-box;z-index:2;touch-action:none}.v39-crop-handle.nw{left:-11px;top:-11px}.v39-crop-handle.ne{right:-11px;top:-11px}.v39-crop-handle.sw{left:-11px;bottom:-11px}.v39-crop-handle.se{right:-11px;bottom:-11px}.v39-crop-handle.n{left:50%;top:-11px;transform:translateX(-50%)}.v39-crop-handle.s{left:50%;bottom:-11px;transform:translateX(-50%)}.v39-crop-handle.w{left:-11px;top:50%;transform:translateY(-50%)}.v39-crop-handle.e{right:-11px;top:50%;transform:translateY(-50%)}.v39-crop-tools{padding:10px 18px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;flex:0 0 auto}.v39-crop-tools .muted{margin-right:auto}.v39-crop-actions{padding:10px 18px 16px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #eee;flex:0 0 auto}.v39-crop-tip{font-size:12px;color:#707078}.v39-crop-kind{font-weight:800}.v39-crop-size{font-size:12px;color:#707078}@media(max-width:650px){.v39-crop-overlay{padding:0}.v39-crop-dialog{width:100%;height:100dvh;max-height:none;border-radius:0}.v39-crop-head{padding:14px 14px 8px}.v39-crop-sub{padding:0 14px 8px}.v39-crop-presets{padding:0 14px 8px;overflow-x:auto;flex-wrap:nowrap}.v39-crop-stage{margin:0 8px;border-radius:14px}.v39-crop-tools{padding:8px 14px}.v39-crop-actions{padding:8px 14px 12px}.v39-crop-actions button{flex:1}.v39-crop-handle{width:26px;height:26px}.v39-crop-handle.nw{left:-13px;top:-13px}.v39-crop-handle.ne{right:-13px;top:-13px}.v39-crop-handle.sw{left:-13px;bottom:-13px}.v39-crop-handle.se{right:-13px;bottom:-13px}.v39-crop-handle.n{top:-13px}.v39-crop-handle.s{bottom:-13px}.v39-crop-handle.w{left:-13px}.v39-crop-handle.e{right:-13px}}
 </style>
 
 <style id="v39-27-detail-scroll-fix">
@@ -351,7 +351,6 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
   }
 }
 </style>
-<style id="v39-35-crop-sliders">.v39-mobile-crop-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 20px 12px}.v39-mobile-crop-controls label{font-size:12px;font-weight:700}.v39-mobile-crop-controls input{display:block;width:100%;margin-top:5px;accent-color:#5b2335}.v39-crop-size{font-size:12px;font-weight:700;color:#707078;margin-left:auto}@media(max-width:650px){.v39-mobile-crop-controls{grid-template-columns:1fr 1fr;padding:4px 14px 10px}.v39-mobile-crop-controls input{height:30px}.v39-crop-stage{max-height:50vh}.v39-crop-actions{padding:10px 14px 14px}.v39-crop-actions button{min-height:46px}.v39-crop-size{margin-left:0}}</style>
 </head>
 <body>
 <style id="v22-auth-css">
@@ -414,7 +413,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.35 ✨</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.32 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -1569,9 +1568,16 @@ async function v3925CloudDelete(id,type){
 function bookPhotoKey(id,type){return `photo:${type}:${String(id)}`;}
 async function putBookPhoto(id,type,data){
   if(!data)throw new Error('Kein Bild vorhanden.');
-  // Cloud first: only report success after the image is really in Supabase.
-  if(v3925CloudReady()) await v3925CloudPut(id,type,data);
+  // V39.31: Das Foto wird IMMER zuerst lokal gespeichert. Ein Fehler beim
+  // optionalen Cloud-Upload darf das Speichern des Fotos nicht verhindern.
   await coverPut(bookPhotoKey(id,type),data);
+  if(v3925CloudReady()){
+    try{
+      await v3925CloudPut(id,type,data);
+    }catch(e){
+      console.warn('V39.31 Cloud-Foto konnte nicht synchronisiert werden:',e);
+    }
+  }
 }
 async function getBookPhoto(id,type){
   const key=bookPhotoKey(id,type);
@@ -1664,100 +1670,988 @@ window.addEventListener('lesezeit-cloud-ready',()=>setTimeout(v3930SyncImagesNow
 window.addEventListener('lesezeit-auth-ready',()=>setTimeout(v3931LoadCloudCoversForVisibleBooks,1200));
 window.addEventListener('lesezeit-cloud-ready',()=>setTimeout(v3931LoadCloudCoversForVisibleBooks,1200));
 
-function bookPhotoCardHtml(type,data,title,subtitle){const inputId=`bookPhoto_${type}`;return `<div class="v39-book-image-card"><div class="v39-book-image-preview">${data?`<img src="${esc(data)}" alt="${esc(title)}">`:`<span>${esc(subtitle)}</span>`}</div><div class="v39-book-image-title">${title}</div><div class="v39-book-image-actions"><input type="file" id="${inputId}" accept="image/*" style="display:none" onchange="setBookPhotoFile('${type}',this.files[0])"><button class="btn" type="button" onclick="document.getElementById('${inputId}').click()">${data?'Foto ändern':'Foto hinzufügen'}</button>${data?`<button class="btn ghost" type="button" onclick="removeBookPhoto('${type}')">Entfernen</button>`:''}</div></div>`;}
+function bookPhotoCardHtml(type,data,title,subtitle){const inputId=`bookPhoto_${type}`;return `<div class="v39-book-image-card"><div class="v39-book-image-preview">${data?`<img src="${esc(data)}" alt="${esc(title)}">`:`<span>${esc(subtitle)}</span>`}</div><div class="v39-book-image-title">${title}</div><div class="v39-book-image-actions"><input type="file" id="${inputId}" accept="image/*" capture="environment" style="display:none" onchange="setBookPhotoFile('${type}',this.files[0])"><button class="btn" type="button" onclick="document.getElementById('${inputId}').click()">${data?'Foto ändern':'Foto hinzufügen'}</button>${data?`<button class="btn ghost" type="button" onclick="removeBookPhoto('${type}')">Entfernen</button>`:''}</div></div>`;}
 let v39CropState=null;
 function setBookPhotoFile(type,file){
  if(!selected||!file)return;
  if(!file.type.startsWith('image/')){alert('Bitte ein Bild auswählen.');return;}
  const reader=new FileReader();
- reader.onload=e=>openV39Cropper(type,e.target.result);
+ reader.onload=e=>{
+   const src=e.target.result;
+   // V39.33: Das Foto wird nach der Aufnahme NICHT zuerst gespeichert.
+   // Wir öffnen sofort den Cropper. Dadurch kann iOS/Safari den Kamera-Import
+   // nicht durch einen langsamen Speicher-/Cloud-Aufruf abbrechen.
+   openV39Cropper(type,src);
+ };
  reader.onerror=()=>alert('Das Bild konnte nicht gelesen werden.');
  reader.readAsDataURL(file);
 }
 function openV39Cropper(type,src){
- const ov=document.getElementById('v39CropOverlay'),img=document.getElementById('v39CropImg');
- if(!ov||!img){alert('Der Zuschneider konnte nicht geöffnet werden.');return;}
- v39CropState={type,src,img,ready:false,left:0,top:0,right:100,bottom:100};
+ const overlay=document.getElementById('v39CropOverlay'),img=document.getElementById('v39CropImg'),stage=document.getElementById('v39CropStage'),sel=document.getElementById('v39CropSelection');
+ if(!overlay||!img||!stage||!sel)return;
+ v39CropState={type,src,img,stage,sel,drag:null,ready:false,ratio:type==='back'?0.22:4.8};
  document.getElementById('v39CropTitle').textContent=type==='back'?'Buchrücken zuschneiden':'Farbschnitt zuschneiden';
- document.getElementById('v39CropKind').textContent=type==='back'?'Buchrücken':'Farbschnitt';
- img.onload=()=>{v39CropState.ready=true;fitV39Crop();};
- img.onerror=()=>alert('Das Foto konnte nicht angezeigt werden.');
- ov.classList.add('show');ov.setAttribute('aria-hidden','false');
- img.src=src;
+ img.onload=()=>{v39CropState.ready=true;requestAnimationFrame(fitV39Crop);};
+ img.src=src;overlay.classList.add('show');overlay.setAttribute('aria-hidden','false');
 }
-function cropSlider(id,val){const e=document.getElementById(id);if(e)e.value=String(Math.round(val));}
+function v39CropRatio(){return v39CropState?.ratio||null;}
 function fitV39Crop(){
  const st=v39CropState;if(!st?.ready)return;
- if(st.type==='back'){st.left=38;st.right=62;st.top=0;st.bottom=100;}
- else{st.left=10;st.right=90;st.top=20;st.bottom=80;}
- ['v39CropLeft','v39CropTop','v39CropRight','v39CropBottom'].forEach((id,i)=>cropSlider(id,[st.left,st.top,st.right,st.bottom][i]));
- updateV39Crop();
+ const r=st.img.getBoundingClientRect(),sr=st.stage.getBoundingClientRect();
+ const w=Math.max(50,r.width),h=Math.max(50,r.height);
+ let ratio=v39CropRatio();
+ let cw=st.type==='back'?w*.24:w*.72;
+ if(ratio){cw=st.type==='back'?w*.24:w*.72;let ch=cw/ratio;if(ch>h*.82){ch=h*.82;cw=ch*ratio;}if(cw>w*.86){cw=w*.86;ch=cw/ratio;}
+   st.sel.style.width=cw+'px';st.sel.style.height=ch+'px';
+ }else{
+   const cw0=w*.55,ch0=h*.55;st.sel.style.width=cw0+'px';st.sel.style.height=ch0+'px';
+ }
+ const cw2=parseFloat(st.sel.style.width)||w*.55,ch2=parseFloat(st.sel.style.height)||h*.55;
+ const left=(sr.width-w)/2+(w-cw2)/2,top=(sr.height-h)/2+(h-ch2)/2;
+ st.sel.style.left=left+'px';st.sel.style.top=top+'px';
 }
-function updateV39Crop(){
- const st=v39CropState;if(!st?.ready)return;
- const sr=st.img.getBoundingClientRect(),stage=st.img.parentElement.getBoundingClientRect(),sel=document.getElementById('v39CropSelection');
- const x=sr.left-stage.left+sr.width*(st.left/100),y=sr.top-stage.top+sr.height*(st.top/100),w=sr.width*((st.right-st.left)/100),h=sr.height*((st.bottom-st.top)/100);
- sel.style.left=x+'px';sel.style.top=y+'px';sel.style.width=w+'px';sel.style.height=h+'px';
- const size=document.getElementById('v39CropSize');if(size)size.textContent=Math.round(w)+' × '+Math.round(h)+' px';
+function setV39CropPreset(name){
+ const st=v39CropState;if(!st)return;
+ if(name==='thin'){st.ratio=.22;}
+ else if(name==='medium'){st.ratio=.32;}
+ else if(name==='wide'){st.ratio=4.8;}
+ else st.ratio=null;
+ document.querySelectorAll('.v39-crop-preset').forEach(b=>b.classList.toggle('active',b.dataset.preset===name));
+ fitV39Crop();
 }
-function v39CropPointerStart(e){
- const st=v39CropState,sel=document.getElementById('v39CropSelection');
- if(!st?.ready||!sel)return;
- const p=e.touches?.[0]||e;
- const stage=st.img.parentElement.getBoundingClientRect();
- const r=sel.getBoundingClientRect();
- st.drag={x:p.clientX,y:p.clientY,left:r.left-stage.left,top:r.top-stage.top,w:r.width,h:r.height,stage,ir:st.img.getBoundingClientRect()};
- e.preventDefault?.();
+function v39CropPoint(e){const t=e.touches?.[0]||e;return{x:t.clientX,y:t.clientY};}
+function v39CropStart(e){const st=v39CropState;if(!st)return;const p=v39CropPoint(e),r=st.sel.getBoundingClientRect(),target=e.target.closest('.v39-crop-handle');st.drag={mode:target?'resize':'move',handle:target?.dataset.h||'',x:p.x,y:p.y,left:r.left,top:r.top,w:r.width,h:r.height};e.preventDefault();}
+function v39CropMove(e){
+ const st=v39CropState;if(!st?.drag)return;const p=v39CropPoint(e),d=st.drag,sr=st.stage.getBoundingClientRect(),ir=st.img.getBoundingClientRect(),dx=p.x-d.x,dy=p.y-d.y,min=32;
+ let l=d.left-sr.left,t=d.top-sr.top,w=d.w,h=d.h;
+ if(d.mode==='move'){
+   l=Math.max(ir.left-sr.left,Math.min(ir.right-sr.left-w,l+dx));t=Math.max(ir.top-sr.top,Math.min(ir.bottom-sr.top-h,t+dy));
+ }else{
+   let nl=l,nt=t,nw=w,nh=h,ratio=v39CropRatio();
+   if(d.handle.includes('e'))nw=Math.max(min,w+dx);
+   if(d.handle.includes('s'))nh=Math.max(min,h+dy);
+   if(d.handle.includes('w')){nw=Math.max(min,w-dx);nl=l+dx;}
+   if(d.handle.includes('n')){nh=Math.max(min,h-dy);nt=t+dy;}
+   // Presets keep their aspect ratio. "Frei" allows the width to become very thin.
+   if(ratio){
+     if(d.handle==='e'||d.handle==='w')nh=nw/ratio;
+     else if(d.handle==='n'||d.handle==='s')nw=nh*ratio;
+     else {if(Math.abs(dx)>=Math.abs(dy))nh=nw/ratio;else nw=nh*ratio;}
+   }
+   if(nl<ir.left-sr.left){nw+=nl-(ir.left-sr.left);nl=ir.left-sr.left;if(ratio)nh=nw/ratio;}
+   if(nt<ir.top-sr.top){nh+=nt-(ir.top-sr.top);nt=ir.top-sr.top;if(ratio)nw=nh*ratio;}
+   if(nl+nw>ir.right-sr.left){nw=ir.right-sr.left-nl;if(ratio)nh=nw/ratio;}
+   if(nt+nh>ir.bottom-sr.top){nh=ir.bottom-sr.top-nt;if(ratio)nw=nh*ratio;}
+   w=nw;h=nh;l=nl;t=nt;
+ }
+ st.sel.style.left=l+'px';st.sel.style.top=t+'px';st.sel.style.width=w+'px';st.sel.style.height=h+'px';
+ const size=document.getElementById('v39CropSize');if(size&&st.img.naturalWidth)size.textContent=Math.round(w*st.img.naturalWidth/st.img.getBoundingClientRect().width)+' × '+Math.round(h*st.img.naturalHeight/st.img.getBoundingClientRect().height)+' px';
+ e.preventDefault();
 }
-function v39CropPointerMove(e){
- const st=v39CropState;if(!st?.drag)return;
- const p=e.touches?.[0]||e,d=st.drag;
- const dx=p.clientX-d.x,dy=p.clientY-d.y;
- const minL=d.ir.left-d.stage.left,maxL=d.ir.right-d.stage.left-d.w;
- const minT=d.ir.top-d.stage.top,maxT=d.ir.bottom-d.stage.top-d.h;
- const l=Math.max(minL,Math.min(maxL,d.left+dx));
- const t=Math.max(minT,Math.min(maxT,d.top+dy));
- const left=((l-(d.ir.left-d.stage.left))/d.ir.width)*100;
- const top=((t-(d.ir.top-d.stage.top))/d.ir.height)*100;
- const wPct=(d.w/d.ir.width)*100,hPct=(d.h/d.ir.height)*100;
- st.left=Math.max(0,Math.min(100-wPct,left));
- st.top=Math.max(0,Math.min(100-hPct,top));
- const sl=document.getElementById('v39CropLeft'),sr=document.getElementById('v39CropRight'),stp=document.getElementById('v39CropTop'),sb=document.getElementById('v39CropBottom');
- if(sl)sl.value=String(Math.round(st.left)); if(sr)sr.value=String(Math.round(st.left+wPct));
- if(stp)stp.value=String(Math.round(st.top)); if(sb)sb.value=String(Math.round(st.top+hPct));
- updateV39Crop();
- e.preventDefault?.();
-}
-function v39CropPointerEnd(){if(v39CropState)v39CropState.drag=null;}
-function setV39Slider(which,value){
- const st=v39CropState;if(!st?.ready)return;let v=Math.max(0,Math.min(100,Number(value)||0));
- if(which==='left')st.left=Math.min(v,st.right-2);
- if(which==='top')st.top=Math.min(v,st.bottom-2);
- if(which==='right')st.right=Math.max(v,st.left+2);
- if(which==='bottom')st.bottom=Math.max(v,st.top+2);
- updateV39Crop();
-}
-function saveV39Crop(){
- const st=v39CropState;if(!st?.ready||!selected)return;
+function v39CropEnd(){if(v39CropState)v39CropState.drag=null;}
+function v39CropRectToImage(){const st=v39CropState,sr=st.stage.getBoundingClientRect(),ir=st.img.getBoundingClientRect(),r=st.sel.getBoundingClientRect();const sx=st.img.naturalWidth/ir.width,sy=st.img.naturalHeight/ir.height;return{x:Math.max(0,(r.left-ir.left)*sx),y:Math.max(0,(r.top-ir.top)*sy),w:Math.min(st.img.naturalWidth,r.width*sx),h:Math.min(st.img.naturalHeight,r.height*sy)};}
+async function saveV39Crop(){
+ const st=v39CropState;
+ if(!st?.ready||!selected)return;
+ const btn=document.querySelector('#v39CropOverlay .v39-crop-actions .btn.dark');
+ if(btn){btn.disabled=true;btn.textContent='💾 Speichere …';}
  try{
-  const iw=st.img.naturalWidth,ih=st.img.naturalHeight;
-  const x=iw*st.left/100,y=ih*st.top/100,w=iw*(st.right-st.left)/100,h=ih*(st.bottom-st.top)/100;
-  const c=document.createElement('canvas'),max=1400,scale=Math.min(1,max/Math.max(w,h));
-  c.width=Math.max(1,Math.round(w*scale));c.height=Math.max(1,Math.round(h*scale));
-  const ctx=c.getContext('2d');if(!ctx)throw new Error('Canvas fehlt');
-  ctx.drawImage(st.img,x,y,w,h,0,0,c.width,c.height);
-  const data=c.toDataURL('image/jpeg',0.88);if(!data||data.length<100)throw new Error('Leeres Bild');
-  putBookPhoto(selected._id,st.type,data).then(()=>{cancelV39Crop();openDetail(selected._id);}).catch(e=>{console.error(e);alert('Das Foto konnte nicht gespeichert werden.');});
- }catch(e){console.error(e);alert('Der Ausschnitt konnte nicht erstellt werden.');}
+   const q=v39CropRectToImage();
+   if(!Number.isFinite(q.x)||!Number.isFinite(q.y)||q.w<2||q.h<2) throw new Error('Ungültiger Bildausschnitt.');
+   const c=document.createElement('canvas');
+   const max=1400, scale=Math.min(1,max/Math.max(q.w,q.h));
+   c.width=Math.max(1,Math.round(q.w*scale));
+   c.height=Math.max(1,Math.round(q.h*scale));
+   const ctx=c.getContext('2d');
+   if(!ctx)throw new Error('Canvas konnte nicht erstellt werden.');
+   ctx.drawImage(st.img,q.x,q.y,q.w,q.h,0,0,c.width,c.height);
+   const data=c.toDataURL('image/jpeg',0.88);
+   if(!data||data.length<100)throw new Error('Der zugeschnittene Bildausschnitt ist leer.');
+   // Der normale Foto-Speicherweg speichert lokal und synchronisiert danach optional in die Cloud.
+   await putBookPhoto(selected._id,st.type,data);
+   cancelV39Crop();
+   await openDetail(selected._id);
+ }catch(e){
+   console.error('V39.33 Foto zuschneiden/speichern:',e);
+   alert('Das Foto konnte nicht gespeichert werden. Bitte noch einmal versuchen.');
+   if(btn){btn.disabled=false;btn.textContent='✂️ Ausschnitt speichern';}
+ }
 }
 function cancelV39Crop(){const ov=document.getElementById('v39CropOverlay');if(ov){ov.classList.remove('show');ov.setAttribute('aria-hidden','true');}v39CropState=null;}
+function bindV39CropControls(){
+ const el=document.getElementById('v39CropSelection');
+ if(!el || el.dataset.bound==='1')return;
+ el.dataset.bound='1';
+ const start=e=>{
+   if(!v39CropState?.ready)return;
+   v39CropStart(e);
+   try{if(e.pointerId!=null)el.setPointerCapture(e.pointerId);}catch(_){ }
+ };
+ const move=e=>{if(v39CropState?.drag)v39CropMove(e);};
+ const end=e=>{v39CropEnd(e);try{if(e.pointerId!=null)el.releasePointerCapture(e.pointerId);}catch(_){ }};
+ el.addEventListener('pointerdown',start,{passive:false});
+ el.addEventListener('pointermove',move,{passive:false});
+ el.addEventListener('pointerup',end,{passive:false});
+ el.addEventListener('pointercancel',end,{passive:false});
+ // iPhone/Safari fallback: native touch events.
+ el.addEventListener('touchstart',start,{passive:false});
+ el.addEventListener('touchmove',move,{passive:false});
+ el.addEventListener('touchend',end,{passive:false});
+ el.addEventListener('touchcancel',end,{passive:false});
+}
+bindV39CropControls();
+window.addEventListener('pointermove',e=>{if(v39CropState?.drag)v39CropMove(e);},{passive:false});
+window.addEventListener('pointerup',v39CropEnd,{passive:false});
+window.addEventListener('touchmove',e=>{if(v39CropState?.drag)v39CropMove(e);},{passive:false});
+window.addEventListener('touchend',v39CropEnd,{passive:false});
 
-window.addEventListener('pointerdown',e=>{if(e.target.closest('#v39CropSelection'))v39CropPointerStart(e)},{passive:false});
-window.addEventListener('pointermove',e=>{if(v39CropState?.drag)v39CropPointerMove(e)},{passive:false});
-window.addEventListener('pointerup',v39CropPointerEnd);
-window.addEventListener('touchstart',e=>{if(e.target.closest('#v39CropSelection'))v39CropPointerStart(e)},{passive:false});
-window.addEventListener('touchmove',e=>{if(v39CropState?.drag)v39CropPointerMove(e)},{passive:false});
-window.addEventListener('touchend',v39CropPointerEnd);
+async function removeBookPhoto(type){if(!selected)return;try{await deleteBookPhoto(selected._id,type);openDetail(selected._id);}catch(e){alert('Das Foto konnte nicht entfernt werden.');}}
+async function setCover(value){
+ if(!selected)return;
+ state.personal=state.personal||{};
+ state.personal[selected._id]=state.personal[selected._id]||{};
+ const id=String(selected._id);
+ try{
+   // Large custom images go to IndexedDB, not localStorage.
+   if(typeof value==='string' && value.startsWith('data:image/')){
+     if(v3925CloudReady()) await v3925CloudPut(id,'cover',value);
+     await coverPut(id,value);
+     state.personal[id].cover='idb:'+id;
+   }else{
+     state.personal[id].cover=value;
+     if(typeof value==='string' && !value.startsWith('idb:') && v3925CloudReady()) await v3925CloudPut(id,'cover',value);
+   }
+   save();
+   openDetail(selected._id); renderBooks();
+ }catch(e){
+   console.error('Cover konnte nicht gespeichert werden:',e);
+   alert('Das Cover konnte nicht gespeichert werden. Bitte noch einmal versuchen.');
+ }
+}
+function setCoverFile(file){
+ if(!selected||!file)return;
+ if(!file.type.startsWith('image/')){alert('Bitte ein Bild auswählen.');return;}
+ const reader=new FileReader();
+ reader.onload=function(e){
+   const img=new Image();
+   img.onload=function(){
+     const max=900;
+     const scale=Math.min(1,max/Math.max(img.width,img.height));
+     const w=Math.max(1,Math.round(img.width*scale));
+     const h=Math.max(1,Math.round(img.height*scale));
+     const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
+     const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0,w,h);
+     setCover(canvas.toDataURL('image/jpeg',0.78));
+   };
+   img.onerror=()=>alert('Das Bild konnte nicht verarbeitet werden.');
+   img.src=e.target.result;
+ };
+ reader.onerror=()=>alert('Das Bild konnte nicht gelesen werden.');
+ reader.readAsDataURL(file);
+}
+async function removeCover(){
+ if(!selected)return;
+ state.personal=state.personal||{};
+ state.personal[selected._id]=state.personal[selected._id]||{};
+ const old=state.personal[selected._id].cover;
+ if(old?.startsWith?.('idb:')) await coverDelete(selected._id);
+ delete state.personal[selected._id].cover;
+ save(); openDetail(selected._id); renderBooks();
+}
+function setNotes(value){
+ if(!selected)return;
+ state.personal=state.personal||{};
+ state.personal[selected._id]=state.personal[selected._id]||{};
+ state.personal[selected._id].notes=value;
+ save();
+}
+
+async function setCurrentPage(v){
+ if(!selected)return;
+ let n=Math.max(0,Math.min(Number(selected.Seitenanzahl||0),Number(v)||0));
+ state.progress[selected._id]=n;
+ if(n>0&&status(selected)==='Ungelesen')state.status[selected._id]='Lese ich gerade';
+ if(n>=Number(selected.Seitenanzahl||0)&&Number(selected.Seitenanzahl||0)>0)state.status[selected._id]='Gelesen';
+ save();
+ // Fortschritt nicht nur lokal, sondern auch im Supabase-Konto speichern.
+ try{
+   const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+   if(sb && u && selected._cloud){
+     const cloudStatus=n>=Number(selected.Seitenanzahl||0)&&Number(selected.Seitenanzahl||0)>0?'read':(n>0?'reading':'to_read');
+     const {error}=await sb.from('user_books').update({current_page:n,status:cloudStatus}).eq('id',selected._id).eq('user_id',u.id);
+     if(error) console.warn('Fortschritt konnte nicht in Supabase gespeichert werden:',error.message);
+   }
+ }catch(e){console.warn('Fortschritt speichern:',e);}
+ refresh(); renderBooks(); openDetail(selected._id);
+}
+function updateProgress(v){
+ if(!selected)return; state.progress[selected._id]=Number(v);
+ if(Number(v)>0&&status(selected)==='Ungelesen')state.status[selected._id]='Lese ich gerade';
+ if(Number(v)>=selected.Seitenanzahl&&selected.Seitenanzahl)state.status[selected._id]='Gelesen';
+ save(); const p=progress(selected); document.getElementById('progressLabel').textContent=`${p} / ${selected.Seitenanzahl||0} Seiten · ${pct(selected)}%`;
+ refresh(); renderBooks();
+}
+async function changeStatus(s){
+ if(!selected)return;
+ state.status[selected._id]=s;
+ if(s==='Gelesen' && Number(selected.Seitenanzahl||0)>0){
+   state.progress[selected._id]=Number(selected.Seitenanzahl);
+ }
+ save();
+ try{
+   const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
+   if(sb&&u&&selected._cloud){
+     const patch={status:s==='Gelesen'?'read':s==='Lese ich gerade'?'reading':'to_read'};
+     if(s==='Gelesen'&&Number(selected.Seitenanzahl||0)>0)patch.current_page=Number(selected.Seitenanzahl);
+     const {error}=await sb.from('user_books').update(patch).eq('id',String(selected._id)).eq('user_id',u.id);
+     if(error)console.warn('Status konnte nicht in Supabase gespeichert werden:',error.message);
+   }
+ }catch(e){console.warn('Status speichern:',e)}
+ openDetail(selected._id);refresh();renderBooks();if(typeof renderStats==='function')renderStats();
+}
+function closeDetail(){document.body.classList.remove("v39-detail-open");document.getElementById('detailModal').classList.remove('open');document.body.classList.remove('modal-scroll-lock')}
+function openCurrent(){const b=books.find(x=>status(x)==='Lese ich gerade')||books[0];openDetail(b._id)}
+function startReading(){closeDetail();openTimer()}
+function openTimer(){
+ if(!selected)selected=books.find(x=>status(x)==='Lese ich gerade')||books[0];
+ const current=Number(progress(selected)||0);
+ const st=window.v34TimerState||{};
+ const active=st.running && String(st.bookId)===String(selected._id);
+ document.getElementById('timerBook').textContent=selected.Titel;
+ const sp=document.getElementById('timerStartPage'), ep=document.getElementById('timerEndPage');
+ if(sp)sp.value=active?Number(sp.value||current):current;
+ if(ep)ep.value=active?Number(ep.value||current):current;
+ const elapsed=active ? Number(st.elapsed||0)+(st.startedAt?Date.now()-st.startedAt:0) : Number(st.elapsed||0);
+ document.getElementById('timer').textContent=v34Format(elapsed);
+ const msg=document.getElementById('timerMsg'); if(msg)msg.textContent=active?'Timer läuft …':'';
+ const btn=document.getElementById('timerButton'); if(btn)btn.textContent=active?'■ Stoppen':'▶ Starten';
+ document.getElementById('timerModal').classList.add('open');
+ renderSessions();
+}
+function closeTimer(){document.getElementById('timerModal').classList.remove('open')}
+function toggleTimer(){
+ const st=window.v34TimerState||{};
+ if(st.running && String(st.bookId)===String(selected?._id)) v34StopTimer();
+ else v34StartTimer();
+}
+function startTimer(){v34StartTimer();}
+async function stopTimer(){await v34StopTimer();}
+
+let v39EditingSessionId=null;
+
+function normalizeManualSessionDate(input){
+  if(!input)return;
+  const value=String(input.value||'').trim();
+  // Accept 7.8.2024 as well as 07.08.2024 and add missing leading zeroes automatically.
+  const m=value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if(m){
+    input.value=`${String(m[1]).padStart(2,'0')}.${String(m[2]).padStart(2,'0')}.${m[3]}`;
+  }
+}
+
+function openManualSession(){
+ if(!selected)return;
+ v39EditingSessionId=null;
+ const current=Number(progress(selected)||0);
+ document.getElementById('manualSessionBook').textContent=selected.Titel||'Buch';
+ const label=document.getElementById('manualSessionModalLabel'); if(label)label.textContent='LESESESSION MANUELL';
+ const btn=document.getElementById('manualSessionSaveButton'); if(btn)btn.textContent='💾 Lesesession speichern';
+ const d=document.getElementById('manualSessionDate');
+ if(d){const now=new Date();d.value=String(now.getDate()).padStart(2,'0')+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+now.getFullYear();}
+ const sp=document.getElementById('manualSessionStartPage');
+ const ep=document.getElementById('manualSessionEndPage');
+ if(sp)sp.value=current;
+ if(ep)ep.value=current;
+ const msg=document.getElementById('manualSessionMsg'); if(msg)msg.textContent='';
+ document.getElementById('manualSessionModal').classList.add('open');
+}
+
+function openEditSession(id){
+ const session=(state.sessions||[]).find(x=>String(x.id)===String(id));
+ if(!session||!selected)return;
+ v39EditingSessionId=String(session.id);
+ document.getElementById('manualSessionBook').textContent=selected.Titel||'Buch';
+ const label=document.getElementById('manualSessionModalLabel'); if(label)label.textContent='LESESESSION BEARBEITEN';
+ const btn=document.getElementById('manualSessionSaveButton'); if(btn)btn.textContent='💾 Änderungen speichern';
+ const raw=String(session.started_at||session.date||'');
+ let date='';
+ let m=raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+ if(m) date=`${String(m[3]).padStart(2,'0')}.${String(m[2]).padStart(2,'0')}.${m[1]}`;
+ else {
+   m=raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+   if(m) date=`${String(m[1]).padStart(2,'0')}.${String(m[2]).padStart(2,'0')}.${m[3]}`;
+ }
+ const d=document.getElementById('manualSessionDate'); if(d)d.value=date;
+ const sp=document.getElementById('manualSessionStartPage'); if(sp)sp.value=Number(session.start_page||0);
+ const ep=document.getElementById('manualSessionEndPage'); if(ep)ep.value=Number(session.end_page||0);
+ const msg=document.getElementById('manualSessionMsg'); if(msg)msg.textContent='';
+ document.getElementById('manualSessionModal').classList.add('open');
+}
+
+function closeManualSession(){
+ v39EditingSessionId=null;
+ document.getElementById('manualSessionModal')?.classList.remove('open');
+}
+
+async function saveManualSession(){
+ if(!selected)return;
+ const editingId=v39EditingSessionId;
+ const editing=editingId?(state.sessions||[]).find(x=>String(x.id)===String(editingId)):null;
+ const dateInput=document.getElementById('manualSessionDate')?.value.trim()||'';
+ const dm=dateInput.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+ const date=dm?`${dm[3]}-${String(dm[2]).padStart(2,'0')}-${String(dm[1]).padStart(2,'0')}`:'';
+ const startPage=Math.max(0,Number(document.getElementById('manualSessionStartPage')?.value||0));
+ const endPage=Math.max(0,Number(document.getElementById('manualSessionEndPage')?.value||0));
+ const msg=document.getElementById('manualSessionMsg');
+ if(!date){if(msg)msg.textContent='Bitte das Datum im Format TT.MM.JJJJ eingeben, z. B. 30.09.2026.';return;}
+ const checkDate=new Date(`${date}T00:00:00`);
+ if(Number.isNaN(checkDate.getTime()) || checkDate.getFullYear()!==Number(dm[3]) || checkDate.getMonth()+1!==Number(dm[2]) || checkDate.getDate()!==Number(dm[1])){if(msg)msg.textContent='Bitte ein gültiges Datum eingeben.';return;}
+ if(endPage<startPage){if(msg)msg.textContent='Die Endseite darf nicht kleiner als die Startseite sein.';return;}
+ const pagesRead=endPage-startPage;
+ try{
+   if(editing){
+     const oldKey=v39SessionKey(editing);
+     const oldStarted=String(editing.started_at||'');
+     let newStartedAt;
+     if(editing.manual){
+       newStartedAt=`${date}T00:00:00`;
+     }else{
+       const tm=oldStarted.match(/T(\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)$/);
+       newStartedAt=tm?`${date}T${tm[1]}`:`${date}T00:00:00`;
+     }
+     let newEndedAt=editing.ended_at||null;
+     if(newEndedAt){
+       const et=String(newEndedAt).match(/T(\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)$/);
+       newEndedAt=et?`${date}T${et[1]}`:newEndedAt;
+     }
+     const patch={started_at:newStartedAt,ended_at:newEndedAt,start_page:startPage,end_page:endPage};
+     // Update local copy first so the UI stays responsive.
+     Object.assign(editing,patch,{pages_read:pagesRead});
+     save();
+     const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
+     if(sb&&u){
+       let q;
+       if(editing.cloud_id){
+         q=await sb.from('reading_sessions').update(patch).eq('id',String(editing.cloud_id)).eq('user_id',u.id);
+       }else if(editing.id&&!String(editing.id).startsWith('local_')&&!String(editing.id).startsWith('manual_')){
+         q=await sb.from('reading_sessions').update(patch).eq('id',String(editing.id)).eq('user_id',u.id);
+       }else {
+         q=await sb.from('reading_sessions').update(patch).eq('user_id',u.id).eq('user_book_id',String(editing.book_id)).eq('start_page',Number(editing.start_page||0)).eq('end_page',Number(editing.end_page||0)).eq('started_at',oldStarted);
+       }
+       if(q?.error)throw q.error;
+     }
+     state.progress[selected._id]=Math.max(Number(progress(selected)||0),endPage);
+     save();
+     if(typeof renderSessions==='function')renderSessions();
+     if(typeof v34RenderSessionHistory==='function')v34RenderSessionHistory();
+     if(typeof refresh==='function')refresh();
+     if(typeof renderBooks==='function')renderBooks();
+     if(typeof renderStats==='function')renderStats();
+     if(msg)msg.textContent='✓ Änderungen gespeichert';
+     setTimeout(closeManualSession,400);
+     return;
+   }
+
+   const startedAt=`${date}T00:00:00`;
+   const saved={id:'manual_'+Date.now(),book_id:String(selected._id),start_page:startPage,end_page:endPage,pages_read:pagesRead,duration_minutes:0,duration_seconds:0,duration:0,started_at:startedAt,ended_at:null,manual:true};
+   state.sessions=state.sessions||[];
+   state.sessions.push(saved);
+   state.progress[selected._id]=Math.max(Number(progress(selected)||0),endPage);
+   if(endPage>0&&status(selected)==='Ungelesen')state.status[selected._id]='Lese ich gerade';
+   if(Number(selected.Seitenanzahl||0)>0&&endPage>=Number(selected.Seitenanzahl))state.status[selected._id]='Gelesen';
+   save();
+   const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
+   if(sb&&u&&selected._cloud){
+     const {data,error}=await sb.from('reading_sessions').insert({user_id:u.id,user_book_id:String(selected._id),started_at:startedAt,ended_at:null,duration_seconds:0,start_page:startPage,end_page:endPage}).select('id').single();
+     if(error)throw error;
+     if(data?.id){saved.cloud_id=String(data.id);saved.id=String(data.id);save();}
+     const upd=await sb.from('user_books').update({current_page:endPage,status:Number(selected.Seitenanzahl||0)>0&&endPage>=Number(selected.Seitenanzahl)?'read':'reading'}).eq('id',String(selected._id)).eq('user_id',u.id);
+     if(upd.error)console.warn('Manuelle Session Fortschritt:',upd.error.message);
+   }
+   if(typeof renderSessions==='function')renderSessions();
+   if(typeof v34RenderSessionHistory==='function')v34RenderSessionHistory();
+   if(typeof refresh==='function')refresh();
+   if(typeof renderBooks==='function')renderBooks();
+   if(typeof renderStats==='function')renderStats();
+   if(msg)msg.textContent=`✓ Gespeichert · ${pagesRead} Seiten`;
+   setTimeout(closeManualSession,500);
+ }catch(e){
+   console.error('Manuelle Lesesession',e);
+   if(msg)msg.textContent=(editing?'Änderung lokal gespeichert, Cloud konnte nicht synchronisiert werden: ':'Lokal gespeichert, Cloud konnte nicht synchronisiert werden: ')+(e?.message||e);
+ }
+}
+
+function v39SessionKey(s){
+ const book=String(s?.book_id??s?.bookId??'');
+ const start=String(s?.start_page??0);
+ const end=String(s?.end_page??0);
+ const raw=String(s?.started_at??s?.date??'');
+ let date=raw;
+ const m=raw.match(/^(\d{4}-\d{1,2}-\d{1,2})/);
+ if(m) date=m[1];
+ else {
+   const d=raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+   if(d) date=`${d[3]}-${String(d[2]).padStart(2,'0')}-${String(d[1]).padStart(2,'0')}`;
+ }
+ const ended=String(s?.ended_at??'');
+ const duration=Number(s?.duration_seconds??s?.duration??(Number(s?.duration_minutes||0)*60))||0;
+ if(s?.manual || (!duration && !ended)) return `manual|${book}|${date}|${start}|${end}`;
+ return `timed|${book}|${String(s?.started_at??'')}|${ended}|${start}|${end}`;
+}
+
+async function deleteReadingSession(id){
+ const session=(state.sessions||[]).find(x=>String(x.id)===String(id));
+ if(!session)return;
+ if(!confirm('Diese Lesesession wirklich löschen?'))return;
+ try{
+   const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+   if(sb && u){
+     let q;
+     if(session.cloud_id){
+       q=await sb.from('reading_sessions').delete().eq('id',String(session.cloud_id)).eq('user_id',u.id);
+       if(q?.error)throw q.error;
+     }
+     // Remove accidental duplicate copies of exactly this logical session.
+     if(session.book_id && session.started_at){
+       const startPage=Number(session.start_page||0), endPage=Number(session.end_page||0);
+       let dup=sb.from('reading_sessions').delete()
+         .eq('user_id',u.id)
+         .eq('user_book_id',String(session.book_id))
+         .eq('start_page',startPage)
+         .eq('end_page',endPage)
+         .eq('started_at',String(session.started_at));
+       if(session.ended_at===null || session.manual) dup=dup.is('ended_at',null);
+       else if(session.ended_at) dup=dup.eq('ended_at',String(session.ended_at));
+       const dq=await dup;
+       if(dq?.error)throw dq.error;
+     }
+   }
+   const key=v39SessionKey(session);
+   state.sessions=(state.sessions||[]).filter(x=>v39SessionKey(x)!==key);
+   save();
+   renderSessions(); v34RenderSessionHistory();
+   if(typeof renderStats==='function')renderStats();
+   if(typeof refresh==='function')refresh();
+ }catch(e){ console.error('Session löschen',e); alert('Die Lesesession konnte nicht gelöscht werden.'); }
+}
+
+function renderSessions(){
+ const list=(state.sessions||[]).filter(s=>String(s.book_id??s.bookId)===String(selected?._id));
+ list.sort((a,b)=>String(b.started_at||b.date||'').localeCompare(String(a.started_at||a.date||'')));
+ const a=list.slice(0,8);
+ document.getElementById('sessionList').innerHTML=a.length?a.map(s=>{
+   const dur=Number(s.duration_seconds??s.duration??(Number(s.duration_minutes||0)*60));
+   const mins=Math.floor(dur/60);
+   const hasTime=dur>0;
+   const pages=Number(s.pages_read ?? Math.max(0,Number(s.end_page||0)-Number(s.start_page||0)));
+   const raw=s.started_at||s.date||'';
+   let date='';
+   const m=String(raw).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+   if(m)date=`${String(m[3]).padStart(2,'0')}.${String(m[2]).padStart(2,'0')}.${m[1]}`;
+   else {const d=new Date(raw); if(!Number.isNaN(d.getTime()))date=`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;}
+   const timeLabel=hasTime?`${mins} Min`:'Keine Zeit';
+   return `<div class="session"><div><b>${date||'Datum unbekannt'}</b><div class="muted">Seite ${Number(s.start_page||0)}–${Number(s.end_page||0)} · ${pages} Seiten</div></div><span style="display:flex;align-items:center;gap:6px"><b>${timeLabel}</b><button class="v34-session-edit" title="Session bearbeiten" onclick="openEditSession('${String(s.id)}')">✏️</button><button class="v34-session-delete" title="Session löschen" onclick="deleteReadingSession('${String(s.id)}')">🗑️</button></span></div>`;
+ }).join(''):'<div class="muted">Noch keine gespeicherten Sessions.</div>';
+}
+function fmt(n){n=Math.round(Number(n)||0);return [Math.floor(n/3600),Math.floor(n%3600/60),n%60].map(x=>String(x).padStart(2,'0')).join(':')}
+
+function applyDesign(){
+ const d=state.design||{};
+ const root=document.documentElement;
+ root.style.setProperty('--accent',d.accent||'#6d5dfc');
+ root.style.setProperty('--bg',d.bg||'#f4f4f7');
+ root.style.setProperty('--card',d.card||'#fff');
+ root.style.setProperty('--text',d.text||'#18181b');
+ root.style.setProperty('--muted',d.muted||'#74747d');
+ root.style.setProperty('--line',d.line||'#e6e6eb');
+ root.style.setProperty('--surface2',d.surface2||'var(--card)');
+ const fonts={
+   system:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+   arial:'Arial,"Helvetica Neue",sans-serif',
+   verdana:'Verdana,Geneva,sans-serif',
+   trebuchet:'"Trebuchet MS",Arial,sans-serif',
+   rounded:'ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold",system-ui,sans-serif',
+   serif:'Georgia,"Times New Roman",serif',
+   palatino:'Palatino,"Book Antiqua",Georgia,serif',
+   book:'"Book Antiqua",Palatino,Georgia,serif',
+   mono:'ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace',
+   courier:'"Courier New",Courier,monospace',
+   julius:'"Julius Sans One",sans-serif',
+   spartan:'"League Spartan",sans-serif',
+   archivo:'"Archivo Black",sans-serif',
+   baskerville:'"Libre Baskerville",Georgia,serif',
+   bebas:'"Bebas Neue",Impact,sans-serif',
+   lora:'"Lora",Georgia,serif',
+   robotoCondensed:'"Roboto Condensed",Arial,sans-serif',
+   playfair:'"Playfair Display",Georgia,serif',
+   norwester:'"Norwester",Impact,sans-serif',
+   yellowtail:'"Yellowtail",cursive',
+   cinzel:'"Cinzel",Georgia,serif',
+   cooperHewitt:'"Cooper Hewitt",Arial,sans-serif',
+   base:'"Base",Arial,sans-serif',
+   balloon:'"Balloon","Arial Rounded MT Bold",cursive',
+   bickham:'"Bickham Script",cursive'
+ };
+ root.style.setProperty('--font-family',fonts[d.font]||fonts.system);
+ const bgColor=d.backgroundColor||'#111216';
+ const pageSolid=d.pageBackgroundColor||d.bg||'#f4f4f7';
+ root.style.setProperty('--page-bg-color',bgColor);
+ root.style.setProperty('--page-solid-color',pageSolid);
+ root.style.setProperty('--bg',pageSolid);
+ if(d.background){
+  root.style.setProperty('--page-bg-image',`url("${d.background}")`);
+ }else{
+  root.style.setProperty('--page-bg-image','none');
+ }
+ document.body.style.backgroundColor=pageSolid;
+ document.body.style.backgroundImage='';
+ document.body.style.backgroundSize='';
+ document.body.style.backgroundPosition='';
+ document.body.style.backgroundRepeat='';
+ document.body.style.backgroundAttachment='';
+}
+
+function designStatus(msg,err=false){
+ const el=document.getElementById('designSaveStatus');
+ if(el){el.textContent=msg||'';el.style.color=err?'#d93025':'';}
+}
+function markDesignDirty(){ designStatus('Änderungen noch nicht gespeichert.'); }
+function setAccent(color){
+ state.design=state.design||{};
+ state.design.accent=color; save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function setTheme(theme){
+ state.design=state.design||{};
+ state.design.theme=theme;
+ if(theme==='dark'){state.design.bg='#111216';state.design.card='#1d1e23';state.design.text='#f5f5f7';state.design.surface2='#2a2b31';state.design.line='#3b3c43';state.design.muted='#b8bac3'}
+ else if(theme==='soft'){state.design.bg='#f8f1ed';state.design.card='#fffaf7';state.design.text='#2b2422';state.design.surface2='#f5ebe5';state.design.line='#eadbd3';state.design.muted='#786b65'}
+ else {state.design.bg='#f4f4f7';state.design.card='#fff';state.design.text='#18181b';state.design.surface2='#f0f0f3';state.design.line='#e6e6eb';state.design.muted='#74747d'}
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function setCardColor(color){
+ state.design=state.design||{};
+ state.design.card=color;
+ state.design.surface2=shadeForSurface(color);
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function setTextColor(color){
+ state.design=state.design||{};
+ state.design.text=color;
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function setFontFamily(font){
+ state.design=state.design||{};
+ state.design.font=font;
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function shadeForSurface(hex){
+ try{
+  let h=hex.replace('#','');
+  if(h.length===3)h=h.split('').map(x=>x+x).join('');
+  const n=parseInt(h,16);
+  const r=n>>16,g=(n>>8)&255,b=n&255;
+  const mix=(c,t)=>Math.round(c+(t-c)*0.92);
+  return '#'+[mix(r,255),mix(g,255),mix(b,255)].map(x=>x.toString(16).padStart(2,'0')).join('');
+ }catch(e){return '#f0f0f3'}
+}
+async function saveDesignToCloud(){
+ const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+ if(!sb||!u){designStatus('Bitte zuerst anmelden.',true);return;}
+ designStatus('Design wird gespeichert …');
+ try{
+   const payload={id:u.id,design_settings:{accent:state.design?.accent||'#6d5dfc',theme:state.design?.theme||'light',bg:state.design?.bg||'#f4f4f7',card:state.design?.card||'#fff',text:state.design?.text||'#18181b',surface2:state.design?.surface2||'#f0f0f3',line:state.design?.line||'#e6e6eb',muted:state.design?.muted||'#74747d',font:state.design?.font||'system',background:state.design?.background||null,backgroundColor:state.design?.backgroundColor||'#111216',pageBackgroundColor:state.design?.pageBackgroundColor||state.design?.bg||'#f4f4f7'}};
+   const {error}=await sb.from('profiles').upsert(payload,{onConflict:'id'});
+   if(error)throw error;
+   localStorage.setItem('lesezeit_design_cloud_saved','1');
+   designStatus('✓ Design gespeichert und mit deinem Konto synchronisiert.');
+ }catch(e){
+   console.error('Design speichern:',e);
+   designStatus('Design konnte nicht gespeichert werden: '+(e.message||e),true);
+ }
+}
+async function loadDesignFromCloud(){
+ const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+ if(!sb||!u)return;
+ try{
+   const {data,error}=await sb.from('profiles').select('design_settings').eq('id',u.id).maybeSingle();
+   if(error)throw error;
+   const d=data?.design_settings;
+   if(d && typeof d==='object'){
+     state.design={...state.design,...d};
+     save(); applyDesign(); renderDesign();
+     designStatus('✓ Gespeichertes Design geladen.');
+   }else{
+     designStatus('Noch kein gespeichertes Design.');
+   }
+ }catch(e){
+   console.warn('Design konnte nicht aus der Cloud geladen werden:',e);
+   designStatus('Cloud-Synchronisierung ist noch nicht eingerichtet.');
+ }
+}
+function setBackground(file){
+ if(!file)return;
+ if(!file.type || !file.type.startsWith('image/')){designStatus('Bitte ein Bild auswählen.',true);return;}
+ designStatus('Bild wird vorbereitet …');
+ const reader=new FileReader();
+ reader.onload=e=>{
+   const img=new Image();
+   img.onload=()=>{
+     try{
+       const max=1600;
+       const scale=Math.min(1,max/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
+       const w=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));
+       const h=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
+       const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h;
+       const ctx=canvas.getContext('2d'); ctx.drawImage(img,0,0,w,h);
+       const data=canvas.toDataURL('image/jpeg',0.82);
+       state.design=state.design||{}; state.design.background=data;
+       save(); applyDesign(); renderDesign();
+       designStatus('✓ Hintergrund ausgewählt. Klicke auf „Hintergrund & Design speichern“, um ihn mit deinem Konto zu synchronisieren.');
+     }catch(err){ console.error(err); designStatus('Hintergrund konnte nicht verarbeitet werden.',true); }
+   };
+   img.onerror=()=>designStatus('Das Bild konnte nicht geladen werden.',true);
+   img.src=e.target.result;
+ };
+ reader.onerror=()=>designStatus('Das Bild konnte nicht gelesen werden.',true);
+ reader.readAsDataURL(file);
+}
+function setBackgroundColor(color){
+ state.design=state.design||{};
+ state.design.backgroundColor=color;
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function setPageBackgroundColor(color){
+ state.design=state.design||{};
+ state.design.pageBackgroundColor=color;
+ state.design.bg=color;
+ save(); applyDesign(); renderDesign(); markDesignDirty();
+}
+function useSolidBackground(){
+ state.design=state.design||{};
+ delete state.design.background;
+ save(); applyDesign(); renderDesign(); designStatus('✓ Einfarbiger Hintergrund aktiviert. Klicke auf „Hintergrund & Design speichern“, um ihn zu synchronisieren.');
+}
+function clearBackground(){
+ state.design=state.design||{};
+ delete state.design.background; save(); applyDesign(); renderDesign(); designStatus('Hintergrund zurückgesetzt.');
+}
+function resetDesign(){
+ state.design={accent:'#6d5dfc',bg:'#f4f4f7',card:'#fff',text:'#18181b',surface2:'#f0f0f3',line:'#e6e6eb',muted:'#74747d',font:'system',theme:'light',backgroundColor:'#111216',pageBackgroundColor:'#f4f4f7'};
+ save(); applyDesign(); renderDesign();
+}
+function renderDesign(){
+ const d=state.design||{};
+ document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s.getAttribute('onclick')?.includes(d.accent||'#6d5dfc')));
+ const accentPicker=document.getElementById('accentColorPicker');
+ const accentValue=document.getElementById('accentColorValue');
+ if(accentPicker)accentPicker.value=d.accent||'#6d5dfc';
+ if(accentValue)accentValue.textContent=(d.accent||'#6d5dfc').toUpperCase();
+ const cardPicker=document.getElementById('cardColorPicker');
+ const cardValue=document.getElementById('cardColorValue');
+ if(cardPicker)cardPicker.value=d.card||'#ffffff';
+ if(cardValue)cardValue.textContent=(d.card||'#ffffff').toUpperCase();
+ const textPicker=document.getElementById('textColorPicker');
+ const textValue=document.getElementById('textColorValue');
+ if(textPicker)textPicker.value=d.text||'#18181b';
+ if(textValue)textValue.textContent=(d.text||'#18181b').toUpperCase();
+ const fontPicker=document.getElementById('fontPicker');
+ if(fontPicker)fontPicker.value=d.font||'system';
+ const bgColorPicker=document.getElementById('backgroundColorPicker');
+ const bgColorValue=document.getElementById('backgroundColorValue');
+ if(bgColorPicker) bgColorPicker.value=d.backgroundColor||d.bg||'#111216';
+ if(bgColorValue) bgColorValue.textContent=(d.backgroundColor||'#111216').toUpperCase();
+ const pageColorPicker=document.getElementById('pageColorPicker');
+ const pageColorValue=document.getElementById('pageColorValue');
+ if(pageColorPicker) pageColorPicker.value=d.pageBackgroundColor||d.bg||'#f4f4f7';
+ if(pageColorValue) pageColorValue.textContent=(d.pageBackgroundColor||d.bg||'#f4f4f7').toUpperCase();
+ const preview=document.getElementById('bgPreview');
+ if(preview){
+  preview.style.backgroundImage=d.background?`url("${d.background}")`:'';
+  preview.textContent=d.background?'Dein eigener Hintergrund':'Dein Hintergrund';
+ }
+ document.querySelectorAll('.theme-option').forEach(x=>x.classList.remove('active'));
+ const idx=d.theme==='dark'?1:d.theme==='soft'?2:0;
+ const opts=document.querySelectorAll('.theme-option'); if(opts[idx])opts[idx].classList.add('active');
+}
+
+
+window.addEventListener('lesezeit-auth-ready',()=>{ setTimeout(()=>{ if(typeof loadDesignFromCloud==='function') loadDesignFromCloud(); },0); });
+
+function showPage(page){
+ const pages=['library','stats','design','profile','friends','bookshelf'];
+ pages.forEach(p=>{
+   const el=document.getElementById(p+'Page');
+   if(el) el.classList.toggle('active',page===p);
+ });
+ document.getElementById('navLibrary')?.classList.toggle('active',page==='library');
+ document.getElementById('navStats')?.classList.toggle('active',page==='stats');
+ document.getElementById('navDesign')?.classList.toggle('active',page==='design');
+ document.getElementById('navProfile')?.classList.toggle('active',page==='profile');
+ document.getElementById('navFriends')?.classList.toggle('active',page==='friends');
+ document.getElementById('navBookshelf')?.classList.toggle('active',page==='bookshelf');
+ if(page==='stats' && typeof renderStats==='function') renderStats();
+ if(page==='design' && typeof renderDesign==='function') renderDesign();
+ if(page==='profile' && typeof window.renderProfile==='function') window.renderProfile();
+ if(page==='friends' && typeof window.loadFriends==='function') window.loadFriends();
+ if(page==='bookshelf' && typeof window.renderBookshelf==='function') window.renderBookshelf();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function v39ParsePrice(raw){
+ if(raw===null||raw===undefined||raw==='')return 0;
+ // Supabase/local state may contain a real number (e.g. 14.99) or an imported
+ // localized string (e.g. "14,99"). Never strip the decimal point from real numbers.
+ if(typeof raw==='number')return Number.isFinite(raw)&&raw>0?raw:0;
+ let s=String(raw).trim().replace(/€|EUR/gi,'').replace(/\s/g,'');
+ if(!s)return 0;
+ if(s.includes(',')){
+   s=s.replace(/\./g,'').replace(',','.');
+ }else if((s.match(/\./g)||[]).length>1){
+   s=s.replace(/\./g,'');
+ }
+ const n=Number(s);
+ return Number.isFinite(n)&&n>0?n:0;
+}
+function v39BookPrice(b){
+ const personal=state.personal?.[b._id]?.price;
+ // A saved personal value has priority, but an empty/null personal value falls
+ // back to the original Bookstats price.
+ if(personal!==null&&personal!==undefined&&personal!=='')return v39ParsePrice(personal);
+ return v39ParsePrice(b.Preis);
+}
+function v39LibraryValueData(){
+ const prices=(Array.isArray(books)?books:[]).map(v39BookPrice).filter(n=>n>0);
+ const value=prices.reduce((a,b)=>a+b,0);
+ return {value,count:prices.length,total:Array.isArray(books)?books.length:0,avg:prices.length?value/prices.length:0};
+}
+function bookshelfPrefs(){
+ state.bookshelf=state.bookshelf||{mode:'spines',style:'wood'};
+ return state.bookshelf;
+}
+window.setBookshelfMode=function(mode){
+ const p=bookshelfPrefs();p.mode=mode;save();
+ document.querySelectorAll('.bs-mode').forEach(b=>b.classList.toggle('active',b.dataset.bsMode===mode));
+ window.renderBookshelf();
+};
+window.setBookshelfStyle=function(style){
+ const p=bookshelfPrefs();p.style=style;save();
+ document.querySelectorAll('.bs-style').forEach(b=>b.classList.toggle('active',b.dataset.bsStyle===style));
+ const el=document.getElementById('bookshelf'); if(el){el.classList.remove('bookshelf-wood','bookshelf-dark','bookshelf-light','bookshelf-pink');el.classList.add('bookshelf-'+style);}
+};
+window.renderBookshelf=async function(){
+ const el=document.getElementById('bookshelf');if(!el)return;
+ const p=bookshelfPrefs();
+ document.querySelectorAll('.bs-mode').forEach(b=>b.classList.toggle('active',b.dataset.bsMode===p.mode));
+ document.querySelectorAll('.bs-style').forEach(b=>b.classList.toggle('active',b.dataset.bsStyle===p.style));
+ el.classList.remove('bookshelf-wood','bookshelf-dark','bookshelf-light','bookshelf-pink');el.classList.add('bookshelf-'+p.style);
+ const arr=Array.isArray(books)?books:[];
+ const meta=document.getElementById('bookshelfMeta');if(meta)meta.textContent=`${arr.length} Bücher · deine persönliche Sammlung`;
+ if(!arr.length){el.innerHTML='<div class="bookshelf-empty">Noch keine Bücher im Regal.</div>';return;}
+ const perRow=Math.max(8,Math.min(14,Math.ceil(arr.length/3))),rows=[];
+ for(let i=0;i<arr.length;i+=perRow)rows.push(arr.slice(i,i+perRow));
+ const html=[];
+ for(let ri=0;ri<rows.length;ri++){
+  const row=rows[ri],items=[];
+  for(let i=0;i<row.length;i++){
+   const b=row[i],title=esc(String(b.Titel||'Buch')),safeId=String(b._id).replace(/'/g,"\\'");
+   let cover=cachedCover(b);
+   if(!cover&&personalData(b).cover?.startsWith?.('idb:'))cover=await coverGet(b._id);
+   if(!cover){try{cover=await v3925CloudGet(b._id,'cover');if(cover)await coverPut(String(b._id),cover);}catch(e){}}
+   if(!cover&&b.official_cover_url)cover=b.official_cover_url;
+   if(p.mode==='covers'&&cover){
+    items.push(`<div class="book-face" title="${title}" style="animation-delay:${Math.min(i*35,420)}ms" onclick="openBookShowcase('${safeId}')"><img src="${esc(cover)}" alt="${title}" loading="lazy" onerror="this.style.display='none';this.parentElement.classList.add('no-cover')"><span class="face-fallback">${title}</span></div>`);
+   }else if(p.mode==='spines'){
+    // Der zugeschnittene Buchrücken wird automatisch als echter Buchrücken im Regal verwendet.
+    const back=await getBookPhoto(b._id,'back'),hue=(i*37+ri*71)%360;
+    items.push(back
+      ? `<div class="book-spine photo-spine" title="${title}" style="animation-delay:${Math.min(i*35,420)}ms" onclick="openBookShowcase('${safeId}')"><img src="${esc(back)}" alt="Buchrücken von ${title}" loading="lazy"><span>${title}</span></div>`
+      : `<div class="book-spine" title="${title}" style="--spine-h:${hue};animation-delay:${Math.min(i*35,420)}ms" onclick="openBookShowcase('${safeId}')"><span>${title}</span></div>`);
+   }else{
+    const hue=(i*37+ri*71)%360;
+    items.push(`<div class="book-spine" title="${title}" style="--spine-h:${hue};animation-delay:${Math.min(i*35,420)}ms" onclick="openBookShowcase('${safeId}')"><span>${title}</span></div>`);
+   }
+  }
+  html.push(`<div class="bookshelf-row ${p.mode==='covers'?'covers-row':''}">${items.join('')}</div>`);
+ }
+ el.innerHTML=html.join('');
+ const d=v39LibraryValueData(),v=document.getElementById('bookshelfValue'),sub=document.getElementById('bookshelfValueSub');
+ if(v)v.textContent=d.value.toLocaleString('de-DE',{style:'currency',currency:'EUR'});
+ if(sub)sub.textContent=`${d.count} von ${d.total} Büchern mit Preis · Ø ${d.avg.toLocaleString('de-DE',{style:'currency',currency:'EUR'})}`;
+};
+
+window.closeBookShowcase=function(){document.getElementById('v39BookShowcase')?.classList.remove('show');};
+window.openBookShowcase=async function(id){
+ const b=books.find(x=>String(x._id)===String(id));if(!b)return;selected=b;
+ const p=progress(b),total=Number(b.Seitenanzahl)||0,percent=total?Math.round(p/total*100):0,personal=state.personal?.[b._id]||{};
+ let cover=cachedCover(b);if(!cover&&personal.cover?.startsWith?.('idb:'))cover=await coverGet(b._id);if(!cover&&b.official_cover_url)cover=b.official_cover_url;
+ const back=await getBookPhoto(b._id,'back'),edge=await getBookPhoto(b._id,'edge');
+ const images=[['cover',cover,'▣ Cover'],['back',back,'▥ Rücken'],['edge',edge,'✦ Farbschnitt']].filter(x=>!!x[1]);
+ const be=document.getElementById('v39ShowcaseBook');const showImage=src=>{if(be)be.innerHTML=src?`<img src="${esc(src)}" alt="${esc(b.Titel)}">`:`<div class="v39-showcase-no-cover">${esc(b.Titel)}</div>`};showImage(images[0]?.[1]||'');
+ const sw=document.getElementById('v39ShowcaseImageSwitch');if(sw)sw.innerHTML=images.map((x,i)=>`<button class="${i===0?'active':''}" onclick="showShowcaseImage('${String(b._id).replace(/'/g,"\\'")}','${x[0]}')">${x[2]}</button>`).join('');
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('v39ShowcaseTitle',b.Titel||'Buch');set('v39ShowcaseAuthor',b['Autor(en)']||'Unbekannter Autor');set('v39ShowcaseGenre',b.Genre||'BUCH');set('v39ShowcaseStatus',status(b)==='Gelesen'?'✓ Gelesen':status(b)==='Lese ich gerade'?'📖 Lese ich gerade':'🔖 Zu lesen');set('v39ShowcaseProgressText',`${p.toLocaleString('de-DE')} / ${total.toLocaleString('de-DE')} Seiten`);set('v39ShowcasePct',percent+' %');
+ const pf=document.getElementById('v39ShowcaseProgressFill');if(pf)pf.style.width=percent+'%';const rating=Number(personal.rating??b.Bewertung??0),stars=document.getElementById('v39ShowcaseStars');if(stars)stars.innerHTML=[1,2,3,4,5].map(i=>`<button class="${i<=rating?'active':''}" onclick="setShowcaseRating(${i},'${String(b._id).replace(/'/g,"\\'")}')">${i<=rating?'★':'☆'}</button>`).join('');
+ const meta=document.getElementById('v39ShowcaseMeta'),price=v39BookPrice(b);if(meta)meta.innerHTML=`<div><small>ISBN</small><strong>${esc(b.ISBN||'—')}</strong></div><div><small>Seiten</small><strong>${total||'—'}</strong></div><div><small>Preis</small><strong>${price?price.toLocaleString('de-DE',{style:'currency',currency:'EUR'}):'—'}</strong></div><div><small>Erscheinungsjahr</small><strong>${esc(b.Erscheinungsjahr||'—')}</strong></div>`;
+ const db=document.getElementById('v39ShowcaseDetailBtn');if(db)db.onclick=()=>{closeBookShowcase();openDetail(b._id)};document.getElementById('v39BookShowcase')?.classList.add('show');
+};
+window.showShowcaseImage=async function(id,type){const b=books.find(x=>String(x._id)===String(id));if(!b)return;let src='';if(type==='cover'){src=cachedCover(b);if(!src&&state.personal?.[b._id]?.cover?.startsWith?.('idb:'))src=await coverGet(b._id);if(!src&&b.official_cover_url)src=b.official_cover_url;}else src=await getBookPhoto(b._id,type);const el=document.getElementById('v39ShowcaseBook');if(el)el.innerHTML=src?`<img src="${esc(src)}" alt="${esc(b.Titel)}">`:`<div class="v39-showcase-no-cover">Kein Foto vorhanden</div>`;document.querySelectorAll('#v39ShowcaseImageSwitch button').forEach(btn=>btn.classList.remove('active'));const labels={cover:'▣ Cover',back:'▥ Rücken',edge:'✦ Farbschnitt'};document.querySelectorAll('#v39ShowcaseImageSwitch button').forEach(btn=>{if(btn.textContent===labels[type])btn.classList.add('active');});};
+window.setShowcaseRating=function(value,id){const b=books.find(x=>String(x._id)===String(id));if(!b)return;state.personal=state.personal||{};state.personal[b._id]=state.personal[b._id]||{};state.personal[b._id].rating=value;save();openBookShowcase(b._id);};
+
+window.animateLibraryValue=function(){
+ const d=v39LibraryValueData(), ov=document.getElementById('v39ValueOverlay'), out=document.getElementById('v39AnimatedValue'), sub=document.getElementById('v39AnimatedSub'); if(!ov||!out)return;
+ ov.classList.add('show'); if(sub)sub.textContent=`${d.count} von ${d.total} Büchern mit Preis`;
+ const start=performance.now(), duration=1500;
+ function tick(now){const p=Math.min(1,(now-start)/duration),e=1-Math.pow(1-p,3); out.textContent=(d.value*e).toLocaleString('de-DE',{style:'currency',currency:'EUR'}); if(p<1)requestAnimationFrame(tick);}
+ requestAnimationFrame(tick);
+};
+window.closeLibraryValue=function(){document.getElementById('v39ValueOverlay')?.classList.remove('show');};
+
+window.statsRange='all';
+function v39GoalData(){
+ const y=new Date().getFullYear();
+ state.goals=state.goals||{};
+ const g=state.goals[y]||{books:50};
+ return {year:y,books:Math.max(1,Number(g.books)||50)};
+}
+window.saveV39Goal=function(){
+ const g=v39GoalData();
+ const n=Math.max(1,Math.min(1000,Math.round(Number(document.getElementById('v39GoalInput')?.value)||50)));
+ state.goals=state.goals||{};state.goals[g.year]={books:n};save();renderStats();
+};
+function renderV39Goal(readYearCount){
+ const g=v39GoalData(),pct=Math.min(100,Math.round(readYearCount/g.books*100));
+ const y=document.getElementById('v39GoalYear'),t=document.getElementById('v39GoalText'),f=document.getElementById('v39GoalFill'),p=document.getElementById('v39GoalPercent'),i=document.getElementById('v39GoalInput');
+ if(y)y.textContent=g.year;if(t)t.textContent=`${readYearCount.toLocaleString('de-DE')} von ${g.books.toLocaleString('de-DE')} Büchern gelesen`;if(f)f.style.width=pct+'%';if(p)p.textContent=pct+' %';if(i)i.value=g.books;
+}
+window.setStatsRange=function(r){window.statsRange=r;document.querySelectorAll('.stats-filter').forEach(b=>b.classList.toggle('active',b.dataset.range===r));renderStats();};
+window.renderStats=function renderStats(){
+ const allSessions=Array.isArray(state.sessions)?state.sessions:[];
+ const now=new Date();
+ const inRange=(s)=>{if(window.statsRange==='all')return true;const d=new Date(s.ended_at||s.started_at);if(isNaN(d))return false;if(window.statsRange==='year')return d.getFullYear()===now.getFullYear();if(window.statsRange==='month')return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();if(window.statsRange==='7d')return d>=new Date(Date.now()-7*86400000);return true;};
+ const sessions=allSessions.filter(inRange);
+ const sessionPageValue=s=>Math.max(0,Number(s.pages_read)||Math.max(0,(Number(s.end_page)||0)-(Number(s.start_page)||0))); 
+ const pagesFromSessions=sessions.reduce((n,s)=>n+sessionPageValue(s),0);
+ const minutes=sessions.reduce((n,s)=>n+Number(s.duration_minutes||((Number(s.duration_seconds)||0)/60)||0),0);
+ const read=books.filter(b=>status(b)==='Gelesen');
+ const readInRange=read.filter(b=>{if(window.statsRange==='all')return true;const d=new Date(state.personal[b._id]?.end_date||b.Enddatum||'');if(isNaN(d))return false;if(window.statsRange==='year')return d.getFullYear()===now.getFullYear();if(window.statsRange==='month')return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();if(window.statsRange==='7d')return d>=new Date(Date.now()-7*86400000);return true;});
+ const readThisYear=read.filter(b=>{const d=new Date(state.personal[b._id]?.end_date||b.Enddatum||'');return !isNaN(d)&&d.getFullYear()===now.getFullYear();});
+ renderV39Goal(readThisYear.length);
+ // Gelesene Seiten werden pro Buch über den höchsten bekannten Fortschritt
+ // berechnet. Lesesessions liefern dafür mindestens ihre Endseite; mehrere
+ // Sessions desselben Buches werden also nicht doppelt addiert.
+ const sessionMaxByBook=new Map();
+ sessions.forEach(s=>{
+   const k=v39ResolveSessionBookId(s); if(!k)return;
+   const end=Math.max(0,Number(s.end_page)||0);
+   sessionMaxByBook.set(k,Math.max(sessionMaxByBook.get(k)||0,end));
+ });
+ // Für den Gesamtzeitraum bleibt die historische Bookstats-Seitenzahl
+ // maßgeblich. Die einzelnen Lesesessions sind Detaildaten und werden
+ // nicht noch einmal auf diese historische Summe aufgeschlagen.
+ const sessionPagesInRange=sessions.reduce((n,s)=>n+sessionPageValue(s),0);
+ const totalPages=window.statsRange==='all'
+   ? BOOKSTATS_READ_PAGES_BASELINE+v39AdditionalReadPages()
+   : sessionPagesInRange;
+ const speed=minutes>0?Math.round(totalPages/(minutes/60)):0;
+ const libraryPrices=books.map(v39BookPrice).filter(n=>n>0);
+ const libraryValue=libraryPrices.reduce((n,v)=>n+v,0);
+ const libraryValueEl=document.getElementById('statLibraryValue');
+ const libraryValueSub=document.getElementById('statLibraryValueSub');
+ if(libraryValueEl)libraryValueEl.textContent=libraryValue.toLocaleString('de-DE',{style:'currency',currency:'EUR'});
+ if(libraryValueSub)libraryValueSub.textContent=`${libraryPrices.length} von ${books.length} Büchern mit Preis · Ø ${libraryPrices.length?(libraryValue/libraryPrices.length).toLocaleString('de-DE',{style:'currency',currency:'EUR'}):'0,00 €'}`;
+ document.getElementById('statBooks').textContent=readInRange.length;
+ document.getElementById('statPages').textContent=totalPages.toLocaleString('de-DE');
+ document.getElementById('statHours').textContent=(minutes/60).toFixed(1).replace('.',',')+' h';
+ document.getElementById('statSpeed').textContent=speed.toLocaleString('de-DE');
+ document.getElementById('statsTrendSubtitle').textContent=window.statsRange==='all'?'Gelesene Seiten pro Monat':'Gelesene Seiten im gewählten Zeitraum';
+ const months=[];for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({key:`${d.getFullYear()}-${d.getMonth()}`,label:d.toLocaleDateString('de-DE',{month:'short'}),value:0});}
+ sessions.forEach(s=>{const d=new Date(s.ended_at||s.started_at);if(isNaN(d))return;const m=months.find(x=>x.key===`${d.getFullYear()}-${d.getMonth()}`);if(m)m.value+=sessionPageValue(s);});
+ const maxTrend=Math.max(...months.map(x=>x.value),1);document.getElementById('statsTrend').innerHTML=months.map(m=>`<div class="trend-col"><div class="trend-value">${m.value}</div><div class="trend-bar-wrap"><div class="trend-bar" style="height:${Math.max(3,m.value/maxTrend*100)}%"></div></div><div class="trend-label">${m.label}</div></div>`).join('');
+ const counts={Gelesen:0,'Lese ich gerade':0,Ungelesen:0};books.forEach(b=>counts[status(b)]++);const max=Math.max(...Object.values(counts),1);document.getElementById('statusChart').innerHTML=Object.entries(counts).map(([k,v])=>`<div class="barrow"><span>${k}</span><div class="bar"><i style="width:${v/max*100}%"></i></div><b>${v}</b></div>`).join('');
+ const genres={};readInRange.forEach(b=>{const g=b.Genre||'Ohne Genre';genres[g]=(genres[g]||0)+1});const top=Object.entries(genres).sort((a,b)=>b[1]-a[1]).slice(0,7);const gm=Math.max(...top.map(x=>x[1]),1);document.getElementById('genreChart').innerHTML=top.length?top.map(([k,v])=>`<div class="barrow"><span>${esc(k)}</span><div class="bar"><i style="width:${v/gm*100}%"></i></div><b>${v}</b></div>`).join(''):'<div class="muted">Noch keine gelesenen Bücher im Zeitraum.</div>';
+ const ratings=[1,2,3,4,5].map(n=>[n,readInRange.filter(b=>(state.personal[b._id]?.rating??Number(b.Bewertung||0))===n).length]);const rm=Math.max(...ratings.map(x=>x[1]),1);document.getElementById('ratingChart').innerHTML=ratings.map(([k,v])=>`<div class="barrow"><span>${'★'.repeat(k)}</span><div class="bar"><i style="width:${v/rm*100}%"></i></div><b>${v}</b></div>`).join('');
+ const authors={};readInRange.forEach(b=>{const a=String(b['Autor(en)']||'Unbekannter Autor').trim();authors[a]=(authors[a]||0)+1});
+ const topAuthors=Object.entries(authors).sort((a,b)=>b[1]-a[1]).slice(0,6);
+ document.getElementById('v39AuthorChart').innerHTML=topAuthors.length?topAuthors.map(([name,count],i)=>`<div class="v39-list-row"><span class="v39-rank">${i+1}</span><span class="v39-name">${esc(name)}</span><small>${count} ${count===1?'Buch':'Bücher'}</small></div>`).join(''):'<div class="muted">Noch keine gelesenen Bücher im Zeitraum.</div>';
+ const rated=readInRange.filter(b=>(state.personal[b._id]?.rating??Number(b.Bewertung||0))>0);
+ const avgRating=rated.length?(rated.reduce((n,b)=>n+Number(state.personal[b._id]?.rating??Number(b.Bewertung||0)),0)/rated.length).toFixed(1).replace('.',','):'–';
+ const uniqueAuthors=new Set(readInRange.map(b=>String(b['Autor(en)']||'').trim()).filter(Boolean)).size;
+ const uniqueGenres=new Set(readInRange.map(b=>String(b.Genre||'').trim()).filter(Boolean)).size;
+ document.getElementById('v39Metrics').innerHTML=`<div class="v39-metric"><span>⭐ Ø Bewertung</span><b>${avgRating}${avgRating!=='–'?' / 5':''}</b></div><div class="v39-metric"><span>✍️ Autoren</span><b>${uniqueAuthors}</b></div><div class="v39-metric"><span>🎭 Genres</span><b>${uniqueGenres}</b></div>`;
+ const longest=readInRange.reduce((a,b)=>(Number(b.Seitenanzahl)||0)>(Number(a?.Seitenanzahl)||0)?b:a,null);const fastest=sessions.length?sessions.reduce((a,b)=>Number(b.pages_read||0)>(Number(a?.pages_read||0))?b:a,null):null;const sessionPages=fastest?Number(fastest.pages_read||0):0;document.getElementById('statsHighlights').innerHTML=`<div class="highlight-box"><span>Längstes gelesenes Buch</span><b>${longest?esc(longest.Titel):'–'}</b><span>${longest?(Number(longest.Seitenanzahl)||0)+' Seiten':''}</span></div><div class="highlight-box"><span>Meiste Seiten in einer Session</span><b>${sessionPages||0}</b><span>Seiten</span></div><div class="highlight-box"><span>Sessions</span><b>${sessions.length}</b><span>im Zeitraum</span></div><div class="highlight-box"><span>Ø Seiten/Session</span><b>${sessions.length?Math.round(totalPages/sessions.length):0}</b><span>Seiten</span></div>`;
+}
+
+function v39ResolveSessionBookId(s){
+  const raw=String(s?.book_id??s?.bookId??'');
+  if(!raw) return '';
+  if(books.some(b=>String(b._id)===raw)) return raw;
+  // Older local versions used the original zero-based Bookstats index,
+  // while Supabase user_books ids are one-based. Support both forms.
+  if(/^\d+$/.test(raw)){
+    const n=Number(raw);
+    const plus=String(n+1), minus=String(n-1);
+    if(books.some(b=>String(b._id)===plus)) return plus;
+    if(n>0 && books.some(b=>String(b._id)===minus)) return minus;
+  }
+  return raw;
+}
+function v39SessionPagesByBook(){
+  const map=new Map();
+  (state.sessions||[]).forEach(s=>{
+    const k=v39ResolveSessionBookId(s);
+    if(!k)return;
+    const pages=Math.max(0,Number(s.pages_read)||Math.max(0,(Number(s.end_page)||0)-(Number(s.start_page)||0)));
+    map.set(k,(map.get(k)||0)+pages);
+  });
+  return map;
+}
+
+const BOOKSTATS_READ_PAGES_BASELINE=16716;
+// Die 16.716 Seiten stammen aus den 37 ursprünglich als „Gelesen“ markierten
+// Bookstats-Büchern. Bücher, die erst jetzt zusätzlich als „Gelesen“ markiert
+// werden, sollen ihre vollständige Seitenzahl zusätzlich beitragen.
+const BOOKSTATS_BASELINE_KEYS=new Set((Array.isArray(books)?books:[])
+ .filter(b=>String(b?.Lesestatus||'').trim()==='Gelesen')
+ .map(b=>{
+   const isbn=String(b?.ISBN||'').replace(/[^0-9Xx]/g,'').toUpperCase();
+   if(isbn)return 'isbn:'+isbn;
+   return 'title:'+String(b?.Titel||'').trim().toLowerCase().replace(/\s+/g,' ');
+ }));
+function v39BookKey(b){
+ const isbn=String(b?.ISBN||'').replace(/[^0-9Xx]/g,'').toUpperCase();
+ if(isbn)return 'isbn:'+isbn;
+ return 'title:'+String(b?.Titel||'').trim().toLowerCase().replace(/\s+/g,' ');
+}
+function v39AdditionalReadPages(){
+ return (Array.isArray(books)?books:[])
+   .filter(b=>status(b)==='Gelesen' && !BOOKSTATS_BASELINE_KEYS.has(v39BookKey(b)))
+   .reduce((n,b)=>n+(Number(b.Seitenanzahl)||0),0);
+}
+
+window.refresh=function refresh(){
+ document.getElementById('bookCount').textContent=books.length;
+ document.getElementById('readCount').textContent=books.filter(b=>status(b)==='Gelesen').length;
+ const totalPages=books.reduce((n,b)=>n+(Number(b.Seitenanzahl)||0),0);
+ const sessionMaxByBook=new Map();
+ (state.sessions||[]).forEach(s=>{
+   const k=v39ResolveSessionBookId(s); if(!k)return;
+   const end=Math.max(0,Number(s.end_page)||0);
+   sessionMaxByBook.set(k,Math.max(sessionMaxByBook.get(k)||0,end));
+ });
+ // Die 37 bereits gelesenen Bookstats-Bücher bringen ihren historischen
+ // Gesamtwert von 16.716 gelesenen Seiten mit. Lesesessions sind eine
+ // zusätzliche Historie und dürfen diese Zahl nicht erneut addieren.
+ const readPages=BOOKSTATS_READ_PAGES_BASELINE+v39AdditionalReadPages();
+ const readPct=totalPages?Math.min(100,Math.round(readPages/totalPages*100)):0;
+ document.getElementById('pageCount').textContent=totalPages.toLocaleString('de-DE');
+ document.getElementById('readPages').textContent=readPages.toLocaleString('de-DE');
+ document.getElementById('readPagesTotal').textContent=`von ${totalPages.toLocaleString('de-DE')} Seiten`;
+ document.getElementById('readPagesBar').style.width=readPct+'%';
+ document.getElementById('readPagesPct').textContent=readPct+' % deiner Bibliothek';
+ document.getElementById('sessionCount').textContent=state.sessions.length;
+ const c=books.find(b=>status(b)==='Lese ich gerade')||selected;
+ if(c){document.getElementById('currentBook').textContent=c.Titel;document.getElementById('currentProgressText').textContent=`${progress(c)} / ${c.Seitenanzahl||0} Seiten`;document.getElementById('currentProgress').style.width=pct(c)+'%'}
+}
+refresh();setView(viewMode);
 </script>
 
 <div id="v12CloudPanel">
@@ -2758,6 +3652,6 @@ function closeFriendProfile(){$('friendProfileModal')?.classList.remove('open')}
 window.openFriendProfile=openFriendProfile;window.closeFriendProfile=closeFriendProfile;
 window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;window.acceptFriend=id=>updateFriend(id,'accepted');window.declineFriend=id=>updateFriend(id,'declined');window.removeFriend=async id=>{if(!confirm('Freundschaft wirklich entfernen?'))return;try{const {error}=await sb().from('friendships').delete().eq('id',id);if(error)throw error;await loadFriends()}catch(e){alert('Fehler: '+(e?.message||e))}};window.loadFriends=loadFriends;window.addEventListener('lesezeit-auth-ready',()=>{if($('friendsPage')?.classList.contains('active'))loadFriends()});window.addEventListener('lesezeit-cloud-ready',()=>{if($('friendsPage')?.classList.contains('active'))loadFriends()})})();
 </script>
-<div id="v39CropOverlay" class="v39-crop-overlay" aria-hidden="true"><div class="v39-crop-dialog" role="dialog" aria-modal="true" aria-label="Bildausschnitt wählen"><div class="v39-crop-head"><h3 id="v39CropTitle">Buchrücken zuschneiden</h3><button class="btn ghost" type="button" onclick="cancelV39Crop()">✕</button></div><div class="v39-crop-sub">Wähle genau den Bereich aus. Auf dem iPhone kannst du den Ausschnitt bequem mit den Schiebereglern an allen vier Seiten verändern.</div><div id="v39CropStage" class="v39-crop-stage"><img id="v39CropImg" class="v39-crop-img" alt="Zuschneiden"><div id="v39CropSelection" class="v39-crop-selection" aria-label="Ausschnitt verschieben"></div></div><div class="v39-crop-tools"><span class="v39-crop-tip">💡 <span id="v39CropKind" class="v39-crop-kind">Buchrücken</span> – schiebe die Regler, bis nur der gewünschte Bereich im weißen Rahmen liegt.</span><span id="v39CropSize" class="v39-crop-size"></span><button class="btn" type="button" onclick="fitV39Crop()">↺ Zurücksetzen</button></div><div class="v39-mobile-crop-controls"><label>Links <input id="v39CropLeft" type="range" min="0" max="98" value="38" oninput="setV39Slider('left',this.value)"></label><label>Oben <input id="v39CropTop" type="range" min="0" max="98" value="0" oninput="setV39Slider('top',this.value)"></label><label>Rechts <input id="v39CropRight" type="range" min="2" max="100" value="62" oninput="setV39Slider('right',this.value)"></label><label>Unten <input id="v39CropBottom" type="range" min="2" max="100" value="100" oninput="setV39Slider('bottom',this.value)"></label></div><div class="v39-crop-actions"><button class="btn" type="button" onclick="cancelV39Crop()">Abbrechen</button><button class="btn dark" type="button" onclick="saveV39Crop()">✂️ Ausschnitt speichern</button></div></div></div>
+<div id="v39CropOverlay" class="v39-crop-overlay" aria-hidden="true"><div class="v39-crop-dialog" role="dialog" aria-modal="true" aria-label="Bildausschnitt wählen"><div class="v39-crop-head"><h3 id="v39CropTitle">Buchrücken zuschneiden</h3><button class="btn ghost" type="button" onclick="cancelV39Crop()">✕</button></div><div class="v39-crop-sub">Ziehe den Rahmen über genau den Buchrücken bzw. Farbschnitt. Du kannst ihn verschieben und an <b>allen Seiten</b> schmaler oder breiter machen.</div><div class="v39-crop-presets"><button class="v39-crop-preset active" data-preset="thin" type="button" onclick="setV39CropPreset('thin')">Sehr dünn</button><button class="v39-crop-preset" data-preset="medium" type="button" onclick="setV39CropPreset('medium')">Buchrücken</button><button class="v39-crop-preset" data-preset="wide" type="button" onclick="setV39CropPreset('wide')">Farbschnitt</button><button class="v39-crop-preset" data-preset="free" type="button" onclick="setV39CropPreset('free')">Frei</button></div><div id="v39CropStage" class="v39-crop-stage"><img id="v39CropImg" class="v39-crop-img" alt="Zuschneiden"><div id="v39CropSelection" class="v39-crop-selection"><span class="v39-crop-handle nw" data-h="nw"></span><span class="v39-crop-handle n" data-h="n"></span><span class="v39-crop-handle ne" data-h="ne"></span><span class="v39-crop-handle w" data-h="w"></span><span class="v39-crop-handle e" data-h="e"></span><span class="v39-crop-handle sw" data-h="sw"></span><span class="v39-crop-handle s" data-h="s"></span><span class="v39-crop-handle se" data-h="se"></span></div></div><div class="v39-crop-tools"><span class="v39-crop-tip">💡 Für den Buchrücken kannst du die Seiten-Griffe ziehen und den Ausschnitt extrem dünn machen.</span><span id="v39CropSize" class="v39-crop-size"></span><button class="btn" type="button" onclick="fitV39Crop()">↺ Zurücksetzen</button></div><div class="v39-crop-actions"><button class="btn" type="button" onclick="cancelV39Crop()">Abbrechen</button><button class="btn dark" type="button" onclick="saveV39Crop()">✂️ Ausschnitt speichern</button></div></div></div>
 </body>
 </html>
