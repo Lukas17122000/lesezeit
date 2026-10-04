@@ -372,6 +372,15 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 }
 </style>
 </style>
+<style id="v39-35-detail-inner-scroll">
+/* V39.35: iOS – nur der eigentliche Buchinhalt scrollt. Der Dialog selbst bleibt fest. */
+#detailModal .dialog{display:flex !important;flex-direction:column !important;overflow:hidden !important;min-height:0 !important;}
+#detailModal #detail{flex:1 1 auto !important;min-height:0 !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;touch-action:pan-y !important;overscroll-behavior:contain !important;}
+@media(max-width:700px){
+  #detailModal .dialog{top:12px !important;bottom:12px !important;height:auto !important;max-height:none !important;overflow:hidden !important;}
+  #detailModal #detail{height:auto !important;max-height:none !important;}
+}
+</style>
 </head>
 <body>
 <style id="v22-auth-css">
@@ -1132,42 +1141,33 @@ async function ensureFourthWingData(){
   }catch(e){console.warn('Fourth Wing Daten:',e);}
 }
 
-/* V39.34: iOS – Buchdetail als vollständig eigenständigen Touch-Scrollbereich behandeln. */
+/* V39.35: iOS – Touch-Scroll direkt auf den eigentlichen Buchinhalt (#detail). */
 function v3934SetupDetailTouchScroll(){
  const modal=document.getElementById('detailModal');
- const dialog=modal?.querySelector('.dialog');
- if(!modal||!dialog||dialog.dataset.v3934Touch==='1')return;
- dialog.dataset.v3934Touch='1';
- let lastY=0, dragging=false;
+ const scroller=document.getElementById('detail');
+ if(!modal||!scroller||scroller.dataset.v3935Touch==='1')return;
+ scroller.dataset.v3935Touch='1';
+ let lastY=0,dragging=false;
  const start=e=>{
    if(e.touches.length!==1)return;
-   lastY=e.touches[0].clientY;
-   dragging=true;
+   lastY=e.touches[0].clientY; dragging=true;
  };
  const move=e=>{
    if(!dragging||e.touches.length!==1)return;
    const y=e.touches[0].clientY;
-   const dy=lastY-y;
-   lastY=y;
+   const dy=lastY-y; lastY=y;
    if(Math.abs(dy)<0.01)return;
-   const max=Math.max(0,dialog.scrollHeight-dialog.clientHeight);
-   const before=dialog.scrollTop;
-   let next=before+dy;
-   if(next<0)next=0;
-   if(next>max)next=max;
-   dialog.scrollTop=next;
-   // Niemals den Touch an den Body/Backdrop weiterreichen.
+   const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
+   scroller.scrollTop=Math.max(0,Math.min(max,scroller.scrollTop+dy));
    e.preventDefault();
  };
  const end=()=>{dragging=false};
- dialog.addEventListener('touchstart',start,{passive:false,capture:true});
- dialog.addEventListener('touchmove',move,{passive:false,capture:true});
- dialog.addEventListener('touchend',end,{passive:true,capture:true});
- dialog.addEventListener('touchcancel',end,{passive:true,capture:true});
- // Falls Safari den normalen Scrollweg trotzdem versucht: Touches auf dem Modal
- // außerhalb des Dialogs vollständig blockieren.
- modal.addEventListener('touchmove',function(e){
-   if(!dialog.contains(e.target))e.preventDefault();
+ scroller.addEventListener('touchstart',start,{passive:false,capture:true});
+ scroller.addEventListener('touchmove',move,{passive:false,capture:true});
+ scroller.addEventListener('touchend',end,{passive:true,capture:true});
+ scroller.addEventListener('touchcancel',end,{passive:true,capture:true});
+ modal.addEventListener('touchmove',e=>{
+   if(!scroller.contains(e.target))e.preventDefault();
  },{passive:false,capture:true});
 }
 
