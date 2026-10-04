@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V39.2 – Lesezeitewelt</title>
+<title>Lesezeit · V39.43 – Lesezeitewelt</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;500;600;700;800;900&family=Julius+Sans+One&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Yellowtail&display=swap');
 
@@ -1306,8 +1306,12 @@ function v34RenderTimer(){
   const active=!!st.running;
   const btn=document.getElementById('timerButton');
   if(btn) btn.textContent=active?'■ Stoppen':'▶ Starten';
+  const vbtn=document.getElementById('v34TimerStart');
+  if(vbtn) vbtn.textContent=active?'■ Läuft …':'▶ Start';
   const msg=document.getElementById('timerMsg');
   if(msg && active) msg.textContent='Timer läuft …';
+  const vmsg=document.getElementById('v34TimerMsg');
+  if(vmsg && active) vmsg.textContent='Timer läuft …';
 }
 function v34StartTimer(){
   if(!selected)return;
@@ -1323,8 +1327,15 @@ function v34StartTimer(){
   const st=window.v34TimerState;
   if(st.bookId!==selected._id){st.bookId=selected._id;st.startedAt=null;st.elapsed=0;}
   if(!st.running){st.startedAt=Date.now();st.running=true;}
+  // Timerzustand zusätzlich separat sichern. So bleibt der laufende Timer auch bei einem
+  // versehentlichen Schließen/Neuladen der Detailansicht nachvollziehbar.
+  try{
+    localStorage.setItem('lesezeit_active_timer',JSON.stringify({
+      bookId:String(st.bookId),startedAt:st.startedAt,elapsed:Number(st.elapsed||0),running:!!st.running,store:activeStore
+    }));
+  }catch(e){}
   clearInterval(st.interval);
-  st.interval=setInterval(v34RenderTimer,500);
+  st.interval=setInterval(v34RenderTimer,250);
   v34RenderTimer();
   const msg=document.getElementById('v34TimerMsg'); if(msg)msg.textContent='Timer läuft …';
   const legacyMsg=document.getElementById('timerMsg'); if(legacyMsg)legacyMsg.textContent='Timer läuft …';
@@ -1336,6 +1347,11 @@ function v34PauseTimer(){
   st.elapsed += Date.now()-st.startedAt;
   st.startedAt=null;st.running=false;
   clearInterval(st.interval);st.interval=null;
+  try{
+    localStorage.setItem('lesezeit_active_timer',JSON.stringify({
+      bookId:String(st.bookId),startedAt:null,elapsed:Number(st.elapsed||0),running:false,store:activeStore
+    }));
+  }catch(e){}
   v34RenderTimer();
   const msg=document.getElementById('v34TimerMsg'); if(msg)msg.textContent='Pausiert';
 }
@@ -1398,11 +1414,15 @@ async function v34StopTimer(){
     if(typeof refresh==='function') refresh();
     if(typeof renderBooks==='function') renderBooks();
     if(typeof renderStats==='function') renderStats();
+    // Nach dem Speichern sofort prüfen, dass die Session wirklich im lokalen Speicher steht.
+    const verified=(state.sessions||[]).some(x=>String(x.id)===String(savedSession.id));
+    if(!verified) throw new Error('Die Lesesession konnte lokal nicht bestätigt werden.');
     if(msg)msg.textContent=`✓ Session gespeichert · ${durationMin} Min · ${pagesRead} Seiten`;
   }catch(e){
     console.error('V34 timer save',e);
     if(msg)msg.textContent='Fehler beim Speichern: '+(e?.message||'unbekannter Fehler');
   }finally{
+    try{localStorage.removeItem('lesezeit_active_timer');}catch(e){}
     st.bookId=null;st.elapsed=0;st.startedAt=null;st.running=false;
     clearInterval(st.interval);st.interval=null;
     v34RenderTimer();
