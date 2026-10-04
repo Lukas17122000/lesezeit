@@ -1500,20 +1500,20 @@ function setDate(field,value){
  state.personal[selected._id][field]=normalized;
  save();
 }
-// V39.28: Eigene Cover, Buchrücken und Farbschnitt-Fotos werden zusätzlich
+// V39.29: Eigene Cover, Buchrücken und Farbschnitt-Fotos werden zusätzlich
 // dauerhaft in Supabase gespeichert. IndexedDB bleibt als lokaler Cache erhalten.
 const V3925_IMAGE_TABLE='user_book_images';
 function v3925CloudReady(){return !!(window.LesezeitSupabase&&window.LesezeitCurrentUser);}
 function v3925ImageType(type){return type==='cover'?'cover':type==='back'?'back':'edge';}
 async function v3925CloudPut(id,type,data){
-  if(!v3925CloudReady()||!data)return;
+  if(!v3925CloudReady()||!data)return false;
   const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
   const userBookId=Number(id);
-  if(!Number.isFinite(userBookId))return;
-  const {error}=await sb.from(V3925_IMAGE_TABLE).upsert({
-    user_id:u.id,user_book_id:userBookId,photo_type:v3925ImageType(type),image_data:data,updated_at:new Date().toISOString()
-  },{onConflict:'user_id,user_book_id,photo_type'});
+  if(!Number.isFinite(userBookId))throw new Error('Ungültige Buch-ID für Cloud-Bild.');
+  const payload={user_id:u.id,user_book_id:userBookId,photo_type:v3925ImageType(type),image_data:data,updated_at:new Date().toISOString()};
+  const {error}=await sb.from(V3925_IMAGE_TABLE).upsert(payload,{onConflict:'user_id,user_book_id,photo_type'});
   if(error)throw error;
+  return true;
 }
 async function v3925CloudGet(id,type){
   if(!v3925CloudReady())return '';
@@ -1532,8 +1532,10 @@ async function v3925CloudDelete(id,type){
 }
 function bookPhotoKey(id,type){return `photo:${type}:${String(id)}`;}
 async function putBookPhoto(id,type,data){
+  if(!data)throw new Error('Kein Bild vorhanden.');
+  // Cloud first: only report success after the image is really in Supabase.
+  if(v3925CloudReady()) await v3925CloudPut(id,type,data);
   await coverPut(bookPhotoKey(id,type),data);
-  try{await v3925CloudPut(id,type,data);}catch(e){console.warn('V39.28 Cloud-Foto:',e);}
 }
 async function getBookPhoto(id,type){
   const key=bookPhotoKey(id,type);
@@ -1542,16 +1544,17 @@ async function getBookPhoto(id,type){
   try{
     const cloud=await v3925CloudGet(id,type);
     if(cloud){await coverPut(key,cloud);return cloud;}
-  }catch(e){console.warn('V39.28 Cloud-Foto laden:',e);}
+  }catch(e){console.warn('V39.29 Cloud-Foto laden:',e);}
   return '';
 }
 async function deleteBookPhoto(id,type){
   await coverDelete(bookPhotoKey(id,type));
-  try{await v3925CloudDelete(id,type);}catch(e){console.warn('V39.28 Cloud-Foto löschen:',e);}
+  try{await v3925CloudDelete(id,type);}catch(e){console.warn('V39.29 Cloud-Foto löschen:',e);}
 }
 async function v3925MigrateImagesToCloud(){
-  if(!v3925CloudReady())return;
+  if(!v3925CloudReady())return {migrated:0,failed:0};
   const arr=Array.isArray(books)?books:[];
+  let migrated=0,failed=0;
   for(const b of arr){
     const id=String(b._id||''); if(!id)continue;
     try{
@@ -1559,36 +1562,42 @@ async function v3925MigrateImagesToCloud(){
       let cover='';
       if(pd?.cover?.startsWith?.('idb:'))cover=await coverGet(id);
       else if(pd?.cover?.startsWith?.('data:image/'))cover=pd.cover;
-      if(cover)await v3925CloudPut(id,'cover',cover);
+      if(cover){await v3925CloudPut(id,'cover',cover);migrated++;}
       for(const type of ['back','edge']){
         const data=await coverGet(bookPhotoKey(id,type));
-        if(data)await v3925CloudPut(id,type,data);
+        if(data){await v3925CloudPut(id,type,data);migrated++;}
       }
-    }catch(e){console.warn('V39.28 Bild-Migration:',id,e);}
+    }catch(e){failed++;console.warn('V39.29 Bild-Migration:',id,e);}
   }
+  return {migrated,failed};
 }
 async function v3925RestoreCloudImages(){
-  if(!v3925CloudReady())return;
+  if(!v3925CloudReady())return {loaded:0};
   const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
-  try{
-    const {data,error}=await sb.from(V3925_IMAGE_TABLE).select('user_book_id,photo_type,image_data').eq('user_id',u.id);
-    if(error)throw error;
-    for(const row of (data||[])){
-      const keyType=row.photo_type==='cover'?'cover':row.photo_type;
-      if(!row.image_data)continue;
-      await coverPut(keyType==='cover'?String(row.user_book_id):bookPhotoKey(row.user_book_id,keyType),row.image_data);
-      if(keyType==='cover'){
-        state.personal=state.personal||{};state.personal[String(row.user_book_id)]=state.personal[String(row.user_book_id)]||{};
-        state.personal[String(row.user_book_id)].cover='idb:'+String(row.user_book_id);
-      }
+  const {data,error}=await sb.from(V3925_IMAGE_TABLE).select('user_book_id,photo_type,image_data').eq('user_id',u.id);
+  if(error)throw error;
+  let loaded=0;
+  for(const row of (data||[])){
+    const keyType=row.photo_type==='cover'?'cover':row.photo_type;
+    if(!row.image_data)continue;
+    await coverPut(keyType==='cover'?String(row.user_book_id):bookPhotoKey(row.user_book_id,keyType),row.image_data);
+    if(keyType==='cover'){
+      state.personal=state.personal||{};state.personal[String(row.user_book_id)]=state.personal[String(row.user_book_id)]||{};
+      state.personal[String(row.user_book_id)].cover='idb:'+String(row.user_book_id);
     }
-    try{save();}catch(e){}
-    if(typeof renderBooks==='function')renderBooks();
-  }catch(e){console.warn('V39.28 Cloud-Bilder wiederherstellen:',e);}
+    loaded++;
+  }
+  try{save();}catch(e){}
+  if(typeof renderBooks==='function')renderBooks();
+  return {loaded};
 }
 window.addEventListener('lesezeit-cloud-ready',async()=>{
-  await v3925RestoreCloudImages();
-  await v3925MigrateImagesToCloud();
+  try{
+    const restored=await v3925RestoreCloudImages();
+    const migrated=await v3925MigrateImagesToCloud();
+    if(migrated.failed) console.warn('V39.29: Einige lokale Bilder konnten noch nicht in die Cloud übertragen werden.',migrated);
+    else if((restored?.loaded||0)+(migrated?.migrated||0)>0) console.log('V39.29: Bilder synchronisiert.',{restored,migrated});
+  }catch(e){console.error('V39.29 Bild-Synchronisierung:',e);}
 });
 function bookPhotoCardHtml(type,data,title,subtitle){const inputId=`bookPhoto_${type}`;return `<div class="v39-book-image-card"><div class="v39-book-image-preview">${data?`<img src="${esc(data)}" alt="${esc(title)}">`:`<span>${esc(subtitle)}</span>`}</div><div class="v39-book-image-title">${title}</div><div class="v39-book-image-actions"><input type="file" id="${inputId}" accept="image/*" style="display:none" onchange="setBookPhotoFile('${type}',this.files[0])"><button class="btn" type="button" onclick="document.getElementById('${inputId}').click()">${data?'Foto ändern':'Foto hinzufügen'}</button>${data?`<button class="btn ghost" type="button" onclick="removeBookPhoto('${type}')">Entfernen</button>`:''}</div></div>`;}
 let v39CropState=null;
@@ -1632,12 +1641,12 @@ async function setCover(value){
  try{
    // Large custom images go to IndexedDB, not localStorage.
    if(typeof value==='string' && value.startsWith('data:image/')){
+     if(v3925CloudReady()) await v3925CloudPut(id,'cover',value);
      await coverPut(id,value);
      state.personal[id].cover='idb:'+id;
-     try{await v3925CloudPut(id,'cover',value);}catch(e){console.warn('V39.28 Cloud-Cover:',e);}
    }else{
      state.personal[id].cover=value;
-     if(typeof value==='string' && !value.startsWith('idb:')){try{await v3925CloudPut(id,'cover',value);}catch(e){}}
+     if(typeof value==='string' && !value.startsWith('idb:') && v3925CloudReady()) await v3925CloudPut(id,'cover',value);
    }
    save();
    openDetail(selected._id); renderBooks();
@@ -2817,6 +2826,31 @@ refresh();setView(viewMode);
     return rows;
   }
 
+  async function syncLocalBookStateToCloud(rows,user){
+    if(!Array.isArray(rows)||!user||!window.LesezeitSupabase)return {updated:0,failed:0};
+    let updated=0,failed=0;
+    const localStatus=state.status||{}, localProgress=state.progress||{};
+    for(const r of rows){
+      const id=String(r.id);
+      const hasStatus=Object.prototype.hasOwnProperty.call(localStatus,id);
+      const hasProgress=Object.prototype.hasOwnProperty.call(localProgress,id);
+      if(!hasStatus && !hasProgress)continue;
+      const patch={};
+      if(hasStatus){
+        const s=localStatus[id];
+        patch.status=s==='Gelesen'?'read':s==='Lese ich gerade'?'reading':s==='Abgebrochen'?'dropped':'to_read';
+      }
+      if(hasProgress)patch.current_page=Math.max(0,Number(localProgress[id]||0));
+      if(!Object.keys(patch).length)continue;
+      try{
+        const {error}=await window.LesezeitSupabase.from('user_books').update(patch).eq('id',r.id).eq('user_id',user.id);
+        if(error)throw error;
+        Object.assign(r,patch); updated++;
+      }catch(e){failed++;console.warn('V39.29 lokaler Buchstatus konnte nicht synchronisiert werden:',id,e);}
+    }
+    return {updated,failed};
+  }
+
   async function loadCloud(user, options={}){
     const fromLogin=!!options.fromLogin;
     show("v22Loading",true);
@@ -2826,11 +2860,13 @@ refresh();setView(viewMode);
       const {data,error}=await client.from("user_books").select("*, books(*)").eq('user_id',user.id).order("created_at",{ascending:false});
       if(error)throw error;
       let rows=data||[];
-      // Einmaliger Abgleich mit dem ursprünglichen Bookstats-Export.
-      // Dadurch werden die 37 tatsächlich gelesenen Bücher und ihre gelesenen Seiten wiederhergestellt.
-      try{ rows=await reconcileBookstatsOnce(rows,user); }catch(reconcileError){
-        console.error("Bookstats-Abgleich übersprungen:",reconcileError);
-      }
+      try{
+        const localSync=await syncLocalBookStateToCloud(rows,user);
+        if(localSync.updated) console.log('V39.29: Lokale Buchstatus synchronisiert.',localSync);
+      }catch(e){console.warn('V39.29 Status-Synchronisierung:',e);}
+      // V39.29: Der alte Bookstats-Abgleich wird nicht mehr ausgeführt.
+      // Supabase bleibt die Cloud-Wahrheit; lokale, vom Nutzer nach dem Import
+      // vorgenommene Status-/Fortschrittsänderungen werden unten in die Cloud übertragen.
       // If the old app exposes a books array, replace it with the user's cloud library.
       if(Array.isArray(books) && rows.length){
         const mapped=rows.map(r=>{
