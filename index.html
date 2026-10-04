@@ -1500,7 +1500,7 @@ function setDate(field,value){
  state.personal[selected._id][field]=normalized;
  save();
 }
-// V39.29: Eigene Cover, Buchrücken und Farbschnitt-Fotos werden zusätzlich
+// V39.31: Eigene Cover, Buchrücken und Farbschnitt-Fotos werden zusätzlich
 // dauerhaft in Supabase gespeichert. IndexedDB bleibt als lokaler Cache erhalten.
 const V3925_IMAGE_TABLE='user_book_images';
 function v3925CloudReady(){return !!(window.LesezeitSupabase&&window.LesezeitCurrentUser);}
@@ -1544,12 +1544,12 @@ async function getBookPhoto(id,type){
   try{
     const cloud=await v3925CloudGet(id,type);
     if(cloud){await coverPut(key,cloud);return cloud;}
-  }catch(e){console.warn('V39.29 Cloud-Foto laden:',e);}
+  }catch(e){console.warn('V39.31 Cloud-Foto laden:',e);}
   return '';
 }
 async function deleteBookPhoto(id,type){
   await coverDelete(bookPhotoKey(id,type));
-  try{await v3925CloudDelete(id,type);}catch(e){console.warn('V39.29 Cloud-Foto löschen:',e);}
+  try{await v3925CloudDelete(id,type);}catch(e){console.warn('V39.31 Cloud-Foto löschen:',e);}
 }
 async function v3925MigrateImagesToCloud(){
   if(!v3925CloudReady())return {migrated:0,failed:0};
@@ -1567,7 +1567,7 @@ async function v3925MigrateImagesToCloud(){
         const data=await coverGet(bookPhotoKey(id,type));
         if(data){await v3925CloudPut(id,type,data);migrated++;}
       }
-    }catch(e){failed++;console.warn('V39.29 Bild-Migration:',id,e);}
+    }catch(e){failed++;console.warn('V39.31 Bild-Migration:',id,e);}
   }
   return {migrated,failed};
 }
@@ -1580,10 +1580,14 @@ async function v3925RestoreCloudImages(){
   for(const row of (data||[])){
     const keyType=row.photo_type==='cover'?'cover':row.photo_type;
     if(!row.image_data)continue;
-    await coverPut(keyType==='cover'?String(row.user_book_id):bookPhotoKey(row.user_book_id,keyType),row.image_data);
+    const id=String(row.user_book_id);
     if(keyType==='cover'){
-      state.personal=state.personal||{};state.personal[String(row.user_book_id)]=state.personal[String(row.user_book_id)]||{};
-      state.personal[String(row.user_book_id)].cover='idb:'+String(row.user_book_id);
+      await coverPut(id,row.image_data);
+      coverMemory[id]=row.image_data;
+      state.personal=state.personal||{};state.personal[id]=state.personal[id]||{};
+      state.personal[id].cover='idb:'+id;
+    }else{
+      await coverPut(bookPhotoKey(id,keyType),row.image_data);
     }
     loaded++;
   }
@@ -1591,14 +1595,39 @@ async function v3925RestoreCloudImages(){
   if(typeof renderBooks==='function')renderBooks();
   return {loaded};
 }
-window.addEventListener('lesezeit-cloud-ready',async()=>{
+async function v3931LoadCloudCoversForVisibleBooks(){
+  if(!v3925CloudReady())return;
+  try{
+    const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
+    const {data,error}=await sb.from(V3925_IMAGE_TABLE).select('user_book_id,image_data').eq('user_id',u.id).eq('photo_type','cover');
+    if(error)throw error;
+    for(const row of (data||[])){
+      const id=String(row.user_book_id);
+      if(row.image_data){coverMemory[id]=row.image_data;}
+    }
+    if(typeof renderBooks==='function')renderBooks();
+  }catch(e){console.warn('V39.31 Cloud-Cover laden:',e);}
+}
+async function v3930SyncImagesNow(){
+  if(!v3925CloudReady())return;
   try{
     const restored=await v3925RestoreCloudImages();
+    await v3931LoadCloudCoversForVisibleBooks();
     const migrated=await v3925MigrateImagesToCloud();
-    if(migrated.failed) console.warn('V39.29: Einige lokale Bilder konnten noch nicht in die Cloud übertragen werden.',migrated);
-    else if((restored?.loaded||0)+(migrated?.migrated||0)>0) console.log('V39.29: Bilder synchronisiert.',{restored,migrated});
-  }catch(e){console.error('V39.29 Bild-Synchronisierung:',e);}
-});
+    console.log('V39.31 Bild-Synchronisierung:',{restored,migrated});
+    if(typeof renderBooks==='function')renderBooks();
+  }catch(e){
+    console.error('V39.31 Bild-Synchronisierung fehlgeschlagen:',e);
+    window.v3930ImageSyncError=String(e?.message||e);
+  }
+}
+// Beide Auth-Events werden verwendet. So ist es egal, ob die Bildlogik
+// vor oder nach dem Cloud-Login-Signal geladen wurde.
+window.addEventListener('lesezeit-auth-ready',()=>setTimeout(v3930SyncImagesNow,300));
+window.addEventListener('lesezeit-cloud-ready',()=>setTimeout(v3930SyncImagesNow,300));
+window.addEventListener('lesezeit-auth-ready',()=>setTimeout(v3931LoadCloudCoversForVisibleBooks,1200));
+window.addEventListener('lesezeit-cloud-ready',()=>setTimeout(v3931LoadCloudCoversForVisibleBooks,1200));
+
 function bookPhotoCardHtml(type,data,title,subtitle){const inputId=`bookPhoto_${type}`;return `<div class="v39-book-image-card"><div class="v39-book-image-preview">${data?`<img src="${esc(data)}" alt="${esc(title)}">`:`<span>${esc(subtitle)}</span>`}</div><div class="v39-book-image-title">${title}</div><div class="v39-book-image-actions"><input type="file" id="${inputId}" accept="image/*" style="display:none" onchange="setBookPhotoFile('${type}',this.files[0])"><button class="btn" type="button" onclick="document.getElementById('${inputId}').click()">${data?'Foto ändern':'Foto hinzufügen'}</button>${data?`<button class="btn ghost" type="button" onclick="removeBookPhoto('${type}')">Entfernen</button>`:''}</div></div>`;}
 let v39CropState=null;
 function setBookPhotoFile(type,file){
@@ -2846,7 +2875,7 @@ refresh();setView(viewMode);
         const {error}=await window.LesezeitSupabase.from('user_books').update(patch).eq('id',r.id).eq('user_id',user.id);
         if(error)throw error;
         Object.assign(r,patch); updated++;
-      }catch(e){failed++;console.warn('V39.29 lokaler Buchstatus konnte nicht synchronisiert werden:',id,e);}
+      }catch(e){failed++;console.warn('V39.31 lokaler Buchstatus konnte nicht synchronisiert werden:',id,e);}
     }
     return {updated,failed};
   }
@@ -2862,9 +2891,9 @@ refresh();setView(viewMode);
       let rows=data||[];
       try{
         const localSync=await syncLocalBookStateToCloud(rows,user);
-        if(localSync.updated) console.log('V39.29: Lokale Buchstatus synchronisiert.',localSync);
-      }catch(e){console.warn('V39.29 Status-Synchronisierung:',e);}
-      // V39.29: Der alte Bookstats-Abgleich wird nicht mehr ausgeführt.
+        if(localSync.updated) console.log('V39.31: Lokale Buchstatus synchronisiert.',localSync);
+      }catch(e){console.warn('V39.31 Status-Synchronisierung:',e);}
+      // V39.31: Der alte Bookstats-Abgleich wird nicht mehr ausgeführt.
       // Supabase bleibt die Cloud-Wahrheit; lokale, vom Nutzer nach dem Import
       // vorgenommene Status-/Fortschrittsänderungen werden unten in die Cloud übertragen.
       // If the old app exposes a books array, replace it with the user's cloud library.
