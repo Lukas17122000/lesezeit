@@ -1111,6 +1111,38 @@ async function ensureFourthWingData(){
   }catch(e){console.warn('Fourth Wing Daten:',e);}
 }
 
+/* V39.33: iOS-Touch-Scroll für das Buch-Detail explizit an den Dialog binden. */
+function v3933SetupDetailTouchScroll(){
+ const modal=document.getElementById('detailModal');
+ const dialog=modal?.querySelector('.dialog');
+ if(!modal||!dialog||dialog.dataset.v3933Touch==='1')return;
+ dialog.dataset.v3933Touch='1';
+ let lastY=0, dragging=false;
+ dialog.addEventListener('touchstart',function(e){
+   if(e.touches.length!==1)return;
+   lastY=e.touches[0].clientY;
+   dragging=true;
+ },{passive:true});
+ dialog.addEventListener('touchmove',function(e){
+   if(!dragging||e.touches.length!==1)return;
+   const y=e.touches[0].clientY;
+   const dy=lastY-y;
+   lastY=y;
+   if(Math.abs(dy)<0.1)return;
+   const max=dialog.scrollHeight-dialog.clientHeight;
+   if(max>0){
+     const before=dialog.scrollTop;
+     let next=before+dy;
+     if(next<0)next=0;
+     if(next>max)next=max;
+     dialog.scrollTop=next;
+     if(next!==before)e.preventDefault();
+   }
+ },{passive:false});
+ dialog.addEventListener('touchend',function(){dragging=false},{passive:true});
+ dialog.addEventListener('touchcancel',function(){dragging=false},{passive:true});
+}
+
 async function openDetail(id){
  selected=books.find(b=>b._id===String(id)); if(!selected)return;
  // V39.32: Beim geöffneten Buch-Detail auf iPhone nur das Dialogfenster scrollen lassen.
@@ -1235,6 +1267,7 @@ async function openDetail(id){
  const bt=document.getElementById('v33BookType'); if(bt) bt.value=bookType;
  const ra=document.getElementById('v33ReceivedAs'); if(ra) ra.value=receivedAs;
  document.getElementById('detailModal').classList.add('open');
+  v3933SetupDetailTouchScroll();
   v34RenderSessionHistory();
   v34RenderTimer();
 }
