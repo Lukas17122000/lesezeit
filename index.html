@@ -3707,5 +3707,67 @@ window.openFriendProfile=openFriendProfile;window.closeFriendProfile=closeFriend
 window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;window.acceptFriend=id=>updateFriend(id,'accepted');window.declineFriend=id=>updateFriend(id,'declined');window.removeFriend=async id=>{if(!confirm('Freundschaft wirklich entfernen?'))return;try{const {error}=await sb().from('friendships').delete().eq('id',id);if(error)throw error;await loadFriends()}catch(e){alert('Fehler: '+(e?.message||e))}};window.loadFriends=loadFriends;window.addEventListener('lesezeit-auth-ready',()=>{if($('friendsPage')?.classList.contains('active'))loadFriends()});window.addEventListener('lesezeit-cloud-ready',()=>{if($('friendsPage')?.classList.contains('active'))loadFriends()})})();
 </script>
 <div id="v39CropOverlay" class="v39-crop-overlay" aria-hidden="true"><div class="v39-crop-dialog" role="dialog" aria-modal="true" aria-label="Bildausschnitt wählen"><div class="v39-crop-head"><h3 id="v39CropTitle">Buchrücken zuschneiden</h3><button class="btn ghost" type="button" onclick="cancelV39Crop()">✕</button></div><div class="v39-crop-sub">Ziehe den Rahmen über genau den Buchrücken bzw. Farbschnitt. Du kannst ihn verschieben und an <b>allen Seiten</b> schmaler oder breiter machen.</div><div class="v39-crop-presets"><button class="v39-crop-preset active" data-preset="thin" type="button" onclick="setV39CropPreset('thin')">Sehr dünn</button><button class="v39-crop-preset" data-preset="medium" type="button" onclick="setV39CropPreset('medium')">Buchrücken</button><button class="v39-crop-preset" data-preset="wide" type="button" onclick="setV39CropPreset('wide')">Farbschnitt</button><button class="v39-crop-preset" data-preset="free" type="button" onclick="setV39CropPreset('free')">Frei</button></div><div id="v39CropStage" class="v39-crop-stage"><img id="v39CropImg" class="v39-crop-img" alt="Zuschneiden"><div id="v39CropSelection" class="v39-crop-selection"><span class="v39-crop-handle nw" data-h="nw"></span><span class="v39-crop-handle n" data-h="n"></span><span class="v39-crop-handle ne" data-h="ne"></span><span class="v39-crop-handle w" data-h="w"></span><span class="v39-crop-handle e" data-h="e"></span><span class="v39-crop-handle sw" data-h="sw"></span><span class="v39-crop-handle s" data-h="s"></span><span class="v39-crop-handle se" data-h="se"></span></div></div><div class="v39-crop-tools"><span class="v39-crop-tip">💡 Für den Buchrücken kannst du die Seiten-Griffe ziehen und den Ausschnitt extrem dünn machen.</span><span id="v39CropSize" class="v39-crop-size"></span><button class="btn" type="button" onclick="fitV39Crop()">↺ Zurücksetzen</button></div><div class="v39-crop-actions"><button class="btn" type="button" onclick="cancelV39Crop()">Abbrechen</button><button class="btn dark" type="button" onclick="saveV39Crop()">✂️ Ausschnitt speichern</button></div></div></div>
+
+<script>
+/* V39.44 – robuster Lesetimer: eigener Tick, beide Timer-Buttons synchron */
+(function(){
+  function timerBook(){
+    if(typeof selected!=='undefined' && selected) return selected;
+    try{
+      const b=(typeof books!=='undefined' && Array.isArray(books)) ? (books.find(x=>status(x)==='Lese ich gerade')||books[0]) : null;
+      if(b && typeof selected!=='undefined') selected=b;
+      return b;
+    }catch(e){ return null; }
+  }
+  window.v34RenderTimer=function(){
+    const st=window.v34TimerState||{};
+    const base=Number(st.elapsed||0);
+    const live=(st.running && st.startedAt)?Math.max(0,Date.now()-Number(st.startedAt)):0;
+    const text=v34Format(base+live);
+    ['v34TimerDisplay','timer'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.textContent=text;
+    });
+    const active=!!st.running;
+    const b1=document.getElementById('v34TimerStart'); if(b1) b1.textContent=active?'⏹ Stoppen':'▶ Start';
+    const b2=document.getElementById('timerButton'); if(b2) b2.textContent=active?'⏹ Stoppen':'▶ Starten';
+    const m1=document.getElementById('v34TimerMsg'); if(m1&&active)m1.textContent='Timer läuft …';
+    const m2=document.getElementById('timerMsg'); if(m2&&active)m2.textContent='Timer läuft …';
+  };
+  window.v34StartTimer=function(){
+    const book=timerBook();
+    if(!book){
+      alert('Bitte zuerst ein Buch auswählen.');
+      return;
+    }
+    const st=window.v34TimerState||(window.v34TimerState={bookId:null,startedAt:null,elapsed:0,interval:null,running:false});
+    if(String(st.bookId)!==String(book._id)){
+      st.bookId=book._id; st.elapsed=0; st.startedAt=null; st.running=false;
+      const cur=Number(progress(book)||0);
+      const sp=document.getElementById('v34StartPage')||document.getElementById('timerStartPage');
+      const ep=document.getElementById('v34EndPage')||document.getElementById('timerEndPage');
+      if(sp)sp.value=cur; if(ep)ep.value=cur;
+    }
+    if(st.running)return;
+    st.startedAt=Date.now(); st.running=true;
+    clearInterval(st.interval);
+    st.interval=setInterval(window.v34RenderTimer,200);
+    try{localStorage.setItem('lesezeit_active_timer',JSON.stringify({bookId:String(st.bookId),startedAt:st.startedAt,elapsed:Number(st.elapsed||0),running:true,store:activeStore}));}catch(e){}
+    window.v34RenderTimer();
+  };
+  window.startTimer=window.v34StartTimer;
+  window.toggleTimer=function(){
+    const st=window.v34TimerState||{};
+    if(st.running){ window.v34StopTimer(); } else { window.v34StartTimer(); }
+  };
+  window.v34PauseTimer=function(){
+    const st=window.v34TimerState; if(!st||!st.running)return;
+    st.elapsed=Number(st.elapsed||0)+Math.max(0,Date.now()-Number(st.startedAt||Date.now()));
+    st.startedAt=null; st.running=false; clearInterval(st.interval); st.interval=null;
+    try{localStorage.setItem('lesezeit_active_timer',JSON.stringify({bookId:String(st.bookId),startedAt:null,elapsed:Number(st.elapsed||0),running:false,store:activeStore}));}catch(e){}
+    window.v34RenderTimer();
+    const m=document.getElementById('v34TimerMsg'); if(m)m.textContent='Pausiert';
+  };
+})();
+</script>
 </body>
 </html>
