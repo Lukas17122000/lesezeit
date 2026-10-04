@@ -1676,11 +1676,11 @@ function setBookPhotoFile(type,file){
  if(!selected||!file)return;
  if(!file.type.startsWith('image/')){alert('Bitte ein Bild auswählen.');return;}
  const reader=new FileReader();
- reader.onload=async e=>{
+ reader.onload=e=>{
    const src=e.target.result;
-   // V39.32: Das Original sofort lokal sichern. So ist das Foto bereits vorhanden,
-   // auch wenn Safari beim anschließenden Zuschneiden Probleme mit Canvas macht.
-   try{ await putBookPhoto(selected._id,type,src); }catch(err){ console.error('V39.32 Originalfoto:',err); alert('Das Foto konnte nicht gespeichert werden.'); return; }
+   // V39.33: Das Foto wird nach der Aufnahme NICHT zuerst gespeichert.
+   // Wir öffnen sofort den Cropper. Dadurch kann iOS/Safari den Kamera-Import
+   // nicht durch einen langsamen Speicher-/Cloud-Aufruf abbrechen.
    openV39Cropper(type,src);
  };
  reader.onerror=()=>alert('Das Bild konnte nicht gelesen werden.');
@@ -1768,16 +1768,13 @@ async function saveV39Crop(){
    ctx.drawImage(st.img,q.x,q.y,q.w,q.h,0,0,c.width,c.height);
    const data=c.toDataURL('image/jpeg',0.88);
    if(!data||data.length<100)throw new Error('Der zugeschnittene Bildausschnitt ist leer.');
-   // V39.32: Lokales Speichern ist der entscheidende Schritt. Cloud-Sync darf
-   // niemals verhindern, dass das Foto auf dem Gerät gespeichert wird.
-   await coverPut(bookPhotoKey(selected._id,st.type),data);
-   try{ if(v3925CloudReady()) await v3925CloudPut(selected._id,st.type,data); }
-   catch(cloudErr){ console.warn('V39.32 Cloud-Foto:',cloudErr); }
+   // Der normale Foto-Speicherweg speichert lokal und synchronisiert danach optional in die Cloud.
+   await putBookPhoto(selected._id,st.type,data);
    cancelV39Crop();
    await openDetail(selected._id);
  }catch(e){
-   console.error('V39.32 Foto zuschneiden/speichern:',e);
-   alert('Der zugeschnittene Ausschnitt konnte nicht gespeichert werden. Das ursprüngliche Foto bleibt erhalten.');
+   console.error('V39.33 Foto zuschneiden/speichern:',e);
+   alert('Das Foto konnte nicht gespeichert werden. Bitte noch einmal versuchen.');
    if(btn){btn.disabled=false;btn.textContent='✂️ Ausschnitt speichern';}
  }
 }
