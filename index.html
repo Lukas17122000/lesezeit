@@ -413,7 +413,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.28 ✨</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.31 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -1568,9 +1568,16 @@ async function v3925CloudDelete(id,type){
 function bookPhotoKey(id,type){return `photo:${type}:${String(id)}`;}
 async function putBookPhoto(id,type,data){
   if(!data)throw new Error('Kein Bild vorhanden.');
-  // Cloud first: only report success after the image is really in Supabase.
-  if(v3925CloudReady()) await v3925CloudPut(id,type,data);
+  // V39.31: Das Foto wird IMMER zuerst lokal gespeichert. Ein Fehler beim
+  // optionalen Cloud-Upload darf das Speichern des Fotos nicht verhindern.
   await coverPut(bookPhotoKey(id,type),data);
+  if(v3925CloudReady()){
+    try{
+      await v3925CloudPut(id,type,data);
+    }catch(e){
+      console.warn('V39.31 Cloud-Foto konnte nicht synchronisiert werden:',e);
+    }
+  }
 }
 async function getBookPhoto(id,type){
   const key=bookPhotoKey(id,type);
@@ -1738,7 +1745,29 @@ function v39CropMove(e){
 }
 function v39CropEnd(){if(v39CropState)v39CropState.drag=null;}
 function v39CropRectToImage(){const st=v39CropState,sr=st.stage.getBoundingClientRect(),ir=st.img.getBoundingClientRect(),r=st.sel.getBoundingClientRect();const sx=st.img.naturalWidth/ir.width,sy=st.img.naturalHeight/ir.height;return{x:Math.max(0,(r.left-ir.left)*sx),y:Math.max(0,(r.top-ir.top)*sy),w:Math.min(st.img.naturalWidth,r.width*sx),h:Math.min(st.img.naturalHeight,r.height*sy)};}
-async function saveV39Crop(){const st=v39CropState;if(!st?.ready||!selected)return;try{const q=v39CropRectToImage(),c=document.createElement('canvas'),max=1400,scale=Math.min(1,max/Math.max(q.w,q.h));c.width=Math.max(1,Math.round(q.w*scale));c.height=Math.max(1,Math.round(q.h*scale));const ctx=c.getContext('2d');ctx.drawImage(st.img,q.x,q.y,q.w,q.h,0,0,c.width,c.height);await putBookPhoto(selected._id,st.type,c.toDataURL('image/jpeg',0.88));cancelV39Crop();openDetail(selected._id);}catch(e){console.error(e);alert('Der Ausschnitt konnte nicht gespeichert werden.');}}
+async function saveV39Crop(){
+ const st=v39CropState;
+ if(!st?.ready||!selected)return;
+ const btn=document.querySelector('#v39CropOverlay .v39-crop-actions .btn.dark');
+ if(btn){btn.disabled=true;btn.textContent='💾 Speichere …';}
+ try{
+   const q=v39CropRectToImage();
+   if(!q.w||!q.h||!Number.isFinite(q.w)||!Number.isFinite(q.h))throw new Error('Ungültiger Bildausschnitt.');
+   const c=document.createElement('canvas'),max=1400,scale=Math.min(1,max/Math.max(q.w,q.h));
+   c.width=Math.max(1,Math.round(q.w*scale));c.height=Math.max(1,Math.round(q.h*scale));
+   const ctx=c.getContext('2d');
+   if(!ctx)throw new Error('Canvas konnte nicht erstellt werden.');
+   ctx.drawImage(st.img,q.x,q.y,q.w,q.h,0,0,c.width,c.height);
+   const data=c.toDataURL('image/jpeg',0.88);
+   await putBookPhoto(selected._id,st.type,data);
+   cancelV39Crop();
+   await openDetail(selected._id);
+ }catch(e){
+   console.error('V39.31 Foto speichern:',e);
+   alert('Das Foto konnte nicht gespeichert werden. Bitte noch einmal versuchen.');
+   if(btn){btn.disabled=false;btn.textContent='✂️ Ausschnitt speichern';}
+ }
+}
 function cancelV39Crop(){const ov=document.getElementById('v39CropOverlay');if(ov){ov.classList.remove('show');ov.setAttribute('aria-hidden','true');}v39CropState=null;}
 window.addEventListener('pointerdown',e=>{if(e.target.closest('#v39CropSelection'))v39CropStart(e);},{passive:false});
 window.addEventListener('pointermove',e=>{if(v39CropState?.drag)v39CropMove(e);},{passive:false});
