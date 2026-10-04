@@ -831,7 +831,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 <button class="close" onclick="closeManualSession()">×</button>
 <div class="muted" id="manualSessionModalLabel">LESESESSION MANUELL</div><h2 id="manualSessionBook">Buch</h2>
 <div class="manual-session-grid">
- <div><label>Datum</label><input id="manualSessionDate" type="text" inputmode="numeric" maxlength="10" placeholder="T.M.JJJJ" autocomplete="off" oninput="normalizeManualSessionDate(this)" onblur="normalizeManualSessionDate(this)"></div>
+ <div><label>Datum</label><input id="manualSessionDate" type="text" inputmode="numeric" maxlength="10" placeholder="TTMMJJJJ" autocomplete="off" oninput="normalizeManualSessionDate(this)" onblur="normalizeManualSessionDate(this)"><div class="muted" style="font-size:11px;margin-top:5px">Nur Zahlen eingeben – die Punkte werden automatisch gesetzt.</div></div>
  <div><label>Startseite</label><input id="manualSessionStartPage" type="number" min="0" value="0"></div>
  <div><label>Endseite</label><input id="manualSessionEndPage" type="number" min="0" value="0"></div>
 </div>
@@ -1995,12 +1995,14 @@ let v39EditingSessionId=null;
 
 function normalizeManualSessionDate(input){
   if(!input)return;
-  const value=String(input.value||'').trim();
-  // Accept 7.8.2024 as well as 07.08.2024 and add missing leading zeroes automatically.
-  const m=value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
-  if(m){
-    input.value=`${String(m[1]).padStart(2,'0')}.${String(m[2]).padStart(2,'0')}.${m[3]}`;
-  }
+  // iPhone nutzt bei inputmode="numeric" nur die Zahlentastatur.
+  // Deshalb werden die Punkte beim Tippen automatisch gesetzt:
+  // 04102026 -> 04.10.2026
+  const digits=String(input.value||'').replace(/\D/g,'').slice(0,8);
+  let formatted=digits;
+  if(digits.length>2) formatted=digits.slice(0,2)+'.'+digits.slice(2);
+  if(digits.length>4) formatted=digits.slice(0,2)+'.'+digits.slice(2,4)+'.'+digits.slice(4);
+  input.value=formatted;
 }
 
 function openManualSession(){
@@ -3841,5 +3843,9 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
 })();
 </script>
 
+
+<script>
+/* V39.46 – Datumseingabe auf dem iPhone: Punkte automatisch aus Zahleneingabe erzeugen. */
+</script>
 </body>
 </html>
