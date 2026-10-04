@@ -1693,6 +1693,10 @@ function openV39Cropper(type,src){
  document.getElementById('v39CropTitle').textContent=type==='back'?'Buchrücken zuschneiden':'Farbschnitt zuschneiden';
  img.onload=()=>{v39CropState.ready=true;requestAnimationFrame(fitV39Crop);};
  img.src=src;overlay.classList.add('show');overlay.setAttribute('aria-hidden','false');
+ // V39.41: Der Cropper liegt am Ende des HTML-Dokuments, daher war die
+ // frühere Bindung beim Laden zu früh und fand #v39CropSelection nicht.
+ // Jetzt binden wir die Pointer-Ereignisse erst, nachdem das Element existiert.
+ bindV39CropControls();
 }
 function v39CropRatio(){return v39CropState?.ratio||null;}
 function fitV39Crop(){
@@ -1789,21 +1793,18 @@ function bindV39CropControls(){
  };
  const move=e=>{if(v39CropState?.drag)v39CropMove(e);};
  const end=e=>{v39CropEnd(e);try{if(e.pointerId!=null)el.releasePointerCapture(e.pointerId);}catch(_){ }};
+ // V39.41: Nur Pointer Events verwenden. Safari/iPhone unterstützt Pointer Events;
+ // die Kombination aus Pointer- und Touch-Events konnte denselben Fingerzug doppelt
+ // verarbeiten. touch-action:none verhindert dabei das native Scrollen/Gesten.
  el.addEventListener('pointerdown',start,{passive:false});
  el.addEventListener('pointermove',move,{passive:false});
  el.addEventListener('pointerup',end,{passive:false});
  el.addEventListener('pointercancel',end,{passive:false});
- // iPhone/Safari fallback: native touch events.
- el.addEventListener('touchstart',start,{passive:false});
- el.addEventListener('touchmove',move,{passive:false});
- el.addEventListener('touchend',end,{passive:false});
- el.addEventListener('touchcancel',end,{passive:false});
+ el.addEventListener('lostpointercapture',end,{passive:false});
 }
-bindV39CropControls();
 window.addEventListener('pointermove',e=>{if(v39CropState?.drag)v39CropMove(e);},{passive:false});
 window.addEventListener('pointerup',v39CropEnd,{passive:false});
-window.addEventListener('touchmove',e=>{if(v39CropState?.drag)v39CropMove(e);},{passive:false});
-window.addEventListener('touchend',v39CropEnd,{passive:false});
+window.addEventListener('pointercancel',v39CropEnd,{passive:false});
 
 async function removeBookPhoto(type){if(!selected)return;try{await deleteBookPhoto(selected._id,type);openDetail(selected._id);}catch(e){alert('Das Foto konnte nicht entfernt werden.');}}
 async function setCover(value){
