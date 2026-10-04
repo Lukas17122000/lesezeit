@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V39.2 – Lesezeitewelt</title>
+<title>Lesezeit · V39.39 – Lesezeitewelt</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;500;600;700;800;900&family=Julius+Sans+One&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Yellowtail&display=swap');
 
@@ -264,7 +264,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 <style>
 #v12CloudCard .v12field{display:block!important;width:100%!important;min-height:44px!important;margin:10px 0!important;box-sizing:border-box!important;background:#f7f7f8!important;color:#111!important;border:1px solid #d5d5da!important}
 #v12CloudCard .v12field::placeholder{color:#777!important}
-</style><style id="v38-7-disable-legacy-auth">#v12CloudPanel{display:none!important}</style><meta name="lesezeit-version" content="V39.37">
+</style><style id="v38-7-disable-legacy-auth">#v12CloudPanel{display:none!important}</style><meta name="lesezeit-version" content="V39.28">
 
 
 <style id="v39-21-book-showcase-css">
@@ -315,146 +315,57 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 .v39-crop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:99999;display:none;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}.v39-crop-overlay.show{display:flex}.v39-crop-dialog{width:min(920px,96vw);max-height:94vh;background:#fff;border-radius:24px;box-shadow:0 30px 90px rgba(0,0,0,.45);display:flex;flex-direction:column;overflow:hidden;color:#17171a}.v39-crop-head{padding:18px 20px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}.v39-crop-head h3{margin:0;font-size:20px}.v39-crop-sub{padding:0 20px 12px;color:#707078;font-size:13px}.v39-crop-stage{margin:0 18px;background:#111;border-radius:18px;display:flex;align-items:center;justify-content:center;min-height:300px;max-height:62vh;overflow:hidden;position:relative;touch-action:none}.v39-crop-img{display:block;max-width:100%;max-height:62vh;user-select:none;-webkit-user-drag:none}.v39-crop-selection{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.46),0 0 0 1px rgba(0,0,0,.35);cursor:move;box-sizing:border-box;touch-action:none}.v39-crop-selection:after{content:'';position:absolute;inset:33.33%;border:1px solid rgba(255,255,255,.38);pointer-events:none}.v39-crop-handle{position:absolute;width:18px;height:18px;background:#fff;border:2px solid #5b2335;border-radius:50%;box-sizing:border-box;z-index:2}.v39-crop-handle.nw{left:-10px;top:-10px;cursor:nwse-resize}.v39-crop-handle.ne{right:-10px;top:-10px;cursor:nesw-resize}.v39-crop-handle.sw{left:-10px;bottom:-10px;cursor:nesw-resize}.v39-crop-handle.se{right:-10px;bottom:-10px;cursor:nwse-resize}.v39-crop-tools{padding:14px 20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.v39-crop-tools .muted{margin-right:auto}.v39-crop-actions{padding:14px 20px 20px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid #eee}.v39-crop-tip{font-size:12px;color:#707078}.v39-crop-kind{font-weight:800}@media(max-width:650px){.v39-crop-stage{min-height:240px;max-height:56vh}.v39-crop-dialog{border-radius:18px}.v39-crop-actions{flex-wrap:wrap}.v39-crop-actions button{flex:1}}
 </style>
 
-<style id="v39-27-detail-scroll-fix">
-@media (max-width:700px){
-  #detailModal{align-items:flex-start;justify-content:center;padding:10px;overflow:hidden;}
-  #detailModal .dialog{width:100%;max-width:none;height:calc(100dvh - 20px);max-height:calc(100dvh - 20px);margin:0;border-radius:22px;padding:18px;overflow-y:scroll;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;}
-  #detailModal .close{position:sticky;top:0;z-index:20;}
-}
-</style>
-
-<style id="v39-28-detail-scroll-fix">
+<style id="v39-39-detail-scroll-fix">
+/* V39.39: iOS: Der Dialog bleibt fest; ausschließlich #detail ist der Scroll-Container. */
 #detailModal{overscroll-behavior:contain;}
 #detailModal .dialog{
+  display:flex !important;
+  flex-direction:column !important;
+  min-height:0 !important;
+}
+#detailModal .dialog > .close{
+  flex:0 0 auto !important;
+}
+#detailModal #detail{
+  flex:1 1 auto !important;
+  min-height:0 !important;
   overflow-y:auto !important;
+  overflow-x:hidden !important;
   -webkit-overflow-scrolling:touch !important;
   overscroll-behavior:contain !important;
   touch-action:pan-y !important;
-  max-height:calc(100dvh - 24px) !important;
+  -webkit-transform:translateZ(0);
 }
-@media (max-width:700px){
-  body.v39-detail-open{overflow:hidden !important;position:fixed !important;width:100% !important;}
+@media(max-width:700px){
+  body.v39-detail-open{overflow:hidden !important;}
   #detailModal{
     position:fixed !important; inset:0 !important;
-    overflow:hidden !important;
-    height:100dvh !important;
-    touch-action:none !important;
-  }
-  #detailModal .dialog{
-    position:absolute !important;
-    top:12px !important; bottom:12px !important; left:10px !important; right:10px !important;
-    width:auto !important; max-height:none !important; height:auto !important;
-    overflow-y:scroll !important; overflow-x:hidden !important;
-    -webkit-overflow-scrolling:touch !important;
-    touch-action:pan-y !important;
-    overscroll-behavior:contain !important;
-  }
-}
-
-<style id="v39-34-ios-scroll">
-@media (max-width:700px){
-  html:has(body.v39-detail-open),
-  body.v39-detail-open{height:100% !important;overflow:hidden !important;overscroll-behavior:none !important;}
-  #detailModal{touch-action:none !important;}
-  #detailModal .dialog{
-    box-sizing:border-box !important;
-    height:calc(100dvh - 24px) !important;
-    min-height:0 !important;
-    max-height:none !important;
-    overflow-y:scroll !important;
-    overflow-x:hidden !important;
-    -webkit-overflow-scrolling:touch !important;
-    touch-action:none !important;
-    overscroll-behavior:none !important;
-    -webkit-transform:translateZ(0);
-    transform:translateZ(0);
-  }
-}
-</style>
-</style>
-<style id="v39-35-detail-inner-scroll">
-/* V39.35: iOS – nur der eigentliche Buchinhalt scrollt. Der Dialog selbst bleibt fest. */
-#detailModal .dialog{display:flex !important;flex-direction:column !important;overflow:hidden !important;min-height:0 !important;}
-#detailModal #detail{flex:1 1 auto !important;min-height:0 !important;overflow-y:auto !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;touch-action:pan-y !important;overscroll-behavior:contain !important;}
-@media(max-width:700px){
-  #detailModal .dialog{top:12px !important;bottom:12px !important;height:auto !important;max-height:none !important;overflow:hidden !important;}
-  #detailModal #detail{height:auto !important;max-height:none !important;}
-}
-</style>
-<style id="v39-36-ios-detail-scroll">
-/* V39.37: Der Detaildialog ist fest; #detail ist der einzige Scrollbereich. */
-@media (max-width:700px){
-  html, body{overscroll-behavior:none;}
-  body.v39-detail-open{overflow:hidden !important;position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;}
-  #detailModal{position:fixed !important;inset:0 !important;height:100dvh !important;width:100% !important;padding:10px !important;box-sizing:border-box !important;display:none;overflow:hidden !important;touch-action:none !important;}
-  #detailModal.open{display:flex !important;align-items:flex-start !important;justify-content:center !important;}
-  #detailModal .dialog{position:absolute !important;left:10px !important;right:10px !important;top:10px !important;bottom:10px !important;width:auto !important;height:auto !important;max-width:none !important;max-height:none !important;min-height:0 !important;padding:18px !important;box-sizing:border-box !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;touch-action:none !important;}
-  #detailModal .close{flex:0 0 auto !important;position:relative !important;z-index:50 !important;}
-  #detailModal #detail{flex:1 1 0 !important;width:100% !important;min-height:0 !important;height:0 !important;max-height:none !important;overflow-y:scroll !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;touch-action:none !important;overscroll-behavior:none !important;}
-}
-</style>
-
-<style id="v39-37-ios-detail-scroll-final">
-/* V39.37: finaler iOS-Fix – ausschließlich der Buchinhalt scrollt. */
-@media (max-width:700px){
-  html, body{overscroll-behavior:none;}
-  body.v39-detail-open{
-    overflow:hidden !important;
-    position:static !important;
-    width:100% !important;
-    height:auto !important;
-  }
-  #detailModal{
-    position:fixed !important;
-    inset:0 !important;
-    width:100vw !important;
-    height:100dvh !important;
-    padding:10px !important;
-    box-sizing:border-box !important;
     display:none;
-    align-items:flex-start !important;
-    justify-content:center !important;
-    overflow:hidden !important;
+    align-items:flex-start !important; justify-content:center !important;
+    padding:10px !important; overflow:hidden !important;
+    height:100dvh !important; box-sizing:border-box !important;
     touch-action:none !important;
   }
   #detailModal.open{display:flex !important;}
   #detailModal .dialog{
     position:relative !important;
-    width:100% !important;
+    top:auto !important; bottom:auto !important; left:auto !important; right:auto !important;
+    width:100% !important; max-width:none !important;
     height:calc(100dvh - 20px) !important;
-    max-width:none !important;
-    max-height:none !important;
-    min-height:0 !important;
-    margin:0 !important;
-    padding:18px !important;
-    box-sizing:border-box !important;
-    display:flex !important;
-    flex-direction:column !important;
+    max-height:calc(100dvh - 20px) !important;
+    margin:0 !important; padding:18px !important;
     overflow:hidden !important;
-    touch-action:none !important;
-  }
-  #detailModal .close{
-    flex:0 0 auto !important;
-    position:relative !important;
-    z-index:100 !important;
+    box-sizing:border-box !important;
+    border-radius:22px !important;
   }
   #detailModal #detail{
     display:block !important;
-    flex:1 1 auto !important;
-    width:100% !important;
-    min-width:0 !important;
-    min-height:0 !important;
     height:auto !important;
     max-height:none !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-    -webkit-overflow-scrolling:touch !important;
-    touch-action:pan-y !important;
-    overscroll-behavior:contain !important;
-    -webkit-transform:translateZ(0);
   }
 }
 </style>
+<!-- V39.39 iOS detail scroll fix -->
 </head>
 <body>
 <style id="v22-auth-css">
@@ -517,7 +428,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.37 ✨</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.39 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -1215,35 +1126,8 @@ async function ensureFourthWingData(){
   }catch(e){console.warn('Fourth Wing Daten:',e);}
 }
 
-/* V39.37: iOS-Fallback – Wischen im Buchdialog bewegt ausschließlich #detail. */
-function v3934SetupDetailTouchScroll(){
- const modal=document.getElementById('detailModal');
- const scroller=document.getElementById('detail');
- if(!modal||!scroller||modal.dataset.v3936Touch==='1')return;
- modal.dataset.v3936Touch='1';
- let lastY=0,startY=0,dragging=false;
- modal.addEventListener('touchstart',e=>{
-   if(e.touches.length!==1)return;
-   if(!scroller.contains(e.target))return;
-   startY=lastY=e.touches[0].clientY;
-   dragging=true;
- },{passive:false,capture:true});
- modal.addEventListener('touchmove',e=>{
-   if(!dragging||e.touches.length!==1)return;
-   if(!scroller.contains(e.target))return;
-   const y=e.touches[0].clientY;
-   const dy=lastY-y;
-   lastY=y;
-   if(Math.abs(y-startY)<2 && Math.abs(dy)<2)return;
-   const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
-   scroller.scrollTop=Math.max(0,Math.min(max,scroller.scrollTop+dy));
-   e.preventDefault();
- },{passive:false,capture:true});
- const end=()=>{dragging=false};
- modal.addEventListener('touchend',end,{passive:false,capture:true});
- modal.addEventListener('touchcancel',end,{passive:false,capture:true});
-}
-
+/* V39.39: Native iOS scrolling is handled by #detail; no manual touch interception. */
+function v3933SetupDetailTouchScroll(){ return; }
 
 async function openDetail(id){
  selected=books.find(b=>b._id===String(id)); if(!selected)return;
@@ -1369,6 +1253,8 @@ async function openDetail(id){
  const bt=document.getElementById('v33BookType'); if(bt) bt.value=bookType;
  const ra=document.getElementById('v33ReceivedAs'); if(ra) ra.value=receivedAs;
  document.getElementById('detailModal').classList.add('open');
+  const detailScroll=document.getElementById('detail'); if(detailScroll) detailScroll.scrollTop=0;
+  v3933SetupDetailTouchScroll();
   v34RenderSessionHistory();
   v34RenderTimer();
 }
