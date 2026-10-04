@@ -350,6 +350,27 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
     overscroll-behavior:contain !important;
   }
 }
+
+<style id="v39-34-ios-scroll">
+@media (max-width:700px){
+  html:has(body.v39-detail-open),
+  body.v39-detail-open{height:100% !important;overflow:hidden !important;overscroll-behavior:none !important;}
+  #detailModal{touch-action:none !important;}
+  #detailModal .dialog{
+    box-sizing:border-box !important;
+    height:calc(100dvh - 24px) !important;
+    min-height:0 !important;
+    max-height:none !important;
+    overflow-y:scroll !important;
+    overflow-x:hidden !important;
+    -webkit-overflow-scrolling:touch !important;
+    touch-action:none !important;
+    overscroll-behavior:none !important;
+    -webkit-transform:translateZ(0);
+    transform:translateZ(0);
+  }
+}
+</style>
 </style>
 </head>
 <body>
@@ -1111,36 +1132,43 @@ async function ensureFourthWingData(){
   }catch(e){console.warn('Fourth Wing Daten:',e);}
 }
 
-/* V39.33: iOS-Touch-Scroll für das Buch-Detail explizit an den Dialog binden. */
-function v3933SetupDetailTouchScroll(){
+/* V39.34: iOS – Buchdetail als vollständig eigenständigen Touch-Scrollbereich behandeln. */
+function v3934SetupDetailTouchScroll(){
  const modal=document.getElementById('detailModal');
  const dialog=modal?.querySelector('.dialog');
- if(!modal||!dialog||dialog.dataset.v3933Touch==='1')return;
- dialog.dataset.v3933Touch='1';
+ if(!modal||!dialog||dialog.dataset.v3934Touch==='1')return;
+ dialog.dataset.v3934Touch='1';
  let lastY=0, dragging=false;
- dialog.addEventListener('touchstart',function(e){
+ const start=e=>{
    if(e.touches.length!==1)return;
    lastY=e.touches[0].clientY;
    dragging=true;
- },{passive:true});
- dialog.addEventListener('touchmove',function(e){
+ };
+ const move=e=>{
    if(!dragging||e.touches.length!==1)return;
    const y=e.touches[0].clientY;
    const dy=lastY-y;
    lastY=y;
-   if(Math.abs(dy)<0.1)return;
-   const max=dialog.scrollHeight-dialog.clientHeight;
-   if(max>0){
-     const before=dialog.scrollTop;
-     let next=before+dy;
-     if(next<0)next=0;
-     if(next>max)next=max;
-     dialog.scrollTop=next;
-     if(next!==before)e.preventDefault();
-   }
- },{passive:false});
- dialog.addEventListener('touchend',function(){dragging=false},{passive:true});
- dialog.addEventListener('touchcancel',function(){dragging=false},{passive:true});
+   if(Math.abs(dy)<0.01)return;
+   const max=Math.max(0,dialog.scrollHeight-dialog.clientHeight);
+   const before=dialog.scrollTop;
+   let next=before+dy;
+   if(next<0)next=0;
+   if(next>max)next=max;
+   dialog.scrollTop=next;
+   // Niemals den Touch an den Body/Backdrop weiterreichen.
+   e.preventDefault();
+ };
+ const end=()=>{dragging=false};
+ dialog.addEventListener('touchstart',start,{passive:false,capture:true});
+ dialog.addEventListener('touchmove',move,{passive:false,capture:true});
+ dialog.addEventListener('touchend',end,{passive:true,capture:true});
+ dialog.addEventListener('touchcancel',end,{passive:true,capture:true});
+ // Falls Safari den normalen Scrollweg trotzdem versucht: Touches auf dem Modal
+ // außerhalb des Dialogs vollständig blockieren.
+ modal.addEventListener('touchmove',function(e){
+   if(!dialog.contains(e.target))e.preventDefault();
+ },{passive:false,capture:true});
 }
 
 async function openDetail(id){
@@ -1267,7 +1295,7 @@ async function openDetail(id){
  const bt=document.getElementById('v33BookType'); if(bt) bt.value=bookType;
  const ra=document.getElementById('v33ReceivedAs'); if(ra) ra.value=receivedAs;
  document.getElementById('detailModal').classList.add('open');
-  v3933SetupDetailTouchScroll();
+  v3934SetupDetailTouchScroll();
   v34RenderSessionHistory();
   v34RenderTimer();
 }
