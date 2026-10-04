@@ -264,7 +264,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 <style>
 #v12CloudCard .v12field{display:block!important;width:100%!important;min-height:44px!important;margin:10px 0!important;box-sizing:border-box!important;background:#f7f7f8!important;color:#111!important;border:1px solid #d5d5da!important}
 #v12CloudCard .v12field::placeholder{color:#777!important}
-</style><style id="v38-7-disable-legacy-auth">#v12CloudPanel{display:none!important}</style><meta name="lesezeit-version" content="V39.36">
+</style><style id="v38-7-disable-legacy-auth">#v12CloudPanel{display:none!important}</style><meta name="lesezeit-version" content="V39.37">
 
 
 <style id="v39-21-book-showcase-css">
@@ -382,7 +382,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 }
 </style>
 <style id="v39-36-ios-detail-scroll">
-/* V39.36: Der Detaildialog ist fest; #detail ist der einzige Scrollbereich. */
+/* V39.37: Der Detaildialog ist fest; #detail ist der einzige Scrollbereich. */
 @media (max-width:700px){
   html, body{overscroll-behavior:none;}
   body.v39-detail-open{overflow:hidden !important;position:fixed !important;inset:0 !important;width:100% !important;height:100% !important;}
@@ -391,6 +391,68 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
   #detailModal .dialog{position:absolute !important;left:10px !important;right:10px !important;top:10px !important;bottom:10px !important;width:auto !important;height:auto !important;max-width:none !important;max-height:none !important;min-height:0 !important;padding:18px !important;box-sizing:border-box !important;display:flex !important;flex-direction:column !important;overflow:hidden !important;touch-action:none !important;}
   #detailModal .close{flex:0 0 auto !important;position:relative !important;z-index:50 !important;}
   #detailModal #detail{flex:1 1 0 !important;width:100% !important;min-height:0 !important;height:0 !important;max-height:none !important;overflow-y:scroll !important;overflow-x:hidden !important;-webkit-overflow-scrolling:touch !important;touch-action:none !important;overscroll-behavior:none !important;}
+}
+</style>
+
+<style id="v39-37-ios-detail-scroll-final">
+/* V39.37: finaler iOS-Fix – ausschließlich der Buchinhalt scrollt. */
+@media (max-width:700px){
+  html, body{overscroll-behavior:none;}
+  body.v39-detail-open{
+    overflow:hidden !important;
+    position:static !important;
+    width:100% !important;
+    height:auto !important;
+  }
+  #detailModal{
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100dvh !important;
+    padding:10px !important;
+    box-sizing:border-box !important;
+    display:none;
+    align-items:flex-start !important;
+    justify-content:center !important;
+    overflow:hidden !important;
+    touch-action:none !important;
+  }
+  #detailModal.open{display:flex !important;}
+  #detailModal .dialog{
+    position:relative !important;
+    width:100% !important;
+    height:calc(100dvh - 20px) !important;
+    max-width:none !important;
+    max-height:none !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:18px !important;
+    box-sizing:border-box !important;
+    display:flex !important;
+    flex-direction:column !important;
+    overflow:hidden !important;
+    touch-action:none !important;
+  }
+  #detailModal .close{
+    flex:0 0 auto !important;
+    position:relative !important;
+    z-index:100 !important;
+  }
+  #detailModal #detail{
+    display:block !important;
+    flex:1 1 auto !important;
+    width:100% !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    height:auto !important;
+    max-height:none !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    -webkit-overflow-scrolling:touch !important;
+    touch-action:pan-y !important;
+    overscroll-behavior:contain !important;
+    -webkit-transform:translateZ(0);
+  }
 }
 </style>
 </head>
@@ -455,7 +517,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.36 ✨</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.37 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -1153,7 +1215,7 @@ async function ensureFourthWingData(){
   }catch(e){console.warn('Fourth Wing Daten:',e);}
 }
 
-/* V39.36: iOS-Fallback – Wischen im Buchdialog bewegt ausschließlich #detail. */
+/* V39.37: iOS-Fallback – Wischen im Buchdialog bewegt ausschließlich #detail. */
 function v3934SetupDetailTouchScroll(){
  const modal=document.getElementById('detailModal');
  const scroller=document.getElementById('detail');
@@ -1307,7 +1369,6 @@ async function openDetail(id){
  const bt=document.getElementById('v33BookType'); if(bt) bt.value=bookType;
  const ra=document.getElementById('v33ReceivedAs'); if(ra) ra.value=receivedAs;
  document.getElementById('detailModal').classList.add('open');
-  v3934SetupDetailTouchScroll();
   v34RenderSessionHistory();
   v34RenderTimer();
 }
