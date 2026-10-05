@@ -370,6 +370,11 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 .v39-delete-book-btn{margin-top:12px;border-color:#d9534f;color:#b52b27;background:#fff}
 .v39-delete-book-btn:active{transform:scale(.99)}
 </style>
+
+<style id="v3954-multisource-css">
+.v3954-source-box{margin-top:14px;padding:12px 14px;border:1px solid var(--line,#ddd);border-radius:16px;background:rgba(0,0,0,.02)}
+.v3954-source-box .btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+</style>
 </head>
 <body>
 <style id="v22-auth-css">
@@ -3612,23 +3617,63 @@ refresh();setView(viewMode);
   window.closeBookSearch=()=>{$('bookSearchModal')?.classList.remove('open');currentWork=null;setStatus('');if($('bookSearchResults'))$('bookSearchResults').innerHTML='';if($('bookEditionArea'))$('bookEditionArea').style.display='none';};
   function escLocal(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
   async function getJSON(url){const r=await fetch(url,{headers:{'Accept':'application/json'}});if(!r.ok)throw new Error('Buchdaten konnten nicht geladen werden ('+r.status+').');return r.json();}
+  function sourceSearchLinks(q){
+    const enc=encodeURIComponent(String(q||'').trim());
+    return `<div class="v3954-source-box">
+      <div class="muted" style="font-size:12px;margin-bottom:8px">Weitere Quellen direkt prüfen:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a class="btn" target="_blank" rel="noopener" href="https://www.thalia.de/suche?sq=${enc}">📚 Thalia öffnen</a>
+        <a class="btn" target="_blank" rel="noopener" href="https://www.amazon.de/s?k=${enc}&i=stripbooks">🛒 Amazon.de öffnen</a>
+      </div>
+    </div>`;
+  }
+  function normalizeSearchText(v){return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ß/g,'ss').replace(/[^a-z0-9]+/g,' ').trim();}
+  function scoreGermanCandidate(e,q){
+    const t=normalizeSearchText(e.title), qq=normalizeSearchText(q);
+    let score=0;
+    if(e.isGerman)score+=1000;
+    if(e.languageLabel==='Deutsch')score+=300;
+    if(qq && t===qq)score+=200;
+    if(t.includes(qq)||qq.includes(t))score+=80;
+    if(e.isbn)score+=10;
+    return score;
+  }
   window.searchExternalBooks=async function(){
     const q=$('bookSearchInput')?.value.trim();if(!q){setStatus('Bitte einen Titel, Autor oder ISBN eingeben.',true);return;}
-    setStatus('Suche läuft …');$('bookSearchResults').innerHTML='';$('bookEditionArea').style.display='none';
+    setStatus('Suche in mehreren Buchquellen …');$('bookSearchResults').innerHTML='<div class="muted">🔎 Google Books und Open Library werden gleichzeitig durchsucht …</div>';$('bookEditionArea').style.display='none';
     try{
-      const params=new URLSearchParams({q,limit:'8',lang:'de',fields:'key,title,author_name,first_publish_year,isbn,publisher,publish_date,number_of_pages,cover_i,edition_key,language,subject'});
-      const data=await getJSON(API+'/search.json?'+params.toString());
-      const docs=(data.docs||[]).filter(d=>d.title);
-      if(!docs.length){setStatus('Keine passenden Bücher gefunden.');return;}
-      setStatus(docs.length+' Treffer gefunden.');
-      $('bookSearchResults').innerHTML=docs.map((d,i)=>{
+      const params=new URLSearchParams({q,limit:'20',lang:'de',fields:'key,title,author_name,first_publish_year,isbn,publisher,publish_date,number_of_pages,cover_i,edition_key,language,subject'});
+      const [olRes,gbRes]=await Promise.allSettled([
+        getJSON(API+'/search.json?'+params.toString()),
+        getJSON('https://www.googleapis.com/books/v1/volumes?'+new URLSearchParams({q,maxResults:'40',printType:'books',country:'DE'}).toString())
+      ]);
+      const ol=olRes.status==='fulfilled'?olRes.value:{docs:[]};
+      const gb=gbRes.status==='fulfilled'?gbRes.value:{items:[]};
+      const docs=(ol.docs||[]).filter(d=>d.title);
+      const gbDocs=(gb.items||[]).map(item=>{
+        const v=item.volumeInfo||{}; const ids=Array.isArray(v.industryIdentifiers)?v.industryIdentifiers:[];
+        const isbn=ids.map(x=>cleanISBN(x.identifier)).find(x=>x.length===13)||'';
+        return {title:v.title||'',author_name:Array.isArray(v.authors)?v.authors.join(', '):'',first_publish_year:yearFrom(v.publishedDate),isbn:isbn?[isbn]:[],publisher:v.publisher?[v.publisher]:[],publish_date:v.publishedDate?[v.publishedDate]:[],number_of_pages:v.pageCount||'',cover_i:'',subject:v.categories||[],_google:true};
+      }).filter(d=>d.title);
+      const merged=[]; const seenKeys=new Set();
+      [...docs,...gbDocs].forEach(d=>{
+        const isbn=(d.isbn||[]).map(cleanISBN).find(x=>x.length===13)||'';
+        const key=isbn||normalizeSearchText(d.title)+'|'+normalizeSearchText(authorName(d));
+        if(seenKeys.has(key))return; seenKeys.add(key); merged.push(d);
+      });
+      if(!merged.length){
+        $('bookSearchResults').innerHTML='<div class="muted">Keine Treffer in den automatischen Buchquellen.</div>'+sourceSearchLinks(q);
+        setStatus('Keine automatischen Treffer gefunden. Thalia und Amazon können direkt geprüft werden.');return;
+      }
+      setStatus(merged.length+' Treffer aus mehreren Quellen gefunden.');
+      $('bookSearchResults').innerHTML=merged.slice(0,12).map((d,i)=>{
         const isbn=(d.isbn||[]).map(cleanISBN).find(x=>x.length===13)||cleanISBN(first(d.isbn));
         const pub=first(d.publisher)||'';const date=first(d.publish_date)||d.first_publish_year||'';const pages=first(d.number_of_pages)||'';
         const img=d.cover_i?'https://covers.openlibrary.org/b/id/'+d.cover_i+'-M.jpg?default=false':(isbn?cover(isbn):'');
         return `<div class="book-result"><img src="${img}" alt="" onerror="this.style.visibility='hidden'"><div><h3>${escLocal(d.title)}</h3><div class="muted">${escLocal(authorName(d))}</div><div class="muted">${escLocal(String(date||'—'))}${pub?' · '+escLocal(pub):''}${pages?' · '+escLocal(String(pages))+' Seiten':''}</div><div class="muted">ISBN: ${escLocal(isbn||'—')}</div></div><div class="book-result-actions"><button class="btn dark" onclick="loadBookEditions(${i})">Ausgaben auswählen</button></div></div>`;
-      }).join('');
-      window._v31SearchDocs=docs;
-    }catch(e){setStatus(e.message||String(e),true);}
+      }).join('')+sourceSearchLinks(q);
+      window._v31SearchDocs=merged.slice(0,12);
+    }catch(e){setStatus(e.message||String(e),true);$('bookSearchResults').innerHTML=sourceSearchLinks(q);}
   };
   async function fetchGoogleGermanEditions(d){
     const title=String(d?.title||'').trim();
