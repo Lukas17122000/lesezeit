@@ -817,8 +817,28 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 <div class="muted">NEUES BUCH</div><h2 style="margin:5px 0 0">📚 Buch suchen & hinzufügen</h2>
 <p class="muted">Suche nach Titel, Autor oder ISBN. Danach kannst du die passende Ausgabe auswählen.</p>
 <div class="book-search-top"><input id="bookSearchInput" placeholder="z. B. Fourth Wing, Rebecca Yarros oder ISBN …" autocomplete="off"><button class="btn dark" onclick="searchExternalBooks()">🔎 Suchen</button></div>
-<div id="bookSearchStatus" class="search-status"></div><div id="bookSearchResults" class="book-search-results"></div>
+<div id="bookSearchStatus" class="search-status"></div><div id="bookSearchResults" class="book-search-results"></div><div style="margin-top:14px"><button class="btn" type="button" onclick="openManualBook()">✍️ Buch nicht gefunden? Manuell hinzufügen</button></div>
 <div id="bookEditionArea" style="display:none;margin-top:22px"><hr style="border:0;border-top:1px solid var(--line)"><h3 id="bookEditionTitle">Ausgabe auswählen</h3><div class="muted">Wir zeigen konkrete Ausgaben mit ISBN, Seitenzahl, Verlag und Erscheinungsdatum.</div><div id="bookEditionList" class="edition-list"></div></div>
+</div></div>
+
+<div id="manualBookModal" class="book-search-modal"><div class="book-search-dialog">
+<button class="close" onclick="closeManualBook()">×</button>
+<div class="muted">BUCH MANUELL HINZUFÜGEN</div><h2 style="margin:5px 0 0">✍️ Buch selbst hinzufügen</h2>
+<p class="muted">Wenn ein Buch in den Buchdatenbanken nicht gefunden wird, kannst du es hier selbst anlegen.</p>
+<div style="display:grid;gap:10px;margin-top:16px">
+<label><span class="muted">Titel *</span><input id="manualBookTitle" class="search" style="margin-top:5px" placeholder="Buchtitel"></label>
+<label><span class="muted">Autor *</span><input id="manualBookAuthor" class="search" style="margin-top:5px" placeholder="Autor"></label>
+<label><span class="muted">ISBN</span><input id="manualBookISBN" class="search" style="margin-top:5px" inputmode="numeric" placeholder="z. B. 9783423285940"></label>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<label><span class="muted">Seiten</span><input id="manualBookPages" class="search" style="margin-top:5px" type="number" min="0" inputmode="numeric" placeholder="z. B. 196"></label>
+<label><span class="muted">Erscheinungsjahr</span><input id="manualBookYear" class="search" style="margin-top:5px" type="number" min="0" inputmode="numeric" placeholder="z. B. 2025"></label>
+</div>
+<label><span class="muted">Verlag</span><input id="manualBookPublisher" class="search" style="margin-top:5px" placeholder="Verlag"></label>
+<label><span class="muted">Sprache</span><select id="manualBookLanguage" class="search" style="margin-top:5px"><option value="de">🇩🇪 Deutsch</option><option value="en">🇬🇧 Englisch</option><option value="other">Andere</option></select></label>
+<label><span class="muted">Cover-URL (optional)</span><input id="manualBookCover" class="search" style="margin-top:5px" placeholder="https://…"></label>
+</div>
+<div id="manualBookStatus" class="search-status" style="margin-top:10px"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn" onclick="closeManualBook()">Abbrechen</button><button class="btn dark" onclick="saveManualBook()">➕ Buch hinzufügen</button></div>
 </div></div>
 
 <div id="friendProfileModal" class="modal friend-profile-modal" onclick="if(event.target===this)closeFriendProfile()"><div class="dialog"><button class="close" onclick="closeFriendProfile()">×</button><div id="friendProfileContent"></div></div></div>
@@ -3957,9 +3977,11 @@ refresh();setView(viewMode);
       const added=await sb.from('user_books').insert(insertUser).select('id').single();
       if(added.error) throw added.error;
 
-      // 5) Cloud-Bibliothek neu laden, damit XP, Medaillen und Bibliothek sofort stimmen.
-      await syncCloud();
-      setStatus('✓ Buch wurde deiner Bibliothek hinzugefügt.');
+      // 5) Die zentrale Cloud-Synchronisierung liegt in einem eigenen Script-Scope.
+      // Deshalb hier bewusst kein direkter syncCloud()-Aufruf: nach dem erfolgreichen
+      // Insert wird die App einmal sauber neu geladen und lädt dabei die aktuelle Cloud-Bibliothek.
+      setStatus('✓ Buch wurde gespeichert. Bibliothek wird aktualisiert …');
+      setTimeout(()=>location.reload(),250);
       const note=$('bookSearchStatus');
       if(note){note.className='search-status add-success';}
       setTimeout(()=>{ const m=$('bookSearchModal'); if(m) m.style.display='none'; },500);
@@ -3968,6 +3990,59 @@ refresh();setView(viewMode);
       setStatus('Buch konnte nicht hinzugefügt werden: '+(e?.message||e?.details||e?.hint||String(e)),true);
     }
   }
+  window.openManualBook=function(prefill={}){
+    $('manualBookModal')?.classList.add('open');
+    const map={manualBookTitle:'title',manualBookAuthor:'author',manualBookISBN:'isbn',manualBookPages:'pages',manualBookYear:'year',manualBookPublisher:'publisher',manualBookCover:'cover'};
+    Object.entries(map).forEach(([id,key])=>{const el=$(id);if(el && prefill[key]!=null)el.value=prefill[key];});
+    if($('manualBookLanguage'))$('manualBookLanguage').value=prefill.language||'de';
+    setTimeout(()=>$('manualBookTitle')?.focus(),50);
+  };
+  window.closeManualBook=function(){ $('manualBookModal')?.classList.remove('open'); if($('manualBookStatus'))$('manualBookStatus').textContent=''; };
+  window.saveManualBook=async function(){
+    const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
+    if(!sb||!u){$('manualBookStatus').textContent='Bitte zuerst anmelden.';return;}
+    const b={
+      title:String($('manualBookTitle')?.value||'').trim(),
+      author:String($('manualBookAuthor')?.value||'').trim(),
+      isbn:cleanISBN($('manualBookISBN')?.value||''),
+      pages:Math.max(0,Number($('manualBookPages')?.value||0)),
+      publication_year:Math.max(0,Number($('manualBookYear')?.value||0)),
+      publisher:String($('manualBookPublisher')?.value||'').trim(),
+      language:String($('manualBookLanguage')?.value||'de'),
+      cover:String($('manualBookCover')?.value||'').trim()
+    };
+    if(!b.title||!b.author){$('manualBookStatus').textContent='Bitte Titel und Autor eingeben.';return;}
+    $('manualBookStatus').textContent='Buch wird gespeichert …';
+    try{
+      let bookRow=null;
+      if(b.isbn){
+        const r=await sb.from('books').select('id,isbn,title,author,publisher,publication_year,pages,genre,official_cover_url').eq('isbn',b.isbn).limit(1);
+        if(r.error)throw r.error; bookRow=r.data?.[0]||null;
+      }
+      if(!bookRow){
+        const r=await sb.from('books').select('id,isbn,title,author,publisher,publication_year,pages,genre,official_cover_url').eq('title',b.title).eq('author',b.author).limit(1);
+        if(r.error)throw r.error; bookRow=r.data?.[0]||null;
+      }
+      if(!bookRow){
+        const r=await sb.from('books').insert({
+          isbn:b.isbn||null,title:b.title,author:b.author,publisher:b.publisher||null,
+          publication_year:b.publication_year||null,pages:b.pages||0,genre:null,description:null,
+          official_cover_url:b.cover||null
+        }).select('id,isbn,title,author,publisher,publication_year,pages,genre,official_cover_url').single();
+        if(r.error)throw r.error; bookRow=r.data;
+      }
+      const check=await sb.from('user_books').select('id').eq('user_id',u.id).eq('book_id',bookRow.id).limit(1);
+      if(check.error)throw check.error;
+      if(check.data?.length){$('manualBookStatus').textContent='Dieses Buch ist bereits in deiner Bibliothek.';return;}
+      const added=await sb.from('user_books').insert({user_id:u.id,book_id:bookRow.id,status:'to_read',current_page:0,rating:null,notes:null,book_type:null,category:null,received_as:null,reading_duration_hours:0,reading_duration_minutes:0}).select('id').single();
+      if(added.error)throw added.error;
+      $('manualBookStatus').textContent='✓ Buch gespeichert. Bibliothek wird aktualisiert …';
+      setTimeout(()=>location.reload(),250);
+    }catch(e){
+      console.error('Manuelles Buch hinzufügen fehlgeschlagen',e);
+      $('manualBookStatus').textContent='Buch konnte nicht hinzugefügt werden: '+(e?.message||e?.details||String(e));
+    }
+  };
   $('bookSearchInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')window.searchExternalBooks();});
 })();
 
