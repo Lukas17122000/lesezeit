@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V39.51 – Lesezeitewelt</title>
+<title>Lesezeit · V39.52 – Lesezeitewelt</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;500;600;700;800;900&family=Julius+Sans+One&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Yellowtail&display=swap');
 
@@ -432,7 +432,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 </div>
 
 <div class="app">
-<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.51 ✨</div></header>
+<header class="top"><div class="brand">Lesezeit</div><div class="pill">Lesezeit · V39.53 ✨</div></header>
 
 <section class="hero">
 <div>
@@ -3669,13 +3669,16 @@ refresh();setView(viewMode);
     // Google Books: mehrere Suchvarianten, weil aktuelle Übersetzungen
     // bei einer einzigen intitle/inAuthor-Abfrage teilweise nicht geliefert werden.
     for(const q of queries){
-      try{
-        const url='https://www.googleapis.com/books/v1/volumes?'+new URLSearchParams({
-          q, maxResults:'40', printType:'books'
-        }).toString();
-        const data=await getJSON(url);
-        (data.items||[]).forEach(addItem);
-      }catch(e){ console.warn('Google-Books-Suche:',q,e); }
+      // Erst normale Suche, danach dieselbe Suche mit deutscher Sprach-/Länderpräferenz.
+      for(const extra of [{},{langRestrict:'de',country:'DE'}]){
+        try{
+          const url='https://www.googleapis.com/books/v1/volumes?'+new URLSearchParams({
+            q, maxResults:'40', printType:'books', ...extra
+          }).toString();
+          const data=await getJSON(url);
+          (data.items||[]).forEach(addItem);
+        }catch(e){ console.warn('Google-Books-Suche:',q,extra,e); }
+      }
     }
 
     // Zusätzlich Open Library direkt nach deutschen Ausgaben durchsuchen.
@@ -3713,6 +3716,34 @@ refresh();setView(viewMode);
         publisher:'Blush Blanvalet',publication_year:2026,pages:544,
         cover:cover('9783734115967'),genre:'',language:'de',languageLabel:'Deutsch',source:'Verifizierte deutsche Ausgabe'
       });
+    }
+    // V39.52: aktuelle deutsche Ausgabe von Threshing Day ist unter dem
+    // englischen Suchbegriff in den allgemeinen APIs teilweise nicht auffindbar.
+    if(key.includes('threshing day') && /yarros/.test(key) && !seen.has('9783423285940')){
+      found.unshift({
+        title:'Threshing Day – Flammengeküsst',author:'Rebecca Yarros',isbn:'9783423285940',
+        publisher:'dtv',publication_year:2026,pages:240,
+        cover:cover('9783423285940'),genre:'Fantasy',language:'de',languageLabel:'Deutsch',source:'Verifizierte deutsche Ausgabe'
+      });
+    }
+    // V39.53: "Die Warren-Akten Vol.1" ist als deutsche Ausgabe nachweisbar,
+    // wird von Open Library/Google Books aber derzeit nicht zuverlässig als
+    // konkrete Ausgabe zurückgegeben. Goodreads führt den deutschen Titel
+    // von Daniel Salcedo Bernier mit 196 Seiten als Kindle-Ausgabe (31.03.2025).
+    // Deshalb darf diese verifizierte Ausgabe auch ohne ISBN angezeigt und
+    // hinzugefügt werden, statt den Nutzer auf die englische Ausgabe zu lenken.
+    if((key.includes('warren') && /salcedo/.test(key) && /bernier/.test(key)) ||
+       (key.includes('warren-akten') && key.includes('vol 1'))){
+      const exists=found.some(x=>String(x.title||'').toLowerCase().includes('warren-akten') && x.isGerman);
+      if(!exists){
+        found.unshift({
+          title:'Die Warren-Akten Vol.1: 27 Fälle von Ed & Lorraine',
+          author:'Daniel Salcedo Bernier',isbn:'',
+          publisher:'Independently published',publication_year:2025,pages:196,
+          cover:'',genre:'Paranormal',language:'de',languageLabel:'Deutsch',
+          source:'Verifizierte deutsche Ausgabe (ISBN nicht verfügbar)'
+        });
+      }
     }
     return found;
   }
@@ -3793,10 +3824,10 @@ refresh();setView(viewMode);
           <div>
             <strong>${escLocal(e.title)}</strong>${langBadge}
             <small>${escLocal(e.publisher||'Verlag unbekannt')} · ${escLocal(String(e.publication_year||'Jahr unbekannt'))}${e.pages?' · '+escLocal(String(e.pages))+' Seiten':''}<br>
-            ISBN: ${escLocal(e.isbn||'nicht vorhanden')} · Sprache: ${escLocal(lang)}
+            ISBN: ${escLocal(e.isbn||'nicht verfügbar')} · Sprache: ${escLocal(lang)}${e.source?'<br>'+escLocal(e.source):''}
             </small>
           </div>
-          <button class="btn dark" ${e.isbn?'':'disabled'} onclick="addEdition(${j})">Hinzufügen</button>
+          <button class="btn dark" onclick="addEdition(${j})">Hinzufügen</button>
         </div>`;
       }).join('');
 
