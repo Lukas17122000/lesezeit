@@ -364,6 +364,12 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 }
 </style>
 </style>
+
+<style id="v39-delete-book-css">
+.v39-delete-book-box{margin-top:24px;padding:16px;border:1px solid #f0c7c7;border-radius:16px;background:#fff8f8}
+.v39-delete-book-btn{margin-top:12px;border-color:#d9534f;color:#b52b27;background:#fff}
+.v39-delete-book-btn:active{transform:scale(.99)}
+</style>
 </head>
 <body>
 <style id="v22-auth-css">
@@ -1276,6 +1282,12 @@ async function openDetail(id){
  <h3>Meine Notizen</h3>
  <textarea class="notes" placeholder="Was möchtest du dir zu diesem Buch merken?" onchange="setNotes(this.value)">${esc(notes)}</textarea>
  <div class="muted" style="margin-top:10px">Deine persönlichen Angaben werden mit deinem aktuellen Lesezeit-Stand gespeichert.</div>
+
+ <div class="v39-delete-book-box">
+  <h3 style="margin:0 0 6px">🗑️ Buch aus der Bibliothek entfernen</h3>
+  <div class="muted">Das Buch und seine persönlichen Lesedaten werden aus deiner Bibliothek entfernt. Das Buch selbst bleibt für andere Nutzer in der Datenbank erhalten.</div>
+  <button class="btn v39-delete-book-btn" type="button" onclick="deleteBookFromLibrary()">🗑️ Buch löschen</button>
+ </div>
  `;
  const bt=document.getElementById('v33BookType'); if(bt) bt.value=bookType;
  const ra=document.getElementById('v33ReceivedAs'); if(ra) ra.value=receivedAs;
@@ -1963,6 +1975,54 @@ async function changeStatus(s){
  }catch(e){console.warn('Status speichern:',e)}
  openDetail(selected._id);refresh();renderBooks();if(typeof renderStats==='function')renderStats();
 }
+
+async function deleteBookFromLibrary(){
+ if(!selected)return;
+ const book=selected;
+ const title=String(book.Titel||'dieses Buch');
+ if(!confirm(`„${title}“ wirklich aus deiner Bibliothek löschen?\n\nDas Buch, dein Fortschritt, deine Lesesessions und deine eigenen Buchbilder werden entfernt.`))return;
+ const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+ try{
+   // Cloud: nur die persönliche user_books-Zuordnung löschen, nicht den globalen Buchdatensatz.
+   if(sb&&u&&book._cloud){
+     // Lesesessions des Buches zuerst entfernen, damit keine verwaisten Einträge bleiben.
+     const qSessions=await sb.from('reading_sessions').delete().eq('user_id',u.id).eq('user_book_id',String(book._id));
+     if(qSessions?.error)throw qSessions.error;
+
+     // Eigene Buchfotos aus der Cloud entfernen. Fehler dort dürfen das Löschen des Buches nicht blockieren.
+     try{await v3925CloudDelete(book._id,'back');}catch(e){}
+     try{await v3925CloudDelete(book._id,'edge');}catch(e){}
+     try{await v3925CloudDelete(book._id,'cover');}catch(e){}
+
+     const qBook=await sb.from('user_books').delete().eq('id',String(book._id)).eq('user_id',u.id);
+     if(qBook?.error)throw qBook.error;
+   }
+
+   // Lokalen Zustand ebenfalls vollständig bereinigen.
+   const id=String(book._id);
+   books.splice(0,books.length,...books.filter(x=>String(x._id)!==id));
+   state.progress=state.progress||{}; delete state.progress[id];
+   state.status=state.status||{}; delete state.status[id];
+   state.personal=state.personal||{}; delete state.personal[id];
+   state.sessions=(state.sessions||[]).filter(x=>String(x.book_id??x.bookId)!==id);
+   try{await deleteBookPhoto(book._id,'back');}catch(e){}
+   try{await deleteBookPhoto(book._id,'edge');}catch(e){}
+   try{await coverDelete(book._id);}catch(e){}
+   save();
+
+   selected=null;
+   closeDetail();
+   if(typeof refresh==='function')refresh();
+   if(typeof renderBooks==='function')renderBooks();
+   if(typeof renderStats==='function')renderStats();
+   if(typeof updateHomeStats==='function')updateHomeStats();
+   alert('✓ Das Buch wurde aus deiner Bibliothek gelöscht.');
+ }catch(e){
+   console.error('Buch löschen fehlgeschlagen:',e);
+   alert('Das Buch konnte nicht gelöscht werden: '+(e?.message||e?.details||String(e)));
+ }
+}
+
 function closeDetail(){document.body.classList.remove("v39-detail-open");document.getElementById('detailModal').classList.remove('open');document.body.classList.remove('modal-scroll-lock')}
 function openCurrent(){const b=books.find(x=>status(x)==='Lese ich gerade')||books[0];openDetail(b._id)}
 function startReading(){closeDetail();openTimer()}
@@ -3570,24 +3630,132 @@ refresh();setView(viewMode);
       window._v31SearchDocs=docs;
     }catch(e){setStatus(e.message||String(e),true);}
   };
+  async function fetchGoogleGermanEditions(d){
+    const title=String(d?.title||'').trim();
+    const author=authorName(d);
+    if(!title)return [];
+    const q='intitle:'+title+(author?' inauthor:'+author:'');
+    const url='https://www.googleapis.com/books/v1/volumes?'+new URLSearchParams({
+      q,
+      langRestrict:'de',
+      maxResults:'40',
+      printType:'books'
+    }).toString();
+    try{
+      const data=await getJSON(url);
+      return (data.items||[]).map(item=>{
+        const v=item.volumeInfo||{};
+        const isb=(v.industryIdentifiers||[]).map(x=>cleanISBN(x.identifier)).find(x=>x.length===13)||cleanISBN(first(v.industryIdentifiers?.map(x=>x.identifier)));
+        const lang=String(v.language||'').toLowerCase();
+        const img=(v.imageLinks?.thumbnail||'').replace('http://','https://')||(isb?cover(isb):'');
+        return {
+          title:v.title||title,
+          author:author,
+          isbn:isb,
+          publisher:v.publisher||'',
+          publication_year:yearFrom(v.publishedDate)||d.first_publish_year||'',
+          pages:v.pageCount||0,
+          cover:img,
+          genre:(v.categories||[]).slice(0,3).join(', '),
+          language:lang||'de',
+          languageLabel:'Deutsch',
+          source:'Google Books'
+        };
+      }).filter(x=>x.isbn);
+    }catch(e){
+      console.warn('Google-Books-Suche nach deutscher Ausgabe fehlgeschlagen:',e);
+      return [];
+    }
+  }
+
   window.loadBookEditions=async function(i){
     const d=window._v31SearchDocs?.[i];if(!d?.key)return;currentWork=d;
     const workId=d.key.split('/').pop();setStatus('Lade Ausgaben …');
-    $('bookEditionArea').style.display='block';$('bookEditionTitle').textContent='Ausgaben für „'+d.title+'“';$('bookEditionList').innerHTML='<div class="muted">Lade …</div>';
+    $('bookEditionArea').style.display='block';
+    $('bookEditionTitle').textContent='Ausgaben für „'+d.title+'“';
+    $('bookEditionList').innerHTML='<div class="muted">Lade …</div>';
     try{
-      const data=await getJSON(API+'/works/'+encodeURIComponent(workId)+'/editions.json?limit=30');
-      const docs=data.entries||data.docs||[];
-      if(!docs.length){$('bookEditionList').innerHTML='<div class="muted">Keine konkreten Ausgaben gefunden.</div>';return;}
-      $('bookEditionList').innerHTML=docs.slice(0,24).map((e,j)=>{
+      let docs=[];
+      try{
+        const data=await getJSON(API+'/works/'+encodeURIComponent(workId)+'/editions.json?limit=80');
+        docs=data.entries||data.docs||[];
+      }catch(e){
+        console.warn('OpenLibrary-Ausgaben konnten nicht geladen werden:',e);
+      }
+
+      const editions=[];
+      const seen=new Set();
+
+      // OpenLibrary-Ausgaben übernehmen.
+      docs.forEach(e=>{
         const isb=(e.isbn||[]).map(cleanISBN).find(x=>x.length===13)||cleanISBN(first(e.isbn_13));
-        const pub=first(e.publishers)||'';const date=first(e.publish_date)||'';const pages=e.number_of_pages||'';const img=(e.covers&&e.covers[0])?'https://covers.openlibrary.org/b/id/'+e.covers[0]+'-M.jpg?default=false':(isb?cover(isb):'');
-        const title=e.title||d.title;const lang=Array.isArray(e.languages)?e.languages.map(x=>x.key?.split('/').pop()).join(', '):'';
-        const payload={title,author:authorName(d),isbn:isb,publisher:pub,publication_year:yearFrom(date)||d.first_publish_year||'',pages,cover:img,genre:(d.subject||[]).slice(0,3).join(', '),language:lang,workKey:d.key,editionKey:e.key||''};
-        window._v31Editions=window._v31Editions||{};window._v31Editions[j]=payload;
-        return `<div class="edition"><img src="${img}" alt="" onerror="this.style.visibility='hidden'"><div><strong>${escLocal(title)}</strong><small>${escLocal(pub||'Verlag unbekannt')} · ${escLocal(date||'Jahr unbekannt')}${pages?' · '+pages+' Seiten':''}<br>ISBN: ${escLocal(isb||'nicht vorhanden')}${lang?' · '+escLocal(lang):''}</small></div><button class="btn dark" ${isb?'':'disabled'} onclick="addEdition(${j})">Hinzufügen</button></div>`;
+        if(!isb || seen.has(isb))return;
+        const pub=first(e.publishers)||'';
+        const date=first(e.publish_date)||'';
+        const pages=e.number_of_pages||'';
+        const img=(e.covers&&e.covers[0])?'https://covers.openlibrary.org/b/id/'+e.covers[0]+'-M.jpg?default=false':cover(isb);
+        const title=e.title||d.title;
+        const rawLang=Array.isArray(e.languages)?e.languages.map(x=>x.key?.split('/').pop()).filter(Boolean).join(', '):'';
+        const langLower=rawLang.toLowerCase();
+        const isGerman=/\b(de|ger|deu|german)\b/.test(langLower);
+        seen.add(isb);
+        editions.push({
+          title,author:authorName(d),isbn:isb,publisher:pub,
+          publication_year:yearFrom(date)||d.first_publish_year||'',
+          pages,cover:img,genre:(d.subject||[]).slice(0,3).join(', '),
+          language:rawLang,languageLabel:isGerman?'Deutsch':(rawLang||'Unbekannt'),
+          workKey:d.key,editionKey:e.key||'',isGerman
+        });
+      });
+
+      // Wichtig: OpenLibrary hat nicht für jeden aktuellen deutschen Titel alle Ausgaben.
+      // Deshalb holen wir zusätzlich deutsche Treffer aus Google Books.
+      const googleGerman=await fetchGoogleGermanEditions(d);
+      googleGerman.forEach(g=>{
+        if(!g.isbn || seen.has(g.isbn))return;
+        seen.add(g.isbn);
+        editions.push({...g,workKey:d.key,editionKey:'' ,isGerman:true});
+      });
+
+      // Deutsche Ausgaben immer zuerst. Danach übrige Ausgaben.
+      editions.sort((a,b)=>{
+        if(!!b.isGerman!==!!a.isGerman)return b.isGerman?1:-1;
+        const ay=Number(a.publication_year)||9999, by=Number(b.publication_year)||9999;
+        return by-ay;
+      });
+
+      if(!editions.length){
+        $('bookEditionList').innerHTML='<div class="muted">Keine konkreten Ausgaben gefunden.</div>';
+        setStatus('Keine Ausgaben gefunden.',true);
+        return;
+      }
+
+      window._v31Editions={};
+      $('bookEditionList').innerHTML=editions.slice(0,30).map((e,j)=>{
+        const lang=e.languageLabel||'Unbekannte Sprache';
+        const langBadge=e.isGerman?'<span style="display:inline-block;margin-left:6px;padding:2px 7px;border-radius:999px;background:#eaf7ee;color:#24733a;font-size:11px;font-weight:700">🇩🇪 Deutsch</span>':'';
+        window._v31Editions[j]={
+          title:e.title,author:e.author,isbn:e.isbn,publisher:e.publisher,
+          publication_year:e.publication_year,pages:e.pages,cover:e.cover,
+          genre:e.genre,language:e.language,workKey:e.workKey,editionKey:e.editionKey
+        };
+        return `<div class="edition">
+          <img src="${escLocal(e.cover||'')}" alt="" onerror="this.style.visibility='hidden'">
+          <div>
+            <strong>${escLocal(e.title)}</strong>${langBadge}
+            <small>${escLocal(e.publisher||'Verlag unbekannt')} · ${escLocal(String(e.publication_year||'Jahr unbekannt'))}${e.pages?' · '+escLocal(String(e.pages))+' Seiten':''}<br>
+            ISBN: ${escLocal(e.isbn||'nicht vorhanden')} · Sprache: ${escLocal(lang)}
+            </small>
+          </div>
+          <button class="btn dark" ${e.isbn?'':'disabled'} onclick="addEdition(${j})">Hinzufügen</button>
+        </div>`;
       }).join('');
-      setStatus('Wähle die passende Ausgabe aus.');
-    }catch(e){$('bookEditionList').innerHTML='<div class="muted">'+escLocal(e.message||String(e))+'</div>';setStatus('Ausgaben konnten nicht geladen werden.',true);}
+
+      setStatus('Deutsche Ausgaben werden bevorzugt angezeigt. Wähle die passende Ausgabe aus.');
+    }catch(e){
+      $('bookEditionList').innerHTML='<div class="muted">'+escLocal(e.message||String(e))+'</div>';
+      setStatus('Ausgaben konnten nicht geladen werden.',true);
+    }
   };
   function baseFromDoc(d){
     const isbn=(d.isbn||[]).map(cleanISBN).find(x=>x.length===13)||cleanISBN(first(d.isbn));
@@ -3871,5 +4039,12 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 })();
 </script>
+
+/* V39.49 – Deutsche Buchausgaben:
+   OpenLibrary kann bei aktuellen deutschen Übersetzungen unvollständig sein.
+   Die Ausgabeauswahl ergänzt deshalb deutsche Treffer über Google Books,
+   sortiert Deutsch nach vorne und zeigt die Sprache ausdrücklich an.
+*/
+<!-- V39.50: Buch-Löschen ergänzt -->
 </body>
 </html>
