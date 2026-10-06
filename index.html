@@ -898,7 +898,11 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
   <div><label>Endseite beim Stoppen</label><input id="timerEndPage" type="number" min="0" value="0"></div>
 </div>
 <div class="muted" style="font-size:12px;margin:0 0 12px">Die Endseite kannst du direkt hier eintragen, bevor du den Timer beendest.</div>
-<button id="timerButton" class="btn dark timerbtn" onclick="toggleTimer()">▶ Starten</button>
+<div id="homeTimerActions" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+  <button id="timerButton" class="btn dark timerbtn" onclick="v39HomeTimerStart()">▶ Starten</button>
+  <button id="timerPauseButton" class="btn" onclick="v39HomeTimerPause()">⏸ Pause</button>
+  <button id="timerStopButton" class="btn" onclick="v39HomeTimerStop()">⏹ Beenden &amp; speichern</button>
+</div>
 <div id="timerMsg" class="v34-timer-msg"></div>
 <div class="sessions"><h3>Letzte Sessions</h3><div id="sessionList"></div></div>
 </div></div>
@@ -4689,5 +4693,114 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
 })();
 </script>
 
+
+<script>
+/* V39.60 – Timer auch über „Ich lese gerade“ vollständig steuerbar.
+   Der große Start-Button öffnet weiterhin nur das Lesesession-Fenster.
+   Im Fenster gibt es jetzt Start/Fortsetzen, Pause und Beenden & speichern.
+*/
+(function(){
+  function st(){
+    return window.v34TimerState || (window.v34TimerState={bookId:null,startedAt:null,elapsed:0,interval:null,running:false,cloudActiveId:null});
+  }
+  function updateHomeTimerUI(){
+    const x=st();
+    const book=typeof selected!=='undefined' ? selected : null;
+    const same=!!(book && x.bookId!=null && String(x.bookId)===String(book._id));
+    const active=same && !!x.running;
+    const paused=same && !x.running && Number(x.elapsed||0)>0;
+    const start=document.getElementById('timerButton');
+    const pause=document.getElementById('timerPauseButton');
+    const stop=document.getElementById('timerStopButton');
+    if(start){
+      start.textContent=active?'▶ Läuft …':(paused?'▶ Fortsetzen':'▶ Starten');
+      start.disabled=active;
+      start.style.opacity=active?'0.55':'1';
+    }
+    if(pause){
+      pause.textContent=active?'⏸ Pause':'⏸ Pause';
+      pause.disabled=!active;
+      pause.style.opacity=active?'1':'0.5';
+    }
+    if(stop){
+      stop.disabled=!same;
+      stop.style.opacity=same?'1':'0.5';
+    }
+    const timer=document.getElementById('timer');
+    if(timer && same){
+      const live=active && x.startedAt ? Math.max(0,Date.now()-Number(x.startedAt)) : 0;
+      timer.textContent=typeof v34Format==='function' ? v34Format(Number(x.elapsed||0)+live) : '00:00:00';
+    }
+    const msg=document.getElementById('timerMsg');
+    if(msg && same){
+      if(active) msg.textContent='Timer läuft …';
+      else if(paused) msg.textContent='Pausiert';
+    }
+  }
+
+  window.v39HomeTimerStart=function(){
+    try{ window.v34StartTimer(); }catch(e){ console.error(e); }
+    updateHomeTimerUI();
+  };
+
+  window.v39HomeTimerPause=function(){
+    try{ window.v34PauseTimer(); }catch(e){ console.error(e); }
+    updateHomeTimerUI();
+  };
+
+  window.v39HomeTimerStop=async function(){
+    try{ await window.v34StopTimer(); }catch(e){ console.error(e); }
+    updateHomeTimerUI();
+    try{ renderSessions(); }catch(e){}
+  };
+
+  /* „Ich lese gerade“ öffnet das gleiche Fenster, zeigt aber auch einen
+     bereits laufenden/pausierten Timer zuverlässig an. */
+  window.openTimer=function(){
+    if(!selected) selected=books.find(x=>status(x)==='Lese ich gerade')||books[0];
+    if(!selected)return;
+
+    const current=Number(progress(selected)||0);
+    const x=st();
+    const same=String(x.bookId||'')===String(selected._id);
+
+    const bookTitle=document.getElementById('timerBook');
+    if(bookTitle)bookTitle.textContent=selected.Titel;
+
+    const sp=document.getElementById('timerStartPage');
+    const ep=document.getElementById('timerEndPage');
+    if(sp)sp.value=(same && sp.value!=='')?Number(sp.value):current;
+    if(ep)ep.value=(same && ep.value!=='')?Number(ep.value):current;
+
+    const timer=document.getElementById('timer');
+    if(timer){
+      const live=same && x.running && x.startedAt ? Math.max(0,Date.now()-Number(x.startedAt)) : 0;
+      timer.textContent=typeof v34Format==='function' ? v34Format(Number(x.elapsed||0)+live) : '00:00:00';
+    }
+    const modal=document.getElementById('timerModal');
+    if(modal)modal.classList.add('open');
+    try{renderSessions();}catch(e){}
+    updateHomeTimerUI();
+
+    /* Cloud-Zustand nachladen. Die Oberfläche bleibt dabei sofort bedienbar. */
+    Promise.resolve(typeof v39SyncActiveTimerFromCloud==='function' ? v39SyncActiveTimerFromCloud() : false)
+      .then(()=>{
+        try{
+          const y=st();
+          if(y.bookId && String(y.bookId)!==String(selected._id))return;
+          const live=y.running&&y.startedAt?Math.max(0,Date.now()-Number(y.startedAt)):0;
+          if(timer)timer.textContent=typeof v34Format==='function'?v34Format(Number(y.elapsed||0)+live):'00:00:00';
+          updateHomeTimerUI();
+        }catch(e){}
+      }).catch(()=>{});
+  };
+
+  /* Der laufende Timer soll auch innerhalb des Fensters sichtbar weiterzählen. */
+  setInterval(function(){
+    const modal=document.getElementById('timerModal');
+    if(modal && modal.classList.contains('open')) updateHomeTimerUI();
+  },250);
+})();
+</script>
+
 </body>
-</html>
