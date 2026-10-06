@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V39.52 – Lesezeitewelt</title>
+<title>Lesezeit · V39.63 – Lesezeitewelt</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;500;600;700;800;900&family=Julius+Sans+One&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Yellowtail&display=swap');
 
@@ -1018,7 +1018,15 @@ setInterval(()=>{if(window.LesezeitCurrentUser)v39SyncActiveTimerFromCloud()},50
 
 function save(){localStorage.setItem(activeStore,JSON.stringify(state))}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function status(b){return state.status[b._id]||b.Lesestatus||'Ungelesen'}
+function status(b){
+ const raw=String(state.status[b._id]||b.Lesestatus||'Ungelesen').trim();
+ // Einheitliche Anzeige: Supabase/ältere Versionen können "to_read" oder "Zu lesen" liefern.
+ if(raw==='to_read'||raw==='Zu lesen') return 'Ungelesen';
+ if(raw==='read') return 'Gelesen';
+ if(raw==='reading') return 'Lese ich gerade';
+ if(raw==='dropped') return 'Abgebrochen';
+ return raw||'Ungelesen';
+}
 function progress(b){return Math.max(0,Math.min(b.Seitenanzahl||0,Number(state.progress[b._id]||0)))}
 function pct(b){return b.Seitenanzahl?Math.round(progress(b)/b.Seitenanzahl*100):0}
 
@@ -3364,7 +3372,7 @@ refresh();setView(viewMode);
             Buchart:r.book_type||"",
             Preis:r.price==null?"":String(r.price),
             "Erhalten als":r.received_as||r.acquisition_source||"",
-            Lesestatus:r.status==="read"?"Gelesen":r.status==="reading"?"Lese ich gerade":r.status==="dropped"?"Abgebrochen":"Zu lesen",
+            Lesestatus:r.status==="read"?"Gelesen":r.status==="reading"?"Lese ich gerade":r.status==="dropped"?"Abgebrochen":"Ungelesen",
             Lesebeginn:r.start_date||"",
             Leseende:r.end_date||"",
             Bewertung:r.rating||0,
@@ -3536,6 +3544,10 @@ refresh();setView(viewMode);
  };
  const getBookStatus=(x)=>{
   const own=String(x?.Lesestatus||'').trim();
+  if(own==='to_read'||own==='Zu lesen') return 'Ungelesen';
+  if(own==='read') return 'Gelesen';
+  if(own==='reading') return 'Lese ich gerade';
+  if(own==='dropped') return 'Abgebrochen';
   if(own) return own;
   try{return typeof window.status==='function' ? window.status(x) : '';}
   catch(e){return '';}
