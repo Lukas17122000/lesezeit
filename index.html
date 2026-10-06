@@ -4444,5 +4444,250 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
 })();
 </script>
 
+
+<script>
+/* V39.59 – Timer-Fix
+   Eine einzige, robuste Timer-Steuerung am Ende der Datei.
+   Sie überschreibt die älteren Timer-Handler, ohne andere App-Funktionen anzutasten.
+*/
+(function(){
+  function getBook(){
+    if(typeof selected!=='undefined' && selected) return selected;
+    try{
+      const b=(typeof books!=='undefined' && Array.isArray(books))
+        ? (books.find(x=>status(x)==='Lese ich gerade')||books[0]) : null;
+      if(b && typeof selected!=='undefined') selected=b;
+      return b;
+    }catch(e){return null;}
+  }
+  function stateObj(){
+    return window.v34TimerState || (window.v34TimerState={
+      bookId:null,startedAt:null,elapsed:0,interval:null,running:false,cloudActiveId:null
+    });
+  }
+  function render(){
+    const st=stateObj();
+    const live=st.running&&st.startedAt ? Math.max(0,Date.now()-Number(st.startedAt)) : 0;
+    const text=typeof v34Format==='function'
+      ? v34Format(Number(st.elapsed||0)+live)
+      : new Date(Number(st.elapsed||0)+live).toISOString().slice(11,19);
+    ['v34TimerDisplay','timer'].forEach(id=>{
+      const e=document.getElementById(id); if(e)e.textContent=text;
+    });
+    const active=!!st.running;
+    const b1=document.getElementById('v34TimerStart'); if(b1)b1.textContent=active?'⏹ Stoppen':'▶ Start';
+    const b2=document.getElementById('timerButton'); if(b2)b2.textContent=active?'⏹ Stoppen':'▶ Starten';
+    ['v34TimerMsg','timerMsg'].forEach(id=>{
+      const e=document.getElementById(id);
+      if(e&&active)e.textContent='Timer läuft …';
+    });
+  }
+
+  function persistLocal(st){
+    try{
+      localStorage.setItem('lesezeit_active_timer',JSON.stringify({
+        bookId:st.bookId?String(st.bookId):null,
+        startedAt:st.startedAt,
+        elapsed:Number(st.elapsed||0),
+        running:!!st.running,
+        cloudActiveId:st.cloudActiveId||null,
+        store:typeof activeStore!=='undefined'?activeStore:null
+      }));
+    }catch(e){}
+  }
+
+  window.v34StartTimer=function(){
+    const book=getBook();
+    if(!book){alert('Bitte zuerst ein Buch auswählen.');return;}
+    const st=stateObj();
+
+    if(String(st.bookId||'')!==String(book._id)){
+      st.bookId=String(book._id);
+      st.elapsed=0;
+      st.startedAt=null;
+      st.running=false;
+      st.cloudActiveId=null;
+      const cur=Number(typeof progress==='function'?progress(book):0)||0;
+      const sp=document.getElementById('v34StartPage')||document.getElementById('timerStartPage');
+      const ep=document.getElementById('v34EndPage')||document.getElementById('timerEndPage');
+      if(sp)sp.value=cur;
+      if(ep)ep.value=cur;
+    }
+    if(st.running)return;
+
+    st.startedAt=Date.now();
+    st.running=true;
+    persistLocal(st);
+
+    clearInterval(st.interval);
+    st.interval=setInterval(render,250);
+    render();
+
+    /* Cloud-Sync darf den lokalen Timer niemals blockieren. */
+    try{
+      if(typeof v39CloudUpsertActiveTimer==='function'){
+        Promise.resolve(v39CloudUpsertActiveTimer(
+          st,st.bookId,
+          document.getElementById('v34StartPage')?.value||0,
+          document.getElementById('v34EndPage')?.value||0
+        )).catch(()=>{});
+      }
+    }catch(e){}
+  };
+
+  window.v34PauseTimer=function(){
+    const st=stateObj();
+    if(!st.running)return;
+    st.elapsed=Number(st.elapsed||0)+Math.max(0,Date.now()-Number(st.startedAt||Date.now()));
+    st.startedAt=null;
+    st.running=false;
+    clearInterval(st.interval);
+    st.interval=null;
+    persistLocal(st);
+    render();
+    const m=document.getElementById('v34TimerMsg'); if(m)m.textContent='Pausiert';
+    try{
+      if(typeof v39CloudUpdateActiveTimer==='function')
+        Promise.resolve(v39CloudUpdateActiveTimer(st,{started_at:null,ended_at:null,duration_seconds:-Math.floor(Number(st.elapsed||0)/1000)})).catch(()=>{});
+    }catch(e){}
+  };
+
+  window.v34StopTimer=async function(){
+    const st=stateObj();
+    if(!st.bookId)return;
+
+    if(st.running){
+      st.elapsed=Number(st.elapsed||0)+Math.max(0,Date.now()-Number(st.startedAt||Date.now()));
+      st.startedAt=null;
+      st.running=false;
+    }
+    clearInterval(st.interval);
+    st.interval=null;
+
+    const book=(typeof books!=='undefined'&&Array.isArray(books))
+      ? books.find(b=>String(b._id)===String(st.bookId))
+      : null;
+    const startEl=document.getElementById('v34StartPage')||document.getElementById('timerStartPage');
+    const endEl=document.getElementById('v34EndPage')||document.getElementById('timerEndPage');
+    const current=book&&typeof progress==='function'?Number(progress(book)||0):0;
+    const startPage=Math.max(0,Number(startEl?.value||current));
+    const endPage=Math.max(startPage,Number(endEl?.value||startPage));
+    const durationSeconds=Math.max(0,Math.floor(Number(st.elapsed||0)/1000));
+    const durationMin=Math.max(0,Math.round(durationSeconds/60));
+    const startedAt=new Date(Date.now()-Number(st.elapsed||0)).toISOString();
+    const endedAt=new Date().toISOString();
+
+    try{
+      if(typeof state!=='undefined'){
+        state.sessions=state.sessions||[];
+        const session={
+          id:'local_'+Date.now(),
+          book_id:String(st.bookId),
+          start_page:startPage,
+          end_page:endPage,
+          pages_read:Math.max(0,endPage-startPage),
+          duration_minutes:durationMin,
+          duration_seconds:durationSeconds,
+          duration:durationSeconds,
+          started_at:startedAt,
+          ended_at:endedAt
+        };
+        state.sessions.push(session);
+
+        if(book){
+          state.progress=state.progress||{};
+          state.status=state.status||{};
+          state.progress[book._id]=Math.max(Number(state.progress[book._id]||0),endPage);
+          if(endPage>0&&status(book)==='Ungelesen')state.status[book._id]='Lese ich gerade';
+          if(Number(book.Seitenanzahl||0)>0&&endPage>=Number(book.Seitenanzahl))
+            state.status[book._id]='Gelesen';
+        }
+        save();
+
+        const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
+        if(sb&&u){
+          try{
+            if(st.cloudActiveId){
+              const q=await sb.from('reading_sessions').update({
+                started_at:startedAt,ended_at:endedAt,duration_seconds:durationSeconds,
+                start_page:startPage,end_page:endPage
+              }).eq('id',String(st.cloudActiveId)).eq('user_id',u.id);
+              if(q.error)throw q.error;
+              session.cloud_id=String(st.cloudActiveId);
+            }else{
+              const q=await sb.from('reading_sessions').insert({
+                user_id:u.id,user_book_id:String(st.bookId),
+                started_at:startedAt,ended_at:endedAt,duration_seconds:durationSeconds,
+                start_page:startPage,end_page:endPage
+              }).select('id').single();
+              if(!q.error&&q.data?.id){session.cloud_id=String(q.data.id);save();}
+            }
+          }catch(e){console.warn('Timer Cloud-Speicherung:',e);}
+        }
+
+        if(typeof renderSessions==='function')renderSessions();
+        if(typeof v34RenderSessionHistory==='function')v34RenderSessionHistory();
+        if(typeof refresh==='function')refresh();
+        if(typeof renderBooks==='function')renderBooks();
+        if(typeof renderStats==='function')renderStats();
+
+        const msg=document.getElementById('v34TimerMsg')||document.getElementById('timerMsg');
+        if(msg)msg.textContent=`✓ Session gespeichert · ${durationMin} Min · ${Math.max(0,endPage-startPage)} Seiten`;
+      }
+    }catch(e){
+      console.error('V39.59 Timer:',e);
+      const msg=document.getElementById('v34TimerMsg')||document.getElementById('timerMsg');
+      if(msg)msg.textContent='Fehler beim Speichern: '+(e?.message||e);
+    }finally{
+      try{localStorage.removeItem('lesezeit_active_timer');}catch(e){}
+      st.bookId=null;st.startedAt=null;st.elapsed=0;st.running=false;st.cloudActiveId=null;
+      clearInterval(st.interval);st.interval=null;
+      render();
+    }
+  };
+
+  window.startTimer=window.v34StartTimer;
+  window.toggleTimer=function(){
+    const st=stateObj();
+    if(st.running)window.v34PauseTimer();
+    else window.v34StartTimer();
+  };
+
+  /* Einfache direkte Touch-/Click-Behandlung für iPhone und PC. */
+  function action(btn){
+    if(!btn)return;
+    if(btn.id==='v34TimerStart'||btn.id==='timerButton'){
+      const st=stateObj();
+      if(st.running)window.v34StopTimer();
+      else window.v34StartTimer();
+      return;
+    }
+    const wrap=btn.closest('.v34-timer-actions');
+    if(wrap){
+      const bs=Array.from(wrap.querySelectorAll('button'));
+      const i=bs.indexOf(btn);
+      if(i===1)window.v34PauseTimer();
+      else if(i===2)window.v34StopTimer();
+    }
+  }
+  let lastTouch=0;
+  document.addEventListener('touchend',e=>{
+    const b=e.target?.closest?.('#v34TimerStart,#timerButton,.v34-timer-actions button');
+    if(!b)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    lastTouch=Date.now();action(b);
+  },{capture:true,passive:false});
+  document.addEventListener('click',e=>{
+    const b=e.target?.closest?.('#v34TimerStart,#timerButton,.v34-timer-actions button');
+    if(!b)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+    if(Date.now()-lastTouch<700)return;
+    action(b);
+  },{capture:true});
+
+  window.v34RenderTimer=render;
+})();
+</script>
+
 </body>
 </html>
