@@ -463,7 +463,7 @@ body{font-family:var(--font-family,-apple-system,BlinkMacSystemFont,"Segoe UI",s
 <div id="libraryPage" class="page active">
 <div class="grid">
 <div class="card stat"><span class="muted">Bücher</span><b id="bookCount">0</b></div>
-<div class="card stat"><span class="muted">Gelesen</span><b id="readCount">0</b></div>
+<div class="card stat" id="readBooksStat" onclick="showReadBooks()" title="Gelesene Bücher anzeigen" style="cursor:pointer"><span class="muted">Gelesen</span><b id="readCount">0</b><div class="sub" style="margin-top:6px">Tippen/klicken für Liste →</div></div>
 <div class="card stat"><span class="muted">Seiten</span><b id="pageCount">0</b></div>
 <div class="card stat pageStat">
  <span class="muted">Gelesene Seiten</span>
@@ -1120,6 +1120,22 @@ function coverFallback(img,id){
  const b=books.find(x=>x._id===String(id));
  box.innerHTML=`<span>${esc(b?.Titel||'Buch')}</span>`;
 }
+
+window.showReadBooks=function(){
+  // Der Statistik-Kasten "Gelesen" öffnet direkt die Bibliotheksliste
+  // mit dem Filter "Gelesen". Suche wird bewusst zurückgesetzt, damit
+  // wirklich alle gelesenen Bücher angezeigt werden.
+  const search=document.getElementById('search');
+  if(search)search.value='';
+  filter='Gelesen';
+  const tabs=document.querySelectorAll('.tab');
+  tabs.forEach(x=>x.classList.toggle('active',x.textContent.trim()==='Gelesen'));
+  renderBooks();
+  const booksEl=document.getElementById('books');
+  if(booksEl){
+    setTimeout(()=>booksEl.scrollIntoView({behavior:'smooth',block:'start'}),60);
+  }
+};
 
 function renderBooks(){
  const q=document.getElementById('search').value.toLowerCase().trim();
