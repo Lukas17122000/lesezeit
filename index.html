@@ -4803,4 +4803,91 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
 })();
 </script>
 
+
+<script>
+/* V39.61 – Startseite automatisch von der letzten gespeicherten Endseite
+   Bei einem neuen Timer wird automatisch die letzte Endseite des Buches
+   verwendet. Ein bereits laufender/pausierter Timer bleibt unverändert. */
+(function(){
+  function bookForTimer(){
+    try{
+      return (typeof selected!=='undefined' && selected) ? selected : null;
+    }catch(e){ return null; }
+  }
+
+  function lastEndPage(book){
+    if(!book) return 0;
+    const id=String(book._id);
+    let best=0;
+
+    /* Der aktuelle gespeicherte Fortschritt ist die wichtigste Quelle. */
+    try{ best=Math.max(best,Number(typeof progress==='function'?progress(book):0)||0); }catch(e){}
+    try{ best=Math.max(best,Number(state?.progress?.[id]||0)||0); }catch(e){}
+
+    /* Zusätzlich die tatsächlich letzte Endseite aus den Sessions prüfen. */
+    try{
+      const arr=Array.isArray(state?.sessions)?state.sessions:[];
+      const own=arr.filter(s=>{
+        if(!s || s.active_timer) return false;
+        return String(s.book_id??s.bookId??'')===id;
+      });
+      own.forEach(s=>{
+        best=Math.max(best,Number(s.end_page??s.endPage??0)||0);
+      });
+    }catch(e){}
+
+    return Math.max(0,Math.floor(best));
+  }
+
+  function setFreshTimerPages(book){
+    if(!book) return;
+    const page=lastEndPage(book);
+    const sp=document.getElementById('timerStartPage')||document.getElementById('v34StartPage');
+    const ep=document.getElementById('timerEndPage')||document.getElementById('v34EndPage');
+    if(sp)sp.value=page;
+    if(ep)ep.value=page;
+  }
+
+  /* Beim Öffnen von „Ich lese gerade“ automatisch die letzte Endseite einsetzen. */
+  const oldOpen=window.openTimer;
+  window.openTimer=function(){
+    const book=bookForTimer();
+    let active=false;
+    try{
+      const st=window.v34TimerState||{};
+      active=!!(st.running && book && String(st.bookId)===String(book._id));
+    }catch(e){}
+
+    if(typeof oldOpen==='function') oldOpen();
+
+    /* Nur bei einem neuen/nicht laufenden Timer neu setzen. */
+    if(!active) setFreshTimerPages(bookForTimer());
+  };
+
+  /* Auch beim eigentlichen Start nochmals sicherstellen, dass die Startseite
+     nicht manuell auf einen alten Wert zurückfällt. Bei einem laufenden Timer
+     wird nichts verändert. */
+  const oldStart=window.v34StartTimer;
+  window.v34StartTimer=function(){
+    const book=bookForTimer();
+    const st=window.v34TimerState||{};
+    const sameActive=!!(st.running && book && String(st.bookId)===String(book._id));
+    if(!sameActive) setFreshTimerPages(book);
+    return oldStart.apply(this,arguments);
+  };
+  window.startTimer=window.v34StartTimer;
+
+  /* Falls die Startseite über einen anderen UI-Pfad gesetzt wird. */
+  const oldHomeStart=window.v39HomeTimerStart;
+  window.v39HomeTimerStart=function(){
+    try{
+      const book=bookForTimer();
+      const st=window.v34TimerState||{};
+      if(!(st.running && book && String(st.bookId)===String(book._id))) setFreshTimerPages(book);
+    }catch(e){}
+    if(typeof oldHomeStart==='function') return oldHomeStart.apply(this,arguments);
+    return window.v34StartTimer();
+  };
+})();
+</script>
 </body>
