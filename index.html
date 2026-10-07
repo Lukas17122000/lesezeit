@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V39.71 – Lesezeitewelt</title>
+<title>Lesezeit · V39.73 – Lesezeitewelt</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;500;600;700;800;900&family=Julius+Sans+One&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Yellowtail&display=swap');
 
@@ -5194,7 +5194,21 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
         }
       }
 
-      // 3) Alles, was lokal noch keine Cloud-ID besitzt, wird hochgeladen.
+      // 3) Umgekehrt müssen auch Cloud-Sessions, die auf diesem Gerät
+      //    noch fehlen, in den lokalen State übernommen werden. Genau das
+      //    fehlte in V39.72: Das iPhone konnte eine Session hochladen, aber
+      //    der PC hat eine bereits vorhandene Cloud-Session nicht zurück in
+      //    seinen lokalen State übernommen.
+      for(const c of cloud){
+        const hit=locals.find(l=>String(l?.cloud_id||'')===String(c.cloud_id||c.id||''));
+        if(hit)continue;
+        const exact=locals.find(l=>sameExact(l,c));
+        if(exact){ exact.cloud_id=c.cloud_id; exact.id=c.id; changed=true; continue; }
+        locals.push(c);
+        changed=true;
+      }
+
+      // 4) Alles, was lokal noch keine Cloud-ID besitzt, wird hochgeladen.
       //    Vor dem Insert nochmals exakt gegen den aktuellen Cloud-Bestand prüfen.
       for(const l of locals){
         if(l?.cloud_id)continue;
@@ -5228,6 +5242,9 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
   }
   window.v39ReconcileSessionsAcrossDevices=reconcile;
   window.addEventListener('lesezeit-auth-ready',()=>setTimeout(reconcile,250));
+  // Der Cloud-Ladevorgang kann nach auth-ready fertig werden. Deshalb auch
+  // danach nochmals abgleichen.
+  window.addEventListener('lesezeit-cloud-ready',()=>setTimeout(reconcile,100));
 })();
 </script>
 </body>
