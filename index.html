@@ -5134,7 +5134,7 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
   }catch(e){}
 })();
 </script>
-<script>/* V39.74 – robuster Geräte-Sync aus der bestätigten V39.71-Basis.
+<script>/* V39.75 – Geräte-Sync echter Laufzeit-Fix aus der bestätigten V39.71-Basis.
    Wichtig: Eine lokale Session mit einer alten/ungültigen cloud_id darf nicht
    verhindern, dass sie erneut in Supabase gespeichert wird. Gleichzeitig werden
    vorhandene Cloud-Sessions zurück auf das Gerät übernommen. */
@@ -5148,7 +5148,7 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
   async function sync(){
     if(running)return;
     const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
-    if(!sb||!u||!window.state||!Array.isArray(state.sessions))return;
+    if(!sb||!u||!Array.isArray(state.sessions))return;
     running=true;
     try{
       const q=await sb.from('reading_sessions').select('*').eq('user_id',u.id).order('started_at',{ascending:false});
@@ -5176,7 +5176,7 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
         if(hit){l.cloud_id=hit.cloud_id;l.id=hit.id;changed=true;continue;}
         const payload={user_id:u.id,user_book_id:String(l.book_id),started_at:String(l.started_at),ended_at:l.ended_at||`${String(l.started_at).slice(0,10)}T23:59:59`,duration_seconds:Math.floor(dur(l)),start_page:sp(l),end_page:ep(l)};
         const ins=await sb.from('reading_sessions').insert(payload).select('id').single();
-        if(ins.error){console.warn('V39.74 Session-Upload:',ins.error.message);continue;}
+        if(ins.error){console.warn('V39.75 Session-Upload:',ins.error.message);continue;}
         if(ins.data?.id){l.cloud_id=String(ins.data.id);l.id=String(ins.data.id);validIds.add(String(ins.data.id));changed=true;}
       }
 
@@ -5188,8 +5188,8 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
         if(typeof refresh==='function')refresh();
         if(typeof renderStats==='function')renderStats();
       }
-      console.log('V39.74 Session-Sync:',{cloud:cloud.length,local:locals.length,changed});
-    }catch(e){console.warn('V39.74 Session-Sync:',e)}
+      console.log('V39.75 Session-Sync:',{cloud:cloud.length,local:locals.length,changed});
+    }catch(e){console.warn('V39.75 Session-Sync:',e)}
     finally{running=false;}
   }
   window.v39SyncSessionsAcrossDevices=sync;
