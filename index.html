@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V39.74 – Lesezeitewelt</title>
+<title>Lesezeit · V39.71 – Lesezeitewelt</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;500;600;700;800;900&family=Julius+Sans+One&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Yellowtail&display=swap');
 
@@ -5134,70 +5134,81 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
   }catch(e){}
 })();
 </script>
-<script>/* V39.75 – Geräte-Sync echter Laufzeit-Fix aus der bestätigten V39.71-Basis.
-   Wichtig: Eine lokale Session mit einer alten/ungültigen cloud_id darf nicht
-   verhindern, dass sie erneut in Supabase gespeichert wird. Gleichzeitig werden
-   vorhandene Cloud-Sessions zurück auf das Gerät übernommen. */
-(function(){
-  let running=false;
-  const n=v=>Number(v||0);
-  const dur=s=>Math.max(0,n(s?.duration_seconds),n(s?.duration),n(s?.duration_minutes)*60);
-  const sp=s=>n(s?.start_page); const ep=s=>n(s?.end_page);
-  const norm=r=>({id:String(r.id),cloud_id:String(r.id),book_id:String(r.user_book_id),start_page:sp(r),end_page:ep(r),pages_read:Math.max(0,ep(r)-sp(r)),duration_seconds:dur(r),duration:dur(r),duration_minutes:Math.floor(dur(r)/60),started_at:r.started_at,ended_at:r.ended_at,active_timer:false});
-  const exact=(a,b)=>String(a?.book_id||a?.bookId||'')===String(b?.book_id||b?.bookId||'')&&sp(a)===sp(b)&&ep(a)===ep(b)&&String(a?.started_at||'').slice(0,19)===String(b?.started_at||'').slice(0,19);
-  async function sync(){
-    if(running)return;
-    const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
-    if(!sb||!u||!Array.isArray(state.sessions))return;
-    running=true;
-    try{
-      const q=await sb.from('reading_sessions').select('*').eq('user_id',u.id).order('started_at',{ascending:false});
-      if(q.error)throw q.error;
-      const cloud=(q.data||[]).map(norm);
-      let locals=state.sessions.map(x=>({...x}));
-      let changed=false;
 
-      // 1. Cloud-Sessions, die lokal fehlen, übernehmen.
-      for(const c of cloud){
-        let hit=locals.find(l=>String(l?.cloud_id||'')===String(c.cloud_id));
-        if(hit)continue;
-        hit=locals.find(l=>exact(l,c));
-        if(hit){hit.cloud_id=c.cloud_id;hit.id=c.id;changed=true;}
-        else{locals.push(c);changed=true;}
-      }
-
-      // 2. Jede lokale Session ohne gültige Cloud-ID hochladen.
-      //    Auch eine vorhandene, aber nicht mehr existierende cloud_id wird neu angelegt.
-      const validIds=new Set(cloud.map(c=>String(c.cloud_id)));
-      for(const l of locals){
-        if(!l?.started_at||!l?.book_id)continue;
-        if(l.cloud_id&&validIds.has(String(l.cloud_id)))continue;
-        const hit=cloud.find(c=>exact(l,c));
-        if(hit){l.cloud_id=hit.cloud_id;l.id=hit.id;changed=true;continue;}
-        const payload={user_id:u.id,user_book_id:String(l.book_id),started_at:String(l.started_at),ended_at:l.ended_at||`${String(l.started_at).slice(0,10)}T23:59:59`,duration_seconds:Math.floor(dur(l)),start_page:sp(l),end_page:ep(l)};
-        const ins=await sb.from('reading_sessions').insert(payload).select('id').single();
-        if(ins.error){console.warn('V39.75 Session-Upload:',ins.error.message);continue;}
-        if(ins.data?.id){l.cloud_id=String(ins.data.id);l.id=String(ins.data.id);validIds.add(String(ins.data.id));changed=true;}
-      }
-
-      if(changed){
-        state.sessions=locals;
-        if(typeof save==='function')save();
-        if(typeof renderSessions==='function')renderSessions();
-        if(typeof v34RenderSessionHistory==='function')v34RenderSessionHistory();
-        if(typeof refresh==='function')refresh();
-        if(typeof renderStats==='function')renderStats();
-      }
-      console.log('V39.75 Session-Sync:',{cloud:cloud.length,local:locals.length,changed});
-    }catch(e){console.warn('V39.75 Session-Sync:',e)}
-    finally{running=false;}
-  }
-  window.v39SyncSessionsAcrossDevices=sync;
-  window.addEventListener('lesezeit-auth-ready',()=>setTimeout(sync,500));
-  window.addEventListener('lesezeit-cloud-ready',()=>setTimeout(sync,500));
-  setTimeout(sync,2500);
-})();</script>\n</body>
 <script>
+/* V39.76 – direkter Lesesession-Abgleich beim Öffnen eines Buches.
+   Keine Abhängigkeit von Auth-/Cloud-Ready-Events. Für das aktuell geöffnete
+   Buch werden lokale Sessions direkt gegen Supabase geprüft. Fehlende lokale
+   Sessions werden hochgeladen; danach wird der Cloud-Bestand zurückgelesen.
+*/
+(function(){
+  function sec(x){return Math.max(0,Number(x?.duration_seconds||0),Number(x?.duration||0),Number(x?.duration_minutes||0)*60)}
+  function date19(x){return String(x?.started_at||'').slice(0,19)}
+  function same(a,b){
+    return String(a?.book_id??a?.bookId??'')===String(b?.book_id??b?.bookId??'') &&
+      Number(a?.start_page||0)===Number(b?.start_page||0) &&
+      Number(a?.end_page||0)===Number(b?.end_page||0) &&
+      date19(a)===date19(b);
+  }
+  function mapRow(r){
+    const d=Number(r.duration_seconds||0)||Number(r.duration_minutes||0)*60;
+    return {id:String(r.id),cloud_id:String(r.id),book_id:String(r.user_book_id),start_page:Number(r.start_page||0),end_page:Number(r.end_page||0),pages_read:Math.max(0,Number(r.end_page||0)-Number(r.start_page||0)),duration_seconds:d,duration_minutes:Math.floor(d/60),duration:d,started_at:r.started_at,ended_at:r.ended_at,active_timer:false};
+  }
+  window.v3976DirectSyncSelectedSessions=async function(bookId){
+    const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
+    if(!sb||!u||!bookId||typeof state==='undefined'||!Array.isArray(state.sessions)) return {uploaded:0,loaded:0,error:'cloud_not_ready'};
+    try{
+      const {data,error}=await sb.from('reading_sessions').select('*').eq('user_id',u.id).eq('user_book_id',String(bookId)).order('started_at',{ascending:false});
+      if(error) throw error;
+      const cloud=(data||[]).map(mapRow);
+      const local=state.sessions.filter(x=>String(x?.book_id??x?.bookId??'')===String(bookId)&&!x?.active_timer);
+      let uploaded=0;
+      for(const x of local){
+        if(cloud.some(c=>same(c,x))) continue;
+        const payload={user_id:u.id,user_book_id:String(bookId),started_at:x.started_at||null,ended_at:x.ended_at||((x.started_at?String(x.started_at).slice(0,10):'')+'T23:59:59'),duration_seconds:sec(x),start_page:Number(x.start_page||0),end_page:Number(x.end_page||0)};
+        const ins=await sb.from('reading_sessions').insert(payload).select('*').single();
+        if(ins.error) throw ins.error;
+        const added=mapRow(ins.data);
+        cloud.push(added); uploaded++;
+        x.cloud_id=added.cloud_id; x.id=added.id; x.ended_at=x.ended_at||added.ended_at;
+      }
+      // Cloud ist jetzt die gemeinsame Quelle; lokale Einträge werden mit Cloud-Daten ergänzt,
+      // ohne bestehende lokale Sessions zu löschen.
+      const merged=[...state.sessions];
+      for(const c of cloud){
+        const i=merged.findIndex(x=>same(x,c)||String(x?.cloud_id||'')===String(c.cloud_id));
+        if(i>=0){
+          const old=merged[i];
+          merged[i]={...old,...c,cloud_id:c.cloud_id,id:c.id,manual:old.manual===true};
+          merged[i].pages_read=Math.max(Number(old.pages_read||0),Number(c.pages_read||0));
+          const d=Math.max(sec(old),sec(c));
+          merged[i].duration_seconds=d; merged[i].duration=d; merged[i].duration_minutes=Math.floor(d/60);
+        }else merged.push(c);
+      }
+      state.sessions=merged;
+      if(typeof save==='function') save();
+      window.v3976LastSync={bookId:String(bookId),uploaded,loaded:cloud.length};
+      return {uploaded,loaded:cloud.length};
+    }catch(e){
+      console.error('V39.76 direkter Session-Sync:',e);
+      window.v3976LastSync={bookId:String(bookId),uploaded:0,loaded:0,error:String(e?.message||e)};
+      return {uploaded:0,loaded:0,error:String(e?.message||e)};
+    }
+  };
+  const oldOpenDetail=window.openDetail;
+  if(typeof oldOpenDetail==='function'){
+    window.openDetail=async function(id){
+      try{
+        const b=books.find(x=>String(x._id)===String(id));
+        if(b) await window.v3976DirectSyncSelectedSessions(String(b._id));
+      }catch(e){console.warn('V39.76 Session-Sync vor Detailansicht:',e)}
+      return oldOpenDetail.apply(this,arguments);
+    };
+  }
+})();
+</script>
+</body>
+\n<script>
 /* V39.66 – Einheitliche Lesesessions in ALLEN Ansichten.
    Dieselben gespeicherten Sessions und dieselbe Dauer werden überall verwendet:
    „Ich lese gerade“, Buchdetails und andere Session-Listen.
