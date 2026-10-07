@@ -5005,6 +5005,117 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
   });
 })();
 </script>
+
+<script>
+/* V39.70 – Dauerhafte Lesesession-Persistenz
+   Ausgangsbasis: V39.68. Keine Session darf beim Neuladen verschwinden.
+   Lokaler Session-Vault ist unabhängig vom normalen App-State und wird
+   mit dem Cloud-Bestand verlustfrei zusammengeführt.
+*/
+(function(){
+  const vaultKey=uid=>'lesezeit_sessions_vault_'+String(uid||'').replace(/[^a-zA-Z0-9_-]/g,'_');
+  const dur=s=>Math.max(0,Number(s?.duration_seconds||0),Number(s?.duration||0),Number(s?.duration_minutes||0)*60);
+  const fp=s=>[
+    String(s?.book_id??s?.bookId??''),
+    String(s?.start_page??0),String(s?.end_page??0),
+    String(s?.started_at??s?.date??''),String(s?.ended_at??'')
+  ].join('|');
+  const identity=(a,b)=>{
+    if(a?.cloud_id&&b?.cloud_id&&String(a.cloud_id)===String(b.cloud_id))return true;
+    if(a?.id&&b?.id&&String(a.id)===String(b.id) && !String(a.id).startsWith('local_') && !String(a.id).startsWith('manual_'))return true;
+    if(String(a?.book_id??'')!==String(b?.book_id??b?.bookId??''))return false;
+    const sa=String(a?.started_at??a?.date??'');
+    const sb=String(b?.started_at??b?.date??'');
+    if(!sa||!sb||sa!==sb)return false;
+    return Number(a?.start_page||0)===Number(b?.start_page||0) && Number(a?.end_page||0)===Number(b?.end_page||0);
+  };
+  const merge=(a,b)=>{
+    const out={...a};
+    for(const [k,v] of Object.entries(b||{})) if(v!==undefined&&v!==null&&v!=='') out[k]=v;
+    out.book_id=String(a?.book_id??b?.book_id??b?.bookId??'');
+    out.start_page=Number(a?.start_page??b?.start_page??0);
+    out.end_page=Math.max(Number(a?.end_page||0),Number(b?.end_page||0));
+    out.pages_read=Math.max(Number(a?.pages_read||0),Number(b?.pages_read||0),Math.max(0,out.end_page-out.start_page));
+    const seconds=Math.max(dur(a),dur(b));
+    out.duration_seconds=seconds; out.duration=seconds; out.duration_minutes=Math.floor(seconds/60);
+    if(!out.started_at)out.started_at=a?.started_at||b?.started_at||'';
+    if(!out.ended_at && b?.ended_at)out.ended_at=b.ended_at;
+    if(a?.manual||b?.manual)out.manual=true;
+    if(b?.cloud_id)out.cloud_id=String(b.cloud_id);
+    if(b?.id && (!out.id || String(out.id).startsWith('local_')||String(out.id).startsWith('manual_')))out.id=String(b.id);
+    return out;
+  };
+  function writeVault(){
+    try{
+      const uid=window.LesezeitCurrentUser?.id;
+      if(!uid||!Array.isArray(window.state?.sessions))return;
+      localStorage.setItem(vaultKey(uid),JSON.stringify(window.state.sessions));
+    }catch(e){console.warn('V39.70 Vault schreiben:',e);}
+  }
+  function readVault(uid){
+    try{
+      const a=JSON.parse(localStorage.getItem(vaultKey(uid))||'[]');
+      return Array.isArray(a)?a:[];
+    }catch(e){return []}
+  }
+  window.v39PersistSessionsNow=writeVault;
+
+  /* save bleibt der normale Speicherweg; zusätzlich wird jede Session separat gesichert. */
+  const oldSave=window.save;
+  window.save=function(){
+    try{ if(typeof oldSave==='function') oldSave(); }
+    finally{ writeVault(); }
+  };
+
+  /* Beim Account-Wechsel verlorene lokale Sessions aus dem Vault zurückholen. */
+  const oldActivate=window.activateUserState;
+  if(typeof oldActivate==='function'){
+    window.activateUserState=function(user){
+      oldActivate(user);
+      try{
+        const uid=user?.id; if(!uid)return;
+        const vault=readVault(uid);
+        if(!vault.length)return;
+        const current=Array.isArray(window.state?.sessions)?window.state.sessions:[];
+        const merged=[...current];
+        for(const v of vault){
+          const i=merged.findIndex(x=>identity(x,v));
+          if(i>=0)merged[i]=merge(merged[i],v); else merged.push(v);
+        }
+        window.state.sessions=merged;
+        if(typeof window.save==='function')window.save();
+      }catch(e){console.warn('V39.70 Vault-Wiederherstellung:',e);}
+    };
+  }
+
+  /* Auch manuelle Eingaben werden nach dem Speichern sofort separat gesichert. */
+  const oldManual=window.saveManualSession;
+  if(typeof oldManual==='function'){
+    window.saveManualSession=async function(){
+      try{ return await oldManual.apply(this,arguments); }
+      finally{ writeVault(); }
+    };
+  }
+
+  /* Bei jedem Auth-Ready-Vorgang den Vault mit dem aktuellen State abgleichen. */
+  window.addEventListener('lesezeit-auth-ready',()=>setTimeout(writeVault,250));
+
+  /* Falls der vorhandene Cloud-Ladevorgang den State ersetzt, bleibt der Vault
+     als letzte lokale Kopie verfügbar und wird beim nächsten Aktivieren wieder
+     eingemischt. */
+  window.v39RestoreSessionVault=function(){
+    try{
+      const uid=window.LesezeitCurrentUser?.id;if(!uid)return 0;
+      const vault=readVault(uid), current=Array.isArray(window.state?.sessions)?window.state.sessions:[];
+      let added=0; const merged=[...current];
+      for(const v of vault){const i=merged.findIndex(x=>identity(x,v));if(i>=0)merged[i]=merge(merged[i],v);else{merged.push(v);added++;}}
+      window.state.sessions=merged; if(added&&typeof window.save==='function')window.save();
+      return added;
+    }catch(e){return 0}
+  };
+  window.addEventListener('lesezeit-cloud-ready',()=>setTimeout(()=>window.v39RestoreSessionVault?.(),50));
+})();
+</script>
 </body>
 \n<script>
 /* V39.66 – Einheitliche Lesesessions in ALLEN Ansichten.
