@@ -5134,6 +5134,102 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
   }catch(e){}
 })();
 </script>
+
+<script>
+/* V39.72 – Geräteübergreifende Lesesession-Synchronisierung.
+   Lokale Sessions vom iPhone/PC werden nach dem Login mit Supabase abgeglichen.
+   Bereits zusammengefasste Cloud-Sessions werden nicht doppelt hochgeladen.
+   Neue lokale Sessions werden in die Cloud übertragen, damit sie auf dem
+   anderen Gerät ebenfalls erscheinen.
+*/
+(function(){
+  let running=false;
+  const dayOf=s=>String(s?.started_at||s?.date||'').slice(0,10);
+  const dur=s=>Math.max(0,Number(s?.duration_seconds||0),Number(s?.duration||0),Number(s?.duration_minutes||0)*60);
+  const start=s=>Number(s?.start_page||0);
+  const end=s=>Number(s?.end_page||0);
+  const pages=s=>Math.max(0,Number(s?.pages_read||0),end(s)-start(s));
+  const sameExact=(a,b)=>String(a?.book_id||a?.bookId||'')===String(b?.book_id||b?.bookId||'') &&
+    start(a)===start(b) && end(a)===end(b) && String(a?.started_at||'').slice(0,19)===String(b?.started_at||'').slice(0,19);
+  function normalizeCloud(r){
+    const seconds=Math.max(0,Number(r?.duration_seconds||0),Number(r?.duration_minutes||0)*60);
+    return {id:String(r.id),cloud_id:String(r.id),book_id:String(r.user_book_id),start_page:start(r),end_page:end(r),pages_read:Math.max(0,end(r)-start(r)),duration_seconds:seconds,duration:seconds,duration_minutes:Math.floor(seconds/60),started_at:r.started_at,ended_at:r.ended_at,active_timer:false};
+  }
+  async function reconcile(){
+    if(running)return;
+    const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
+    if(!sb||!u||!Array.isArray(window.state?.sessions))return;
+    running=true;
+    try{
+      const q=await sb.from('reading_sessions').select('*').eq('user_id',u.id).order('started_at',{ascending:false});
+      if(q.error)throw q.error;
+      const cloud=(q.data||[]).map(normalizeCloud);
+      let locals=Array.isArray(window.state.sessions)?window.state.sessions.map(x=>({...x})):[];
+      let changed=false;
+
+      // 1) Exakte Cloud-Treffer bekommen ihre Cloud-ID und werden nicht nochmals angelegt.
+      for(const l of locals){
+        if(l?.cloud_id)continue;
+        const hit=cloud.find(c=>sameExact(l,c));
+        if(hit){
+          l.cloud_id=hit.cloud_id; l.id=hit.id; changed=true;
+        }
+      }
+
+      // 2) Wenn der PC bereits eine zusammengefasste Cloud-Session hat,
+      //    werden die dazugehörigen lokalen Teil-Sessions auf diese eine
+      //    kanonische Session reduziert. Beispiel: 86 + 92 Min => 178 Min.
+      const consumed=new Set();
+      for(const c of cloud){
+        const candidates=locals.filter(l=>!l?.cloud_id && String(l.book_id||l.bookId||'')===String(c.book_id) && dayOf(l)===dayOf(c) && start(l)>=start(c) && end(l)<=end(c) && end(l)>start(l));
+        if(candidates.length<2)continue;
+        const totalPages=Math.max(...candidates.map(end))-Math.min(...candidates.map(start));
+        const totalDur=candidates.reduce((n,l)=>n+dur(l),0);
+        if(totalPages===Math.max(0,end(c)-start(c)) && totalDur===dur(c)){
+          for(const l of candidates)consumed.add(String(l.id||'local_'+Math.random()));
+          const ids=new Set(candidates.map(l=>String(l.id)));
+          locals=locals.filter(l=>!ids.has(String(l.id)));
+          locals.push(c);
+          changed=true;
+        }
+      }
+
+      // 3) Alles, was lokal noch keine Cloud-ID besitzt, wird hochgeladen.
+      //    Vor dem Insert nochmals exakt gegen den aktuellen Cloud-Bestand prüfen.
+      for(const l of locals){
+        if(l?.cloud_id)continue;
+        if(!l?.started_at || !l?.book_id)continue;
+        const exact=cloud.find(c=>sameExact(l,c));
+        if(exact){l.cloud_id=exact.cloud_id;l.id=exact.id;changed=true;continue;}
+        const payload={
+          user_id:u.id,
+          user_book_id:String(l.book_id),
+          started_at:String(l.started_at),
+          ended_at:l.ended_at||null,
+          duration_seconds:Math.max(0,Math.floor(dur(l))),
+          start_page:start(l),
+          end_page:end(l)
+        };
+        const ins=await sb.from('reading_sessions').insert(payload).select('id').single();
+        if(ins.error){console.warn('V39.72 Session-Upload:',ins.error.message);continue;}
+        if(ins.data?.id){l.cloud_id=String(ins.data.id);l.id=String(ins.data.id);changed=true;cloud.push({...l,id:String(ins.data.id),cloud_id:String(ins.data.id)});}
+      }
+
+      if(changed){
+        window.state.sessions=locals;
+        if(typeof window.save==='function')window.save();
+        if(typeof window.renderSessions==='function')window.renderSessions();
+        if(typeof window.v34RenderSessionHistory==='function')window.v34RenderSessionHistory();
+        if(typeof window.refresh==='function')window.refresh();
+        if(typeof window.renderStats==='function')window.renderStats();
+      }
+    }catch(e){console.warn('V39.72 Session-Sync:',e)}
+    finally{running=false;}
+  }
+  window.v39ReconcileSessionsAcrossDevices=reconcile;
+  window.addEventListener('lesezeit-auth-ready',()=>setTimeout(reconcile,250));
+})();
+</script>
 </body>
 \n<script>
 /* V39.66 – Einheitliche Lesesessions in ALLEN Ansichten.
