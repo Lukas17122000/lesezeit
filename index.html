@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V39.63 – Lesezeitewelt</title>
+<title>Lesezeit · V39.71 – Lesezeitewelt</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;500;600;700;800;900&family=Julius+Sans+One&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Yellowtail&display=swap');
 
@@ -2279,7 +2279,7 @@ async function saveManualSession(){
        const tm=oldStarted.match(/T(\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)$/);
        newStartedAt=tm?`${date}T${tm[1]}`:`${date}T00:00:00`;
      }
-     let newEndedAt=editing.ended_at||null;
+     let newEndedAt=editing.ended_at||`${date}T23:59:59`;
      if(newEndedAt){
        const et=String(newEndedAt).match(/T(\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)$/);
        newEndedAt=et?`${date}T${et[1]}`:newEndedAt;
@@ -2323,7 +2323,7 @@ async function saveManualSession(){
    save();
    const sb=window.LesezeitSupabase,u=window.LesezeitCurrentUser;
    if(sb&&u&&selected._cloud){
-     const {data,error}=await sb.from('reading_sessions').insert({user_id:u.id,user_book_id:String(selected._id),started_at:startedAt,ended_at:v39ManualTimerMode?`${date}T23:59:59`:null,duration_seconds:v39ManualTimerMode?durationSeconds:0,start_page:startPage,end_page:endPage}).select('id').single();
+     const {data,error}=await sb.from('reading_sessions').insert({user_id:u.id,user_book_id:String(selected._id),started_at:startedAt,ended_at:`${date}T23:59:59`,duration_seconds:v39ManualTimerMode?durationSeconds:0,start_page:startPage,end_page:endPage}).select('id').single();
      if(error)throw error;
      if(data?.id){saved.cloud_id=String(data.id);saved.id=String(data.id);save();}
      const upd=await sb.from('user_books').update({current_page:endPage,status:Number(selected.Seitenanzahl||0)>0&&endPage>=Number(selected.Seitenanzahl)?'read':'reading'}).eq('id',String(selected._id)).eq('user_id',u.id);
@@ -3413,7 +3413,7 @@ refresh();setView(viewMode);
           duration_seconds:Number(r.duration_seconds||0)||Number(r.duration_minutes||0)*60,
           duration:Number(r.duration_seconds||0)||Number(r.duration_minutes||0)*60,
           started_at:r.started_at, ended_at:r.ended_at,
-          active_timer:(r.ended_at==null && Number(r.duration_seconds||0)<=0)
+          active_timer:false
         }));
 
         const sec=x=>Math.max(0,Number(x?.duration_seconds||0),Number(x?.duration||0),Number(x?.duration_minutes||0)*60);
@@ -5114,6 +5114,24 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
     }catch(e){return 0}
   };
   window.addEventListener('lesezeit-cloud-ready',()=>setTimeout(()=>window.v39RestoreSessionVault?.(),50));
+})();
+</script>
+<script>
+/* V39.71 – completed manual sessions are never classified as active timers. */
+(function(){
+  try{
+    const oldRender=window.v34RenderSessionHistory;
+    window.v34RenderSessionHistory=function(){
+      try{
+        if(Array.isArray(window.state?.sessions)) window.state.sessions.forEach(s=>{
+          if(!s) return;
+          const d=Number(s.duration_seconds||s.duration||0);
+          if((s.manual===true || (d<=0 && s.ended_at)) && s.active_timer) s.active_timer=false;
+        });
+      }catch(e){}
+      return typeof oldRender==='function' ? oldRender.apply(this,arguments) : undefined;
+    };
+  }catch(e){}
 })();
 </script>
 </body>
