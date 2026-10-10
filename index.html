@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V39.78 – Lesezeitewelt</title>
+<title>Lesezeit · V39.79 – Lesezeitewelt</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;500;600;700;800;900&family=Julius+Sans+One&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Yellowtail&display=swap');
 
@@ -2363,30 +2363,39 @@ function v39SessionKey(s){
 async function deleteReadingSession(id){
  const session=(state.sessions||[]).find(x=>String(x.id)===String(id));
  if(!session)return;
- if(!confirm('Diese Lesesession wirklich löschen?'))return;
+ if(!confirm('Nur diese eine Lesesession wirklich löschen?'))return;
  try{
    const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
-   // Delete only the exact Supabase row represented by this session.
-   // Never delete by date/pages: several legitimate sessions can share a day.
-   if(sb && u && session.cloud_id){
-     const q=await sb.from('reading_sessions').delete()
-       .eq('id',String(session.cloud_id))
-       .eq('user_id',u.id);
-     if(q?.error)throw q.error;
+   // Prefer the explicit cloud id. Some older session objects store the
+   // Supabase row id in `id` only; only use it when it looks like a UUID.
+   let cloudId=session.cloud_id?String(session.cloud_id):'';
+   if(!cloudId && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(session.id||''))){
+     cloudId=String(session.id);
    }
-   // Remove only this exact local entry, not every entry with the same
-   // logical/date key. Other sessions from the same day must remain intact.
+   if(sb && u && cloudId){
+     const q=await sb.from('reading_sessions').delete()
+       .eq('id',cloudId)
+       .eq('user_id',u.id)
+       .select('id');
+     if(q?.error)throw q.error;
+     // Do not fall back to date/page-based deletion if the row was not found.
+   }
+   // Remove only the selected object locally. If the same exact cloud row
+   // has duplicate in-memory representations, remove those representations
+   // by cloud id only; never remove sessions merely because they share a day.
    state.sessions=(state.sessions||[]).filter(x=>{
      if(x===session)return false;
-     const sameId=String(x?.id??'')===String(session.id??'');
-     const sameCloud=!!session.cloud_id && String(x?.cloud_id??'')===String(session.cloud_id);
-     return !(sameId||sameCloud);
+     return !(cloudId && String(x?.cloud_id||'')===cloudId);
    });
    save();
-   renderSessions(); v34RenderSessionHistory();
+   if(typeof renderSessions==='function')renderSessions();
+   if(typeof v34RenderSessionHistory==='function')v34RenderSessionHistory();
    if(typeof renderStats==='function')renderStats();
    if(typeof refresh==='function')refresh();
- }catch(e){ console.error('Session löschen',e); alert('Die Lesesession konnte nicht gelöscht werden.'); }
+ }catch(e){
+   console.error('Session löschen',e);
+   alert('Die Lesesession konnte nicht sicher gelöscht werden: '+(e?.message||'unbekannter Fehler'));
+ }
 }
 
 function renderSessions(){
