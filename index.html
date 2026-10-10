@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lesezeit · V39.77 – Lesezeitewelt</title>
+<title>Lesezeit · V39.78 – Lesezeitewelt</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Bebas+Neue&family=Cinzel:wght@400;500;600;700;800;900&family=Julius+Sans+One&family=League+Spartan:wght@100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Oswald:wght@200..700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&family=Yellowtail&display=swap');
 
@@ -2366,29 +2366,22 @@ async function deleteReadingSession(id){
  if(!confirm('Diese Lesesession wirklich löschen?'))return;
  try{
    const sb=window.LesezeitSupabase, u=window.LesezeitCurrentUser;
-   if(sb && u){
-     let q;
-     if(session.cloud_id){
-       q=await sb.from('reading_sessions').delete().eq('id',String(session.cloud_id)).eq('user_id',u.id);
-       if(q?.error)throw q.error;
-     }
-     // Remove accidental duplicate copies of exactly this logical session.
-     if(session.book_id && session.started_at){
-       const startPage=Number(session.start_page||0), endPage=Number(session.end_page||0);
-       let dup=sb.from('reading_sessions').delete()
-         .eq('user_id',u.id)
-         .eq('user_book_id',String(session.book_id))
-         .eq('start_page',startPage)
-         .eq('end_page',endPage)
-         .eq('started_at',String(session.started_at));
-       if(session.ended_at===null || session.manual) dup=dup.is('ended_at',null);
-       else if(session.ended_at) dup=dup.eq('ended_at',String(session.ended_at));
-       const dq=await dup;
-       if(dq?.error)throw dq.error;
-     }
+   // Delete only the exact Supabase row represented by this session.
+   // Never delete by date/pages: several legitimate sessions can share a day.
+   if(sb && u && session.cloud_id){
+     const q=await sb.from('reading_sessions').delete()
+       .eq('id',String(session.cloud_id))
+       .eq('user_id',u.id);
+     if(q?.error)throw q.error;
    }
-   const key=v39SessionKey(session);
-   state.sessions=(state.sessions||[]).filter(x=>v39SessionKey(x)!==key);
+   // Remove only this exact local entry, not every entry with the same
+   // logical/date key. Other sessions from the same day must remain intact.
+   state.sessions=(state.sessions||[]).filter(x=>{
+     if(x===session)return false;
+     const sameId=String(x?.id??'')===String(session.id??'');
+     const sameCloud=!!session.cloud_id && String(x?.cloud_id??'')===String(session.cloud_id);
+     return !(sameId||sameCloud);
+   });
    save();
    renderSessions(); v34RenderSessionHistory();
    if(typeof renderStats==='function')renderStats();
@@ -5173,8 +5166,23 @@ window.searchFriends=searchFriends;window.sendFriendRequest=sendFriendRequest;wi
       const cloud=(data||[]).map(mapRow);
       const local=state.sessions.filter(x=>String(x?.book_id??x?.bookId??'')===String(bookId)&&!x?.active_timer);
       let uploaded=0;
+      const dateOnly=v=>{
+        const raw=String(v?.started_at||v?.date||'');
+        const iso=raw.match(/^(\d{4}-\d{2}-\d{2})/); if(iso)return iso[1];
+        const de=raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+        return de?`${de[3]}-${String(de[2]).padStart(2,'0')}-${String(de[1]).padStart(2,'0')}`:'';
+      };
+      const sameLogical=(a,b)=>String(a?.book_id??a?.bookId??'')===String(b?.book_id??b?.bookId??'')
+        && Number(a?.start_page||0)===Number(b?.start_page||0)
+        && Number(a?.end_page||0)===Number(b?.end_page||0)
+        && dateOnly(a)!=='' && dateOnly(a)===dateOnly(b)
+        && sec(a)===sec(b);
       for(const x of local){
-        if(cloud.some(c=>same(c,x))) continue;
+        if(cloud.some(c=>same(c,x)||sameLogical(c,x))) {
+          const match=cloud.find(c=>same(c,x)||sameLogical(c,x));
+          if(match){x.cloud_id=match.cloud_id;x.id=match.id;x.ended_at=x.ended_at||match.ended_at;}
+          continue;
+        }
         const payload={user_id:u.id,user_book_id:String(bookId),started_at:x.started_at||null,ended_at:x.ended_at||((x.started_at?String(x.started_at).slice(0,10):'')+'T23:59:59'),duration_seconds:sec(x),start_page:Number(x.start_page||0),end_page:Number(x.end_page||0)};
         const ins=await sb.from('reading_sessions').insert(payload).select('*').single();
         if(ins.error) throw ins.error;
